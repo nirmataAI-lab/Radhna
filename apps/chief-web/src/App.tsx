@@ -104,10 +104,9 @@ function Login() {
 
 interface Order {
   id: string;
-  orderType: string;
   status: string;
   createdAt: string;
-  table?: { tableNumber: string } | null;
+  customer?: { id: string; email?: string; name?: string } | null;
   orderItems?: {
     id: string;
     quantity: number;
@@ -115,6 +114,7 @@ interface Order {
     foodItem?: { name: string } | null;
   }[];
 }
+
 
 // ─── KDS Order Card ─────────────────────────────────
 
