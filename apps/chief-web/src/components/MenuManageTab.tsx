@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Loader2, Plus, Edit3, Trash2, UtensilsCrossed } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Loader2, Plus, Edit3, Trash2, UtensilsCrossed, Upload, Eye, EyeOff } from 'lucide-react';
 import {
   fetchCategories, createCategory, updateCategory, deleteCategory,
   fetchAllFoodItems, createFoodItem, updateFoodItem, deleteFoodItem,
   type Category, type FoodItem,
 } from '../menuApi';
+import { fileToCompressedDataUrl } from '../lib/imageUpload';
+
 
 export function MenuManageTab() {
   const [categories, setCategories] = useState<Category[]>([]);
