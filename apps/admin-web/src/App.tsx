@@ -48,6 +48,7 @@ function useTheme() {
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -60,42 +61,129 @@ function Login() {
       const data = await loginApi(email, password);
       setAuth(data.access_token, data.user);
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
 
+  const fillDemo = () => {
+    setEmail('admin@restaurant.com');
+    setPassword('password123');
+  };
+
+  const features = [
+    { icon: TrendingUp, title: 'Real-time analytics', desc: 'Revenue, orders and table occupancy at a glance.' },
+    { icon: ChefHat, title: 'Kitchen sync', desc: 'Orders stream live to the KDS the moment they land.' },
+    { icon: ShieldCheck, title: 'Role-based access', desc: 'Fine-grained permissions with full audit trail.' },
+  ];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)]">
-      <div className="premium-card p-8 w-full max-w-md">
-        <div className="flex flex-col items-center mb-8">
-          <LayoutDashboard className="w-12 h-12 text-[var(--color-primary)] mb-4" />
-          <h1 className="text-2xl font-bold text-center">Admin Login</h1>
-          <p className="text-sm text-[var(--color-muted-foreground)] mt-1">Restaurant Management Dashboard</p>
+    <div className="min-h-dvh grid lg:grid-cols-2 bg-[var(--color-background)]">
+      {/* Brand rail */}
+      <aside className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden text-white"
+        style={{ background: 'var(--gradient-primary)' }}>
+        <div className="absolute inset-0 opacity-40"
+          style={{ background: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.25), transparent 45%), radial-gradient(circle at 80% 80%, rgba(0,0,0,0.25), transparent 55%)' }} />
+        <div className="relative z-10 flex items-center gap-2 text-lg font-semibold tracking-tight">
+          <LayoutDashboard className="w-6 h-6" />
+          <span>Cloud Kitchen OS</span>
         </div>
-        {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm font-medium border border-red-200">{error}</div>
-        )}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="relative z-10 space-y-8">
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@restaurant.com" required
-              className="w-full p-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-medium mb-6">
+              <Sparkles className="w-3.5 h-3.5" /> Admin console
+            </div>
+            <h2 className="font-display text-5xl leading-[1.05] mb-4">
+              Run your kitchen<br />like a well-oiled<br />machine.
+            </h2>
+            <p className="text-white/80 max-w-md">
+              One dashboard for orders, menu, inventory, tables and analytics — built for teams that ship food fast.
+            </p>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-              placeholder="password123" required
-              className="w-full p-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50" />
+          <ul className="space-y-4 max-w-md">
+            {features.map((f) => (
+              <li key={f.title} className="flex gap-3">
+                <div className="shrink-0 w-9 h-9 rounded-lg bg-white/15 backdrop-blur-md grid place-items-center">
+                  <f.icon className="w-4.5 h-4.5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-semibold text-sm">{f.title}</div>
+                  <div className="text-xs text-white/75">{f.desc}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="relative z-10 text-xs text-white/70">
+          © {new Date().getFullYear()} Cloud Kitchen OS · v1.0
+        </div>
+      </aside>
+
+      {/* Form */}
+      <main className="flex items-center justify-center p-6 sm:p-10">
+        <div className="w-full max-w-md">
+          <div className="flex items-center gap-2 mb-8 lg:hidden">
+            <LayoutDashboard className="w-6 h-6 text-[var(--color-primary)]" />
+            <span className="font-semibold">Cloud Kitchen OS</span>
           </div>
-          <button type="submit" disabled={loading}
-            className="w-full bg-[var(--color-primary)] text-white font-bold py-2.5 rounded-lg mt-2 hover:opacity-90 transition-opacity disabled:opacity-50">
-            {loading ? 'Signing in...' : 'Login'}
-          </button>
-        </form>
-      </div>
+          <h1 className="font-display text-4xl mb-2">Welcome back</h1>
+          <p className="text-sm text-[var(--color-muted-foreground)] mb-8">
+            Sign in to your admin dashboard to continue.
+          </p>
+
+          {error && (
+            <div role="alert" className="flex gap-2 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 p-3 rounded-lg mb-4 text-sm border border-red-200 dark:border-red-900">
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium mb-1.5">Email</label>
+              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@restaurant.com" required autoComplete="email" autoFocus
+                className="w-full px-3.5 py-2.5 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40 focus:border-[var(--color-primary)] transition" />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="block text-sm font-medium">Password</label>
+                <button type="button" className="text-xs text-[var(--color-primary)] hover:underline">Forgot?</button>
+              </div>
+              <div className="relative">
+                <input id="password" type={showPw ? 'text' : 'password'} value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••" required autoComplete="current-password"
+                  className="w-full px-3.5 py-2.5 pr-10 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40 focus:border-[var(--color-primary)] transition" />
+                <button type="button" onClick={() => setShowPw((v) => !v)}
+                  aria-label={showPw ? 'Hide password' : 'Show password'}
+                  className="absolute inset-y-0 right-0 px-3 grid place-items-center text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]">
+                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" disabled={loading}
+              className="gradient-button w-full font-semibold py-2.5 rounded-lg mt-2 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Signing in…</>
+              ) : (
+                <>Sign in <ArrowRight className="w-4 h-4" /></>
+              )}
+            </button>
+
+            <button type="button" onClick={fillDemo}
+              className="w-full text-sm font-medium py-2 rounded-lg border border-dashed border-[var(--color-border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition flex items-center justify-center gap-2">
+              <Zap className="w-3.5 h-3.5" /> Fill demo credentials
+            </button>
+          </form>
+
+          <p className="text-xs text-[var(--color-muted-foreground)] mt-8 text-center">
+            Protected by role-based access control · Audit-logged
+          </p>
+        </div>
+      </main>
     </div>
   );
 }
