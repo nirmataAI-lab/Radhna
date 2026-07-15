@@ -679,7 +679,9 @@ function KitchenDashboard() {
                 ? 'Recall Lane'
                 : activeTab === 'completed'
                 ? 'Completed Orders'
-                : 'Prep Stock'}
+                : activeTab === 'stock'
+                ? 'Prep Stock'
+                : 'Menu Manager'}
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${isConnected ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]' : 'bg-[var(--color-destructive)]/15 text-[var(--color-destructive)]'}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-[var(--color-success)] animate-pulse' : 'bg-[var(--color-destructive)]'}`} />
                 {isConnected ? 'Live' : 'Offline'}
