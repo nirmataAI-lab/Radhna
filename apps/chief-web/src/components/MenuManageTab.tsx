@@ -142,7 +142,12 @@ export function MenuManageTab() {
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {visible.map((item) => (
-                <div key={item.id} className={`premium-card p-4 ${!item.isEnabled ? 'opacity-50' : ''}`}>
+                <div key={item.id} className={`premium-card p-4 ${!item.isEnabled ? 'opacity-60' : ''}`}>
+                  {item.imageUrl && (
+                    <div className="mb-3 -mx-4 -mt-4 aspect-video overflow-hidden rounded-t-xl bg-[var(--color-muted)]">
+                      <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                    </div>
+                  )}
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <h4 className="truncate font-semibold">{item.name}</h4>
@@ -159,7 +164,7 @@ export function MenuManageTab() {
                     </span>
                     {item.isPopular && <span className="rounded bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-orange-700 dark:text-orange-400">Popular</span>}
                     {item.isTodaysSpecial && <span className="rounded bg-purple-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700 dark:text-purple-400">Special</span>}
-                    {!item.isEnabled && <span className="rounded bg-gray-500/15 px-1.5 py-0.5 text-[10px] font-semibold">Disabled</span>}
+                    {!item.isEnabled && <span className="rounded bg-gray-500/15 px-1.5 py-0.5 text-[10px] font-semibold">Unavailable</span>}
                     {item.productionStock && (
                       <span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 dark:text-blue-400">
                         Stock: {item.productionStock.availableQty}
@@ -167,6 +172,13 @@ export function MenuManageTab() {
                     )}
                   </div>
                   <div className="flex gap-2">
+                    <button
+                      onClick={() => handleToggleAvailability(item)}
+                      title={item.isEnabled ? 'Mark unavailable' : 'Mark available'}
+                      className={`flex items-center justify-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition ${item.isEnabled ? 'border-[var(--color-border)] hover:bg-[var(--color-muted)]' : 'border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-400 hover:bg-orange-500/20'}`}
+                    >
+                      {item.isEnabled ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                    </button>
                     <button
                       onClick={() => { setEditItem(item); setShowItemModal(true); }}
                       className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold hover:bg-[var(--color-muted)]"
@@ -182,6 +194,7 @@ export function MenuManageTab() {
                   </div>
                 </div>
               ))}
+
             </div>
           )}
         </div>
