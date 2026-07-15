@@ -518,15 +518,46 @@ function OrdersTab() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    try { setOrders(await fetchAllOrders(statusFilter || undefined)); }
+    try { setOrders(await fetchAllOrders(statusFilter || undefined)); setSelected(new Set()); }
     catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, [statusFilter]);
 
   useEffect(() => { load(); }, [load]);
+
+  const selectableIds = orders
+    .filter(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED')
+    .map(o => o.id);
+  const allSelected = selectableIds.length > 0 && selectableIds.every(id => selected.has(id));
+
+  const toggleAll = () => {
+    setSelected(prev => {
+      if (allSelected) return new Set();
+      return new Set(selectableIds);
+    });
+  };
+  const toggleOne = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const bulkUpdate = async (status: 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED') => {
+    if (selected.size === 0) return;
+    if (status === 'CANCELLED' && !confirm(`Cancel ${selected.size} order(s)?`)) return;
+    setBulkBusy(true);
+    try {
+      await Promise.all([...selected].map(id => updateOrderStatus(id, status).catch(() => null)));
+      await load();
+    } finally { setBulkBusy(false); }
+  };
 
   return (
     <div>
@@ -564,6 +595,37 @@ function OrdersTab() {
           </button>
         </div>
       </header>
+
+      {selected.size > 0 && (
+        <div className="premium-card mb-4 px-4 py-3 flex items-center justify-between bg-[var(--color-primary)]/5 border-[var(--color-primary)]/30">
+          <div className="text-sm font-medium">
+            {selected.size} selected
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button disabled={bulkBusy} onClick={() => bulkUpdate('PREPARING')}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50">
+              <ChefHat className="w-3.5 h-3.5" /> Mark Preparing
+            </button>
+            <button disabled={bulkBusy} onClick={() => bulkUpdate('READY')}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-amber-100 text-amber-700 hover:bg-amber-200 disabled:opacity-50">
+              <Bell className="w-3.5 h-3.5" /> Mark Ready
+            </button>
+            <button disabled={bulkBusy} onClick={() => bulkUpdate('COMPLETED')}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50">
+              <ShieldCheck className="w-3.5 h-3.5" /> Complete
+            </button>
+            <button disabled={bulkBusy} onClick={() => bulkUpdate('CANCELLED')}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50">
+              <X className="w-3.5 h-3.5" /> Cancel
+            </button>
+            <button disabled={bulkBusy} onClick={() => setSelected(new Set())}
+              className="text-xs px-3 py-1.5 rounded-md border border-[var(--color-border)] hover:bg-[var(--color-muted)]">
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="premium-card overflow-hidden">
         {orders.length === 0 ? (
           <div className="p-12 text-center text-[var(--color-muted-foreground)]">
@@ -574,6 +636,12 @@ function OrdersTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-border)] bg-[var(--color-muted)]">
+                  <th className="p-3 w-10">
+                    <button onClick={toggleAll} disabled={selectableIds.length === 0}
+                      className="p-0.5 rounded hover:bg-[var(--color-border)] disabled:opacity-30" title="Select all active">
+                      {allSelected ? <CheckSquare className="w-4 h-4 text-[var(--color-primary)]" /> : <Square className="w-4 h-4" />}
+                    </button>
+                  </th>
                   <th className="text-left p-3 font-semibold">Order</th>
                   <th className="text-left p-3 font-semibold">Customer</th>
                   <th className="text-left p-3 font-semibold">Items</th>
@@ -585,8 +653,17 @@ function OrdersTab() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-muted)] transition-colors">
+                {orders.map((order) => {
+                  const selectable = order.status !== 'COMPLETED' && order.status !== 'CANCELLED';
+                  const isSel = selected.has(order.id);
+                  return (
+                  <tr key={order.id} className={`border-b border-[var(--color-border)] transition-colors ${isSel ? 'bg-[var(--color-primary)]/5' : 'hover:bg-[var(--color-muted)]'}`}>
+                    <td className="p-3">
+                      <button onClick={() => selectable && toggleOne(order.id)} disabled={!selectable}
+                        className="p-0.5 rounded hover:bg-[var(--color-border)] disabled:opacity-20 disabled:cursor-not-allowed">
+                        {isSel ? <CheckSquare className="w-4 h-4 text-[var(--color-primary)]" /> : <Square className="w-4 h-4" />}
+                      </button>
+                    </td>
                     <td className="p-3 font-mono text-xs">{order.id.slice(0, 8)}...</td>
                     <td className="p-3">{order.customer?.name || order.customer?.email || '—'}</td>
                     <td className="p-3">{order.orderItems?.length || 0} items</td>
@@ -619,7 +696,7 @@ function OrdersTab() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );})}
               </tbody>
             </table>
           </div>
