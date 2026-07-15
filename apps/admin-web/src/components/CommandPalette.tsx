@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Search, TrendingUp, ListOrdered, UtensilsCrossed, Tag, Star, ScrollText,
-  Package, BarChart3, Sun, Moon, LogOut, Command as CmdIcon,
+  Package, BarChart3, Sun, Moon, LogOut, Command as CmdIcon, Users,
 } from 'lucide-react';
 
 export type PaletteTab =
   | 'dashboard' | 'analytics' | 'orders' | 'menu'
-  | 'inventory' | 'coupons' | 'reviews' | 'audit';
+  | 'inventory' | 'coupons' | 'reviews' | 'audit' | 'staff';
 
 interface Action {
   id: string;
