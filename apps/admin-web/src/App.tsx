@@ -4,8 +4,9 @@ import {
   Edit3, Trash2, X, Loader2, BarChart3, Tag, Calendar, Percent,
   Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
   Sparkles, Zap, ArrowRight, Clock, Download, Search, Users, CheckSquare, Square,
+  Upload,
 } from 'lucide-react';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   fetchOverviewStats, loginApi, fetchAllOrders, updateOrderStatus,
   fetchCategories, createCategory, updateCategory, deleteCategory,
@@ -13,6 +14,8 @@ import {
   fetchAnalytics,
   fetchCoupons, createCoupon, deleteCoupon,
 } from './api';
+import { fileToCompressedDataUrl } from './lib/imageUpload';
+
 import type { Category, FoodItem, Order, AnalyticsData, Coupon } from './api';
 import { AlertTriangle, PackageOpen } from 'lucide-react';
 import { useAuthStore } from './authStore';
