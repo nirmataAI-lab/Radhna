@@ -80,6 +80,9 @@ export class UsersController {
   }
 
   @Patch('staff/:id')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
   @ApiOperation({ summary: 'Update a staff member' })
   async updateStaff(@Param('id') id: string, @Body() dto: UpdateStaffDto, @Req() req: Request) {
     const target = await this.prisma.user.findUnique({ where: { id } });
