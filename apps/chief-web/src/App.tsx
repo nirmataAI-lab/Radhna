@@ -636,6 +636,7 @@ function KitchenDashboard() {
             </button>
           </nav>
           <div className="mt-auto flex flex-col gap-1 border-t border-[var(--color-border)] pt-4">
+            <div className="px-1 pb-1"><LanguageSwitcher /></div>
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
               className={`flex items-center gap-2 rounded-lg p-3 text-sm font-medium transition ${
@@ -643,13 +644,13 @@ function KitchenDashboard() {
               }`}
             >
               {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-              {soundEnabled ? 'Sound On' : 'Sound Off'}
+              {soundEnabled ? t('sidebar.soundOn') : t('sidebar.soundOff')}
             </button>
             <button
               onClick={logout}
               className="flex items-center gap-2 rounded-lg p-3 text-sm font-medium text-[var(--color-destructive)] transition hover:bg-[var(--color-destructive)]/10"
             >
-              <LogOut className="h-4 w-4" /> Logout
+              <LogOut className="h-4 w-4" /> {t('sidebar.logout')}
             </button>
           </div>
         </aside>
