@@ -54,6 +54,9 @@ export class UsersController {
   }
 
   @Post('staff')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
   @ApiOperation({ summary: 'Create a staff member' })
   async createStaff(@Body() dto: CreateStaffDto, @Req() req: Request) {
     if (!STAFF_ROLES.includes(dto.role)) {
