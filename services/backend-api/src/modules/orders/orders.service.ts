@@ -366,6 +366,62 @@ export class OrdersService {
   }
 
   /**
+   * Recall an order back into the kitchen. Used when a READY or COMPLETED
+   * order needs to be remade (customer complaint, wrong item, cold food, …).
+   * Bypasses the normal forward-only state machine and moves the order back
+   * to PREPARING so it re-appears on the Chief KDS. The reason is stamped
+   * onto `cancelReason` with a `RECALL:` prefix so the field doubles as a
+   * lightweight note without a schema change.
+   */
+  async recall(id: string, reason?: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        orderItems: { include: { foodItem: true } },
+        customer: {
+          select: { id: true, email: true, phone: true, name: true },
+        },
+      },
+    });
+    if (!order) throw new NotFoundException(`Order ${id} not found`);
+
+    const recallable: OrderStatus[] = [
+      OrderStatus.READY,
+      OrderStatus.COMPLETED,
+    ];
+    if (!recallable.includes(order.status as OrderStatus)) {
+      throw new BadRequestException(
+        `Only READY or COMPLETED orders can be recalled (current: ${order.status}).`,
+      );
+    }
+
+    const note = `RECALL: ${(reason || 'Sent back to kitchen').trim()}`;
+
+    const updatedOrder = await this.prisma.order.update({
+      where: { id },
+      data: {
+        status: OrderStatus.PREPARING,
+        cancelReason: note,
+      },
+      include: { orderItems: { include: { foodItem: true } } },
+    });
+
+    this.ordersGateway.broadcastOrderStatusUpdate(updatedOrder);
+
+    if (order.customerId) {
+      void this.notificationsService
+        .create({
+          userId: order.customerId,
+          title: 'Order being remade',
+          message: `Your order #${order.id.slice(0, 6)} is being remade by the kitchen.`,
+        })
+        .catch(() => {});
+    }
+
+    return updatedOrder;
+
+
+  /**
    * Customer-initiated cancel. Only the order's own customer may call this,
    * and only while the order is still in PLACED status.
    */
