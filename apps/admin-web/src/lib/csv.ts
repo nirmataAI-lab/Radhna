@@ -7,7 +7,7 @@ function escapeCell(value: unknown): string {
   return s;
 }
 
-export function toCSV<T extends Record<string, unknown>>(
+export function toCSV<T>(
   rows: T[],
   columns: { key: keyof T; label: string; format?: (v: any, row: T) => unknown }[],
 ): string {
@@ -15,7 +15,7 @@ export function toCSV<T extends Record<string, unknown>>(
   const body = rows
     .map((row) =>
       columns
-        .map((c) => escapeCell(c.format ? c.format(row[c.key], row) : row[c.key]))
+        .map((c) => escapeCell(c.format ? c.format((row as any)[c.key], row) : (row as any)[c.key]))
         .join(','),
     )
     .join('\n');
