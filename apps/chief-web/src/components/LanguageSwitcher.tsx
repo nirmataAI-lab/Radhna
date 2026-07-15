@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Languages } from 'lucide-react'
-import { SUPPORTED_LANGS } from '@/lib/i18n'
+import { SUPPORTED_LANGS } from '../lib/i18n'
 
 export function LanguageSwitcher() {
   const { i18n, t } = useTranslation()
