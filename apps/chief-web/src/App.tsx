@@ -326,7 +326,7 @@ function KitchenDashboard() {
   const [completed, setCompleted] = useState<Order[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'active' | 'recall' | 'completed' | 'stock'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'recall' | 'completed' | 'stock' | 'menu'>('active');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
