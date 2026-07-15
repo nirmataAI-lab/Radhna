@@ -1,9 +1,11 @@
-import { ChefHat, LogOut, CookingPot, CheckCheck, X, RefreshCw, Maximize2, Minimize2, Bell, BellOff } from 'lucide-react';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { ChefHat, LogOut, CookingPot, CheckCheck, X, RefreshCw, Maximize2, Minimize2, Bell, BellOff, Keyboard } from 'lucide-react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { fetchActiveOrders, loginApi, updateOrderStatus } from './api';
 import type { OrderStatus } from './api';
 import { useAuthStore } from './authStore';
+import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
+import { useItemCheckoff } from './hooks/useItemCheckoff';
 
 // ─── Notification Sound ─────────────────────────────
 
@@ -118,10 +120,14 @@ interface Order {
 
 // ─── KDS Order Card ─────────────────────────────────
 
-function OrderCard({ order, onStatusUpdate, statusLoading }: {
+function OrderCard({ order, onStatusUpdate, statusLoading, isChecked, onToggleItem, isFocused, index }: {
   order: Order;
   onStatusUpdate: (id: string, status: OrderStatus) => void;
   statusLoading: string | null;
+  isChecked: (itemId: string) => boolean;
+  onToggleItem: (itemId: string) => void;
+  isFocused: boolean;
+  index: number;
 }) {
   const timeSince = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000);
   const isUrgent = timeSince > 15 && order.status !== 'READY' && order.status !== 'COMPLETED';
@@ -139,9 +145,15 @@ function OrderCard({ order, onStatusUpdate, statusLoading }: {
 
   return (
     <div
-      className={`premium-card flex flex-col overflow-hidden ${isNew ? 'status-urgent' : ''} ${isUrgent ? 'ring-2 ring-[var(--color-warning)]/50' : ''}`}
+      className={`premium-card relative flex flex-col overflow-hidden ${isNew ? 'status-urgent' : ''} ${isUrgent ? 'ring-2 ring-[var(--color-warning)]/50' : ''} ${isFocused ? 'ring-4 ring-[var(--color-primary)] ring-offset-2 ring-offset-[var(--color-background)]' : ''}`}
       style={{ animation: 'slide-up 0.35s cubic-bezier(0.22,1,0.36,1)' }}
     >
+      {/* Position badge for keyboard shortcut */}
+      {index < 9 && (
+        <div className="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md bg-black/40 font-mono text-xs font-bold text-white/90 backdrop-blur">
+          {index + 1}
+        </div>
+      )}
       {/* Header bar */}
       <div className={`relative ${s.bg} p-4 text-white`}>
         <div className="flex items-start justify-between gap-3">
@@ -171,24 +183,41 @@ function OrderCard({ order, onStatusUpdate, statusLoading }: {
       {/* Items list */}
       <div className="flex-1 p-5">
         <ul className="space-y-3">
-          {order.orderItems?.map((item: any) => (
-            <li key={item.id} className="border-b border-[var(--color-border)] pb-3 last:border-0 last:pb-0">
-              <div className="flex items-baseline gap-3">
-                <span className="font-mono text-xl font-bold text-[var(--color-primary)] tabular-nums">
-                  {item.quantity}×
-                </span>
-                <span className="flex-1 font-display text-lg font-semibold leading-tight text-[var(--color-foreground)]">
-                  {item.foodItem?.name || 'Unknown Item'}
-                </span>
-              </div>
-              {item.specialInstructions && (
-                <div className="mt-2 flex items-start gap-2 rounded-lg border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-3 py-2 text-sm font-medium text-[var(--color-warning)]">
-                  <span className="mt-0.5">📝</span>
-                  <span className="flex-1">{item.specialInstructions}</span>
-                </div>
-              )}
-            </li>
-          ))}
+          {order.orderItems?.map((item: any) => {
+            const checked = isChecked(item.id);
+            const interactive = order.status === 'PREPARING' || order.status === 'ACCEPTED';
+            return (
+              <li key={item.id} className="border-b border-[var(--color-border)] pb-3 last:border-0 last:pb-0">
+                <button
+                  type="button"
+                  onClick={() => interactive && onToggleItem(item.id)}
+                  disabled={!interactive}
+                  className={`flex w-full items-baseline gap-3 rounded-lg text-left transition ${
+                    interactive ? 'cursor-pointer hover:bg-[var(--color-muted)]/60 px-2 -mx-2 py-1' : 'cursor-default'
+                  } ${checked ? 'opacity-50 line-through decoration-2' : ''}`}
+                  title={interactive ? (checked ? 'Mark as pending' : 'Mark as done') : undefined}
+                >
+                  <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition ${
+                    checked ? 'border-[var(--color-success)] bg-[var(--color-success)] text-white' : 'border-[var(--color-border)]'
+                  } ${!interactive ? 'opacity-40' : ''}`}>
+                    {checked && <CheckCheck className="h-3 w-3" />}
+                  </span>
+                  <span className="font-mono text-xl font-bold text-[var(--color-primary)] tabular-nums">
+                    {item.quantity}×
+                  </span>
+                  <span className="flex-1 font-display text-lg font-semibold leading-tight text-[var(--color-foreground)]">
+                    {item.foodItem?.name || 'Unknown Item'}
+                  </span>
+                </button>
+                {item.specialInstructions && (
+                  <div className="mt-2 flex items-start gap-2 rounded-lg border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-3 py-2 text-sm font-medium text-[var(--color-warning)]">
+                    <span className="mt-0.5">📝</span>
+                    <span className="flex-1">{item.specialInstructions}</span>
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </div>
 
@@ -259,8 +288,11 @@ function KitchenDashboard() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const logout = useAuthStore((state) => state.logout);
+  const checkoff = useItemCheckoff();
 
   const loadOrders = useCallback(async () => {
     try {
@@ -346,6 +378,102 @@ function KitchenDashboard() {
   }, [loadOrders, soundEnabled]);
 
   const activeOrders = orders;
+  const visibleOrders = useMemo(
+    () => (activeTab === 'active' ? activeOrders : completed),
+    [activeTab, activeOrders, completed],
+  );
+
+  const advanceOrder = useCallback((order: Order) => {
+    const next: Record<string, OrderStatus | undefined> = {
+      PLACED: 'PREPARING',
+      ACCEPTED: 'PREPARING',
+      PREPARING: 'READY',
+      READY: 'COMPLETED',
+    };
+    const nextStatus = next[order.status];
+    if (nextStatus) handleStatusUpdate(order.id, nextStatus);
+  }, [handleStatusUpdate]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const isTyping = (el: EventTarget | null) => {
+      const t = el as HTMLElement | null;
+      if (!t) return false;
+      const tag = t.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t as any).isContentEditable;
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isTyping(e.target)) return;
+
+      if (e.key === 'Escape') {
+        if (showHelp) setShowHelp(false);
+        else setFocusIndex(null);
+        return;
+      }
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setShowHelp((v) => !v);
+        return;
+      }
+      if (showHelp) return;
+
+      const key = e.key.toLowerCase();
+      if (key === 'f') { e.preventDefault(); toggleFullscreen(); return; }
+      if (key === 's') { e.preventDefault(); setSoundEnabled((v) => !v); return; }
+      if (key === 'a') { e.preventDefault(); setAutoRefresh((v) => !v); return; }
+      if (key === 'r') { e.preventDefault(); loadOrders(); return; }
+      if (key === 't') {
+        e.preventDefault();
+        setActiveTab((t) => (t === 'active' ? 'completed' : 'active'));
+        setFocusIndex(null);
+        return;
+      }
+
+      // Number keys 1-9 → focus by position
+      if (/^[1-9]$/.test(e.key)) {
+        const idx = parseInt(e.key, 10) - 1;
+        if (idx < visibleOrders.length) {
+          e.preventDefault();
+          setFocusIndex(idx);
+        }
+        return;
+      }
+
+      // Focused-order shortcuts
+      if (focusIndex === null) return;
+      const order = visibleOrders[focusIndex];
+      if (!order) return;
+
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        advanceOrder(order);
+      } else if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        if (order.status !== 'CANCELLED' && order.status !== 'COMPLETED') {
+          handleStatusUpdate(order.id, 'CANCELLED');
+        }
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusIndex((i) => Math.min((i ?? -1) + 1, visibleOrders.length - 1));
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusIndex((i) => Math.max((i ?? 1) - 1, 0));
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showHelp, focusIndex, visibleOrders, advanceOrder, handleStatusUpdate, loadOrders, toggleFullscreen]);
+
+  // Clamp focus when list shrinks
+  useEffect(() => {
+    if (focusIndex !== null && focusIndex >= visibleOrders.length) {
+      setFocusIndex(visibleOrders.length > 0 ? visibleOrders.length - 1 : null);
+    }
+  }, [visibleOrders.length, focusIndex]);
+
 
   return (
     <div ref={containerRef} className={`min-h-screen flex bg-[var(--color-background)] ${isFullscreen ? 'kds-fullscreen' : ''}`}>
@@ -466,6 +594,14 @@ function KitchenDashboard() {
             >
               <RefreshCw className="h-4 w-4" /> Refresh
             </button>
+            <button
+              onClick={() => setShowHelp(true)}
+              className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-muted-foreground)] transition hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
+              title="Keyboard shortcuts (press ?)"
+            >
+              <Keyboard className="h-4 w-4" />
+              <kbd className="hidden font-mono text-xs opacity-70 md:inline">?</kbd>
+            </button>
           </div>
         </header>
 
@@ -480,12 +616,16 @@ function KitchenDashboard() {
                   <p className="text-lg">Waiting for new orders to arrive...</p>
                 </div>
               ) : (
-                activeOrders.map((order) => (
+                activeOrders.map((order, index) => (
                   <OrderCard
                     key={order.id}
                     order={order}
+                    index={index}
+                    isFocused={focusIndex === index}
                     onStatusUpdate={handleStatusUpdate}
                     statusLoading={statusLoading}
+                    isChecked={checkoff.isChecked}
+                    onToggleItem={checkoff.toggle}
                   />
                 ))
               )}
@@ -542,6 +682,7 @@ function KitchenDashboard() {
           </div>
         )}
       </main>
+      <KeyboardShortcutsHelp open={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );
 }
