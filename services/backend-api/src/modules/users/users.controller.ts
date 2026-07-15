@@ -127,6 +127,9 @@ export class UsersController {
   }
 
   @Delete('staff/:id')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
   @ApiOperation({ summary: 'Delete a staff member' })
   async deleteStaff(@Param('id') id: string, @Req() req: Request) {
     const target = await this.prisma.user.findUnique({ where: { id } });
