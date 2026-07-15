@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Package, AlertTriangle, Plus, Loader2, Trash2, Edit3, RefreshCcw,
-  Star, MessageSquare, ScrollText, User as UserIcon, Search,
+  Star, MessageSquare, ScrollText, User as UserIcon, Search, Download,
 } from 'lucide-react';
 import {
   fetchInventory, fetchInventoryAlerts, createInventoryItem, updateInventoryItem, deleteInventoryItem,
   fetchAllFoodItems, fetchItemReviews, fetchAuditLog,
 } from './api';
 import type { InventoryItem, FoodItem, ItemReviews, AuditEntry } from './api';
+import { exportRowsAsCSV } from './lib/csv';
 
 // ─── Inventory Tab ──────────────────────────────────
 
