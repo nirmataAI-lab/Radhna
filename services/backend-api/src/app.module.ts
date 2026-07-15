@@ -12,7 +12,7 @@ import { MenuModule } from './modules/menu/menu.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { BillingModule } from './modules/billing/billing.module';
-import { TablesModule } from './modules/tables/tables.module';
+
 import { HealthModule } from './modules/health/health.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
@@ -86,7 +86,7 @@ import { RequestLoggerMiddleware } from './common/logger/request-logger.middlewa
     OrdersModule,
     InventoryModule,
     BillingModule,
-    TablesModule,
+    
     HealthModule,
     NotificationsModule,
     ReviewsModule,

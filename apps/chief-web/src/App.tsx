@@ -104,10 +104,9 @@ function Login() {
 
 interface Order {
   id: string;
-  orderType: string;
   status: string;
   createdAt: string;
-  table?: { tableNumber: string } | null;
+  customer?: { id: string; email?: string; name?: string } | null;
   orderItems?: {
     id: string;
     quantity: number;
@@ -115,6 +114,7 @@ interface Order {
     foodItem?: { name: string } | null;
   }[];
 }
+
 
 // ─── KDS Order Card ─────────────────────────────────
 
@@ -147,7 +147,8 @@ function OrderCard({ order, onStatusUpdate, statusLoading }: {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="font-display text-2xl font-bold leading-tight tracking-tight">
-              {order.table?.tableNumber ? `Table ${order.table.tableNumber}` : order.orderType.replace('_', ' ')}
+              {order.customer?.name || 'Takeaway'}
+
             </div>
             <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] opacity-90">
               {s.label} · #{order.id.slice(0, 6)}
@@ -510,10 +511,9 @@ function KitchenDashboard() {
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-lg">
-                        {order.table?.tableNumber
-                          ? `Table ${order.table.tableNumber}`
-                          : order.orderType}
+                        {order.customer?.name || 'Takeaway'}
                       </span>
+
                       <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full uppercase">
                         {order.status}
                       </span>

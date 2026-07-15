@@ -1,19 +1,19 @@
 import {
-  LayoutDashboard, RefreshCcw, LogOut, IndianRupee, ShoppingBag, Table2,
+  LayoutDashboard, RefreshCcw, LogOut, IndianRupee, ShoppingBag,
   TrendingUp, ChefHat, ListOrdered, UtensilsCrossed, Sun, Moon, Plus,
-  Edit3, Trash2, X, Loader2, QrCode, BarChart3, Tag, Calendar, Percent,
+  Edit3, Trash2, X, Loader2, BarChart3, Tag, Calendar, Percent,
   Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
-  Sparkles, Zap, ArrowRight,
+  Sparkles, Zap, ArrowRight, Clock,
 } from 'lucide-react';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   fetchOverviewStats, loginApi, fetchAllOrders, updateOrderStatus,
   fetchCategories, createCategory, updateCategory, deleteCategory,
   fetchAllFoodItems, createFoodItem, updateFoodItem, deleteFoodItem,
-  fetchTables, createTable, deleteTable, fetchAnalytics,
+  fetchAnalytics,
   fetchCoupons, createCoupon, deleteCoupon,
 } from './api';
-import type { Category, FoodItem, Order, Table as TableType, AnalyticsData, Coupon } from './api';
+import type { Category, FoodItem, Order, AnalyticsData, Coupon } from './api';
 import { AlertTriangle, PackageOpen } from 'lucide-react';
 import { useAuthStore } from './authStore';
 import {
@@ -22,7 +22,8 @@ import {
 } from 'recharts';
 import { InventoryTab, ReviewsTab, AuditTab } from './newTabs';
 
-type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'tables' | 'coupons' | 'inventory' | 'reviews' | 'audit';
+type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'coupons' | 'inventory' | 'reviews' | 'audit';
+
 
 const CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -202,7 +203,7 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
     { tab: 'orders', icon: ListOrdered, label: 'Orders' },
     { tab: 'menu', icon: UtensilsCrossed, label: 'Menu' },
     { tab: 'inventory', icon: Package, label: 'Inventory' },
-    { tab: 'tables', icon: Table2, label: 'Tables' },
+    
     { tab: 'coupons', icon: Tag, label: 'Coupons' },
     { tab: 'reviews', icon: Star, label: 'Reviews' },
     { tab: 'audit', icon: ScrollText, label: 'Audit Log' },
@@ -274,7 +275,7 @@ const STATUS_COLORS: Record<string, string> = {
 // ─── Dashboard Tab ──────────────────────────────────
 
 function DashboardTab() {
-  const [stats, setStats] = useState({ revenue: 0, totalOrders: 0, activeTables: 0 });
+  const [stats, setStats] = useState({ revenue: 0, totalOrders: 0, activeOrders: 0 });
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -303,7 +304,7 @@ function DashboardTab() {
   const cards = [
     { label: "Today's Revenue", value: `₹${stats.revenue.toFixed(2)}`, icon: IndianRupee, color: 'bg-green-50 text-green-600 dark:bg-green-900/30' },
     { label: 'Total Orders', value: stats.totalOrders.toString(), icon: ShoppingBag, color: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30' },
-    { label: 'Active Tables', value: stats.activeTables.toString(), icon: Table2, color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30' },
+    { label: 'Active Orders', value: stats.activeOrders.toString(), icon: Clock, color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30' },
   ];
 
   return (
@@ -551,7 +552,7 @@ function OrdersTab() {
               <thead>
                 <tr className="border-b border-[var(--color-border)] bg-[var(--color-muted)]">
                   <th className="text-left p-3 font-semibold">Order</th>
-                  <th className="text-left p-3 font-semibold">Table</th>
+                  <th className="text-left p-3 font-semibold">Customer</th>
                   <th className="text-left p-3 font-semibold">Items</th>
                   <th className="text-left p-3 font-semibold">Total</th>
                   <th className="text-left p-3 font-semibold">Payment</th>
@@ -564,7 +565,7 @@ function OrdersTab() {
                 {orders.map((order) => (
                   <tr key={order.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-muted)] transition-colors">
                     <td className="p-3 font-mono text-xs">{order.id.slice(0, 8)}...</td>
-                    <td className="p-3">{order.table?.tableNumber || '—'}</td>
+                    <td className="p-3">{order.customer?.name || order.customer?.email || '—'}</td>
                     <td className="p-3">{order.orderItems?.length || 0} items</td>
                     <td className="p-3 font-medium">₹{Number(order.total).toFixed(2)}</td>
                     <td className="p-3">
@@ -815,195 +816,6 @@ function FoodItemFormModal({ item, categories, onClose, onSaved }: {
   );
 }
 
-// ─── Tables Tab (with QR Code Generator) ────────────
-
-function TablesTab() {
-  const [tables, setTables] = useState<TableType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
-  const [qrGeneratorTable, setQrGeneratorTable] = useState<TableType | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try { setTables(await fetchTables()); }
-    catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this table?')) return;
-    await deleteTable(id);
-    load();
-  };
-
-  const CUSTOMER_URL = import.meta.env.VITE_CUSTOMER_URL || 'http://localhost:3001';
-
-  return (
-    <div>
-      <header className="flex justify-between items-center mb-8">
-        <div><h2 className="text-3xl font-bold">Tables Management</h2><p className="text-[var(--color-muted-foreground)] text-sm mt-1">Manage restaurant tables and print QR codes</p></div>
-        <button onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 text-sm font-bold bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
-          <Plus className="w-4 h-4" /> Add Table
-        </button>
-      </header>
-
-      {showAdd && (
-        <TableFormModal onClose={() => setShowAdd(false)} onSaved={() => { setShowAdd(false); load(); }} />
-      )}
-
-      {qrGeneratorTable && (
-        <QRCodeModal table={qrGeneratorTable} customerUrl={CUSTOMER_URL} onClose={() => setQrGeneratorTable(null)} />
-      )}
-
-      {loading ? (
-        <div className="text-center py-12"><Loader2 className="w-8 h-8 mx-auto animate-spin" /></div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {tables.map((t) => {
-            const menuUrl = `${CUSTOMER_URL}/menu?table=${t.tableNumber}`;
-            return (
-              <div key={t.id} className="premium-card p-5 text-center animate-fade-in">
-                <div className="text-3xl font-bold text-[var(--color-primary)] mb-1">{t.tableNumber}</div>
-                <p className="text-sm text-[var(--color-muted-foreground)] mb-3">Capacity: {t.capacity} people</p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  <button onClick={() => setQrGeneratorTable(t)}
-                    className="text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors flex items-center gap-1">
-                    <QrCode className="w-3 h-3" /> Print QR
-                  </button>
-                  <button onClick={() => { navigator.clipboard.writeText(menuUrl); }}
-                    className="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors">
-                    Copy Link
-                  </button>
-                  <button onClick={() => handleDelete(t.id)}
-                    className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors">
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-                {t._count && <p className="text-xs text-[var(--color-muted-foreground)] mt-2">{t._count.orders} orders</p>}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── QR Code Generator Modal ────────────────────────
-
-function QRCodeModal({ table, customerUrl, onClose }: { table: TableType; customerUrl: string; onClose: () => void }) {
-  const qrRef = useRef<HTMLDivElement>(null);
-  const qrDataUrl = useRef<string | null>(null);
-  const menuUrl = `${customerUrl}/menu?table=${table.tableNumber}`;
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const QRCode = (await import('qrcode')).default;
-        if (qrRef.current) {
-          const canvas = document.createElement('canvas');
-          await QRCode.toCanvas(canvas, menuUrl, {
-            width: 200,
-            margin: 2,
-            color: { dark: '#1e293b', light: '#ffffff' },
-          });
-          qrRef.current.innerHTML = '';
-          qrRef.current.appendChild(canvas);
-          qrDataUrl.current = canvas.toDataURL();
-        }
-      } catch {
-        const img = document.createElement('img');
-        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(menuUrl)}`;
-        img.alt = `QR for ${table.tableNumber}`;
-        img.className = 'mx-auto';
-        qrDataUrl.current = img.src;
-        if (qrRef.current) {
-          qrRef.current.innerHTML = '';
-          qrRef.current.appendChild(img);
-        }
-      }
-    })();
-  }, [menuUrl, table.tableNumber]);
-
-  const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-        if (!qrDataUrl.current) return;
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html><head><title>QR Code — ${table.tableNumber}</title>
-      <style>
-        body { font-family: Arial; text-align: center; padding: 40px; }
-        h1 { font-size: 24px; margin-bottom: 8px; }
-        .sub { color: #666; margin-bottom: 24px; font-size: 14px; }
-        .qr-wrap { margin: 20px 0; }
-        .url { color: #10b981; font-size: 12px; word-break: break-all; margin-top: 12px; }
-        @media print { body { padding: 20px; } }
-      </style></head><body>
-        <h1>📋 ${table.tableNumber}</h1>
-        <p class="sub">Scan to view menu &amp; order</p>
-        <div class="qr-wrap"><img src="${qrDataUrl.current}" style="width: 250px; height: 250px;" /></div>
-        <p class="url">${menuUrl}</p>
-        <script>window.print();</script>
-      </body></html>
-    `);
-    printWindow.document.close();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-[var(--color-card)] p-6 rounded-xl shadow-xl w-full max-w-sm m-4 text-center" onClick={(e) => e.stopPropagation()}>
-        <h3 className="font-bold text-lg mb-1">QR Code — {table.tableNumber}</h3>
-        <p className="text-sm text-[var(--color-muted-foreground)] mb-4">Customers scan to order from their table</p>
-        <div ref={qrRef} className="flex justify-center mb-4" style={{ minHeight: 200 }}>
-          <div className="animate-pulse bg-muted rounded-lg" style={{ width: 200, height: 200 }} />
-        </div>
-        <p className="text-xs text-[var(--color-muted-foreground)] mb-4 break-all">{menuUrl}</p>
-        <div className="flex gap-2">
-          <button onClick={onClose} className="flex-1 px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-muted)] transition-colors">Close</button>
-          <button onClick={handlePrint}
-            className="flex-1 bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors flex items-center justify-center gap-2 shadow-md">
-            🖨️ Print
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TableFormModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const [number, setNumber] = useState('');
-  const [capacity, setCapacity] = useState('4');
-  const [saving, setSaving] = useState(false);
-  const handleSave = async () => {
-    if (!number.trim()) return;
-    setSaving(true);
-    try { await createTable({ tableNumber: number.trim(), capacity: parseInt(capacity) || 4 }); onSaved(); }
-    catch (e: any) { alert(e.message); } finally { setSaving(false); }
-  };
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-[var(--color-card)] p-6 rounded-xl shadow-xl w-full max-w-sm m-4" onClick={(e) => e.stopPropagation()}>
-        <h3 className="font-bold text-lg mb-4">Add Table</h3>
-        <div className="flex flex-col gap-3">
-          <input value={number} onChange={(e) => setNumber(e.target.value)} placeholder="e.g. T6" className="w-full p-2 border border-[var(--color-border)] rounded-lg" />
-          <input value={capacity} onChange={(e) => setCapacity(e.target.value)} placeholder="Capacity" type="number" className="w-full p-2 border border-[var(--color-border)] rounded-lg" />
-          <div className="flex gap-2 mt-2">
-            <button onClick={onClose} className="flex-1 px-4 py-2 border border-[var(--color-border)] rounded-lg">Cancel</button>
-            <button onClick={handleSave} disabled={saving || !number.trim()}
-              className="flex-1 bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg disabled:opacity-50 flex items-center justify-center gap-2">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Create
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── Coupons Tab ────────────────────────────────────
 
@@ -1205,7 +1017,7 @@ function CouponFormModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
 // ─── New Order Notification Toast ───────────────────
 
 function NotificationToast({ order, onClose, onView }: {
-  order: { id: string; table?: { tableNumber: string } | null; orderType: string; createdAt: string };
+  order: { id: string; createdAt: string };
   onClose: () => void; onView: () => void;
 }) {
   useEffect(() => {
@@ -1222,9 +1034,9 @@ function NotificationToast({ order, onClose, onView }: {
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm">New Order Received!</p>
           <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
-            {order.table?.tableNumber ? `Table ${order.table.tableNumber}` : order.orderType}
-            {' · '}{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
+
           <p className="text-xs font-mono text-[var(--color-muted-foreground)] mt-0.5">
             #{order.id.slice(0, 8)}
           </p>
@@ -1317,7 +1129,7 @@ export default function App() {
         {tab === 'orders' && <OrdersTab />}
         {tab === 'menu' && <MenuTab />}
         {tab === 'inventory' && <InventoryTab />}
-        {tab === 'tables' && <TablesTab />}
+        
         {tab === 'coupons' && <CouponsTab />}
         {tab === 'reviews' && <ReviewsTab />}
         {tab === 'audit' && <AuditTab />}

@@ -10,8 +10,9 @@ export interface LoginResponse {
 export interface DashboardStats {
   revenue: number;
   totalOrders: number;
-  activeTables: number;
+  activeOrders: number;
 }
+
 
 export interface Category {
   id: string;
@@ -49,7 +50,6 @@ export interface FoodItem {
 
 export interface Order {
   id: string;
-  orderType: string;
   status: string;
   total: string;
   subtotal: string;
@@ -60,7 +60,7 @@ export interface Order {
   updatedAt: string;
   customerId?: string | null;
   cancelReason?: string | null;
-  table?: { tableNumber: string } | null;
+  customer?: { id: string; email?: string; name?: string } | null;
   orderItems?: {
     id: string;
     quantity: number;
@@ -70,13 +70,6 @@ export interface Order {
   }[];
 }
 
-export interface Table {
-  id: string;
-  tableNumber: string;
-  capacity: number;
-  qrCode?: string | null;
-  _count?: { orders: number };
-}
 
 // ─── Config ─────────────────────────────────────────
 
@@ -227,29 +220,6 @@ export async function deleteFoodItem(id: string): Promise<void> {
   return handleResponse(res);
 }
 
-// ─── Tables ─────────────────────────────────────────
-
-export async function fetchTables(): Promise<Table[]> {
-  const res = await fetch(`${API_URL}/tables`, { headers: authHeaders() });
-  return handleResponse(res);
-}
-
-export async function createTable(data: { tableNumber: string; capacity: number }): Promise<Table> {
-  const res = await fetch(`${API_URL}/tables`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
-  });
-  return handleResponse(res);
-}
-
-export async function deleteTable(id: string): Promise<void> {
-  const res = await fetch(`${API_URL}/tables/${id}`, {
-    method: 'DELETE',
-    headers: authHeaders(),
-  });
-  return handleResponse(res);
-}
 
 // ─── Analytics ─────────────────────────────────────
 
