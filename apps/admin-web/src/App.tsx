@@ -413,54 +413,68 @@ function AnalyticsTab() {
             </div>
           </div>
 
-          {/* Revenue Trend Chart */}
+          {/* Revenue Trend — Area with gradient */}
           <div className="premium-card p-5">
-            <h3 className="font-bold mb-4">Revenue Trend</h3>
+            <div className="flex items-baseline justify-between mb-4">
+              <h3 className="font-bold">Revenue Trend</h3>
+              <span className="text-xs text-[var(--color-muted-foreground)]">
+                {data.revenueTrend.length} day{data.revenueTrend.length === 1 ? '' : 's'} with sales
+              </span>
+            </div>
             <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data.revenueTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <AreaChart data={data.revenueTrend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(v) => v.slice(5)} />
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `₹${v}`} />
-                  <Tooltip formatter={(value: any) => [`₹${Number(value).toFixed(2)}`, 'Revenue']} />
-                  <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} dot={false} />
-                </LineChart>
+                  <Tooltip
+                    contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12 }}
+                    formatter={(value: any) => [`₹${Number(value).toFixed(2)}`, 'Revenue']}
+                  />
+                  <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fill="url(#revGradient)" />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Popular Items & Peak Hours */}
+          {/* Popular Items (horizontal bars) & Peak Hours */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="premium-card p-5">
               <h3 className="font-bold mb-4">Most Popular Items</h3>
-              <div className="space-y-3">
-                {data.popularItems.map((item, idx) => (
-                  <div key={item.name} className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-muted-foreground w-5">{idx + 1}.</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between text-sm">
-                        <span className="font-medium truncate">{item.name}</span>
-                        <span className="font-bold text-[var(--color-primary)]">{item.count}x</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-1.5 mt-1">
-                        <div className="bg-primary rounded-full h-1.5 transition-all"
-                          style={{ width: `${Math.min(100, (item.count / Math.max(...data.popularItems.map(i => i.count))) * 100)}%` }} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="h-72 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.popularItems.slice(0, 8)} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 11 }} />
+                    <YAxis dataKey="name" type="category" width={110} tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12 }}
+                      formatter={(v: any, key: string) => key === 'revenue' ? [`₹${Number(v).toFixed(2)}`, 'Revenue'] : [Number(v), 'Sold']}
+                    />
+                    <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
             <div className="premium-card p-5">
               <h3 className="font-bold mb-4">Peak Hours</h3>
-              <div className="h-64 w-full">
+              <div className="h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data.peakHours}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={2} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(value: any) => [Number(value), 'Orders']} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12 }}
+                      formatter={(value: any) => [Number(value), 'Orders']}
+                    />
                     <Bar dataKey="orders" fill="#10b981" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -468,19 +482,39 @@ function AnalyticsTab() {
             </div>
           </div>
 
-          {/* Payment Breakdown */}
+          {/* Payment Breakdown — Pie */}
           <div className="premium-card p-5">
             <h3 className="font-bold mb-4">Payment Status Breakdown</h3>
-            <div className="flex flex-wrap gap-4">
-              {data.paymentBreakdown.map((item, idx) => (
-                <div key={item.status} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }} />
-                  <span className="text-sm font-medium">{item.status}</span>
-                  <span className="text-sm font-bold">{item.count}</span>
-                </div>
-              ))}
-            </div>
+            {data.paymentBreakdown.length === 0 ? (
+              <div className="text-sm text-[var(--color-muted-foreground)] py-8 text-center">No payments in range</div>
+            ) : (
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={data.paymentBreakdown}
+                      dataKey="count"
+                      nameKey="status"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={90}
+                      paddingAngle={2}
+                    >
+                      {data.paymentBreakdown.map((_, i) => (
+                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12 }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
+
 
           {/* Coupon / Discount Analytics */}
           {data.discountStats && (
