@@ -5,7 +5,7 @@ import {
   Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
   Sparkles, Zap, ArrowRight, Clock,
 } from 'lucide-react';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   fetchOverviewStats, loginApi, fetchAllOrders, updateOrderStatus,
   fetchCategories, createCategory, updateCategory, deleteCategory,
