@@ -694,7 +694,9 @@ function KitchenDashboard() {
                 ? `${recalledOrders.length} order${recalledOrders.length === 1 ? '' : 's'} sent back to the kitchen`
                 : activeTab === 'completed'
                 ? `${completed.length} completed today`
-                : 'Set today\u2019s batch quantities'}
+                : activeTab === 'stock'
+                ? 'Set today\u2019s batch quantities'
+                : 'Add, edit and remove menu items and categories'}
             </p>
 
           </div>
