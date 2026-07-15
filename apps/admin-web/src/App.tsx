@@ -537,6 +537,25 @@ function OrdersTab() {
             <option value="PLACED">Placed</option><option value="PREPARING">Preparing</option>
             <option value="READY">Ready</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option>
           </select>
+          <button
+            onClick={() => exportRowsAsCSV(`orders-${new Date().toISOString().slice(0,10)}`, orders, [
+              { key: 'id', label: 'Order ID' },
+              { key: 'createdAt', label: 'Created', format: (v) => new Date(v).toISOString() },
+              { key: 'status', label: 'Status' },
+              { key: 'paymentStatus', label: 'Payment' },
+              { key: 'customer', label: 'Customer', format: (_v, r) => r.customer?.name || r.customer?.email || '' },
+              { key: 'orderItems', label: 'Items', format: (v) => (v?.length ?? 0) },
+              { key: 'subtotal', label: 'Subtotal' },
+              { key: 'discount', label: 'Discount' },
+              { key: 'tax', label: 'Tax' },
+              { key: 'total', label: 'Total' },
+            ])}
+            disabled={orders.length === 0}
+            className="flex items-center gap-2 text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors disabled:opacity-50"
+            title="Export as CSV"
+          >
+            <Download className="w-4 h-4" /> Export
+          </button>
           <button onClick={load} disabled={loading}
             className="flex items-center gap-2 text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors">
             <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
