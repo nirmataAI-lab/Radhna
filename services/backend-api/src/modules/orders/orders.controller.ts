@@ -73,7 +73,8 @@ export class OrdersController {
   // ─── Admin/Chief Protected Endpoints ───────────────
 
   @Get('analytics')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get business analytics',
@@ -90,7 +91,8 @@ export class OrdersController {
   }
 
   @Get('recent')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get recent orders since timestamp',
@@ -107,7 +109,8 @@ export class OrdersController {
   }
 
   @Get('overview')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get daily overview stats',
@@ -159,7 +162,8 @@ export class OrdersController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get order by ID',
@@ -205,7 +209,8 @@ export class OrdersController {
   }
 
   @Patch(':id/cancel')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Cancel an order',
