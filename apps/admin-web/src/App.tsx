@@ -1,19 +1,19 @@
 import {
-  LayoutDashboard, RefreshCcw, LogOut, IndianRupee, ShoppingBag, Table2,
+  LayoutDashboard, RefreshCcw, LogOut, IndianRupee, ShoppingBag,
   TrendingUp, ChefHat, ListOrdered, UtensilsCrossed, Sun, Moon, Plus,
-  Edit3, Trash2, X, Loader2, QrCode, BarChart3, Tag, Calendar, Percent,
+  Edit3, Trash2, X, Loader2, BarChart3, Tag, Calendar, Percent,
   Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
-  Sparkles, Zap, ArrowRight,
+  Sparkles, Zap, ArrowRight, Clock,
 } from 'lucide-react';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   fetchOverviewStats, loginApi, fetchAllOrders, updateOrderStatus,
   fetchCategories, createCategory, updateCategory, deleteCategory,
   fetchAllFoodItems, createFoodItem, updateFoodItem, deleteFoodItem,
-  fetchTables, createTable, deleteTable, fetchAnalytics,
+  fetchAnalytics,
   fetchCoupons, createCoupon, deleteCoupon,
 } from './api';
-import type { Category, FoodItem, Order, Table as TableType, AnalyticsData, Coupon } from './api';
+import type { Category, FoodItem, Order, AnalyticsData, Coupon } from './api';
 import { AlertTriangle, PackageOpen } from 'lucide-react';
 import { useAuthStore } from './authStore';
 import {
@@ -22,7 +22,8 @@ import {
 } from 'recharts';
 import { InventoryTab, ReviewsTab, AuditTab } from './newTabs';
 
-type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'tables' | 'coupons' | 'inventory' | 'reviews' | 'audit';
+type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'coupons' | 'inventory' | 'reviews' | 'audit';
+
 
 const CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
