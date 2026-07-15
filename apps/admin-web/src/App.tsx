@@ -3,7 +3,7 @@ import {
   TrendingUp, ChefHat, ListOrdered, UtensilsCrossed, Sun, Moon, Plus,
   Edit3, Trash2, X, Loader2, BarChart3, Tag, Calendar, Percent,
   Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
-  Sparkles, Zap, ArrowRight, Clock,
+  Sparkles, Zap, ArrowRight, Clock, Download, Search,
 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import {
@@ -21,6 +21,8 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { InventoryTab, ReviewsTab, AuditTab } from './newTabs';
+import { CommandPalette, useCommandPaletteHotkey } from './components/CommandPalette';
+import { exportRowsAsCSV } from './lib/csv';
 
 type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'coupons' | 'inventory' | 'reviews' | 'audit';
 
