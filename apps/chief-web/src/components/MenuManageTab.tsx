@@ -358,3 +358,77 @@ function ModalActions({ onCancel, onSave, saving, disabled, label }: { onCancel:
     </div>
   );
 }
+
+// ─── Image upload field ─────────────────────────────
+
+function ImageUploadField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (file: File | null) => {
+    if (!file) return;
+    setErr(null);
+    setUploading(true);
+    try {
+      const dataUrl = await fileToCompressedDataUrl(file);
+      onChange(dataUrl);
+    } catch (e: any) {
+      setErr(e.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = '';
+    }
+  };
+
+  return (
+    <Field label="Product image">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-3">
+          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]">
+            {value ? (
+              <img src={value} alt="preview" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xs text-[var(--color-muted-foreground)]">No image</div>
+            )}
+          </div>
+          <div className="flex flex-1 flex-col gap-2">
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleFile(e.target.files?.[0] || null)}
+              className="hidden"
+              id="menu-item-image-upload"
+            />
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              disabled={uploading}
+              className="flex items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-semibold hover:bg-[var(--color-muted)] disabled:opacity-50"
+            >
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {uploading ? 'Uploading…' : value ? 'Replace image' : 'Upload image'}
+            </button>
+            {value && (
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                className="text-xs font-semibold text-[var(--color-destructive)] hover:underline text-left"
+              >
+                Remove image
+              </button>
+            )}
+          </div>
+        </div>
+        <input
+          value={value.startsWith('data:') ? '' : value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="…or paste an image URL"
+          className={inputClass}
+        />
+        {err && <p className="text-xs text-[var(--color-destructive)]">{err}</p>}
+      </div>
+    </Field>
+  );
+}
