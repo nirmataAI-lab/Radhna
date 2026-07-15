@@ -176,4 +176,21 @@ export class OrdersController {
       reason || 'Cancelled by staff',
     );
   }
+
+  @Patch(':id/recall')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Recall a READY or COMPLETED order back to the kitchen',
+  })
+  @ApiParam({ name: 'id', description: 'Order ID (UUID)' })
+  @ApiBody({
+    required: false,
+    schema: { properties: { reason: { type: 'string' } } },
+  })
+  recallOrder(@Param('id') id: string, @Body('reason') reason?: string) {
+    return this.ordersService.recall(id, reason);
+  }
 }
+
