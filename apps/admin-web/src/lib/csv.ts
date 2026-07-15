@@ -34,7 +34,7 @@ export function downloadCSV(filename: string, csv: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function exportRowsAsCSV<T extends Record<string, unknown>>(
+export function exportRowsAsCSV<T>(
   filename: string,
   rows: T[],
   columns: { key: keyof T; label: string; format?: (v: any, row: T) => unknown }[],
