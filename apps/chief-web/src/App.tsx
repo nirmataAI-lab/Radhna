@@ -291,14 +291,25 @@ function OrderCard({ order, onStatusUpdate, onRecall, statusLoading, isChecked, 
             </button>
           </>
         ) : order.status === 'READY' ? (
-          <button
-            onClick={() => onStatusUpdate(order.id, 'COMPLETED')}
-            disabled={statusLoading === order.id}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-success)] py-3 text-base font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-50"
-          >
-            {statusLoading === order.id ? <RefreshCw className="h-5 w-5 animate-spin" /> : <><CheckCheck className="h-5 w-5" /> Complete Order</>}
-          </button>
+          <>
+            <button
+              onClick={() => onStatusUpdate(order.id, 'COMPLETED')}
+              disabled={statusLoading === order.id}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--color-success)] py-3 text-base font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-50"
+            >
+              {statusLoading === order.id ? <RefreshCw className="h-5 w-5 animate-spin" /> : <><CheckCheck className="h-5 w-5" /> Complete Order</>}
+            </button>
+            <button
+              onClick={() => onRecall(order)}
+              disabled={statusLoading === order.id}
+              className="rounded-xl border border-[var(--color-destructive)]/40 px-4 text-[var(--color-destructive)] transition hover:bg-[var(--color-destructive)]/10 disabled:opacity-50"
+              title="Recall to kitchen"
+            >
+              <Undo2 className="h-5 w-5" />
+            </button>
+          </>
         ) : null}
+
       </div>
     </div>
   );
