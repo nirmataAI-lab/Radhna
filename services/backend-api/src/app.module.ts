@@ -86,7 +86,7 @@ import { RequestLoggerMiddleware } from './common/logger/request-logger.middlewa
     OrdersModule,
     InventoryModule,
     BillingModule,
-    TablesModule,
+    
     HealthModule,
     NotificationsModule,
     ReviewsModule,
