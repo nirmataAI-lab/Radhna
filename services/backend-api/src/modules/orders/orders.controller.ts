@@ -33,59 +33,53 @@ const STAFF: Role[] = [Role.SUPER_ADMIN, Role.CHIEF];
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  // ─── Public Endpoints ──────────────────────────────
+  // ─── Public / customer ─────────────────────────────
 
   @Post()
-  @ApiOperation({
-    summary: 'Place a new order',
-    description:
-      'Public endpoint. Creates an order with optional customer linking and table assignment.',
-  })
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
+  @ApiOperation({ summary: 'Place a new order (takeaway)' })
+  create(@Body() dto: CreateOrderDto) {
+    return this.ordersService.create(dto);
   }
 
   @Get('track/:id')
-  @ApiOperation({
-    summary: 'Track an order by ID',
-    description:
-      'Public endpoint. Returns order status, items, and table info.',
-  })
+  @ApiOperation({ summary: 'Track an order by ID (public)' })
   @ApiParam({ name: 'id', description: 'Order ID (UUID)' })
   trackOrder(@Param('id') id: string) {
     return this.ordersService.trackOrder(id);
   }
 
-  // ─── Customer Authenticated Endpoints ──────────────
-
   @Get('my-orders')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Get customer orders',
-    description: "Returns the logged-in customer's order history.",
-  })
+  @ApiOperation({ summary: 'Get logged-in customer order history' })
   getMyOrders(@Req() req: Request) {
     const userId = (req as any).user?.userId;
     return this.ordersService.findByCustomer(userId);
   }
 
-  // ─── Admin/Chief Protected Endpoints ───────────────
+  @Patch(':id/cancel-mine')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Cancel my own order (only while status = PLACED)',
+  })
+  cancelMine(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+    @Req() req: Request,
+  ) {
+    const userId = (req as any).user?.userId;
+    return this.ordersService.cancelByCustomer(id, userId, reason);
+  }
+
+  // ─── Staff (SUPER_ADMIN | CHIEF) ───────────────────
 
   @Get('analytics')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Get business analytics',
-    description:
-      'Returns revenue trends, popular items, peak hours, and daily breakdown.',
-  })
-  @ApiQuery({
-    name: 'days',
-    required: false,
-    description: 'Number of days to analyze (default: 30)',
-  })
+  @ApiOperation({ summary: 'Business analytics' })
+  @ApiQuery({ name: 'days', required: false })
   getAnalytics(@Query('days') days?: string) {
     return this.ordersService.getAnalytics(days ? parseInt(days, 10) : 30);
   }
@@ -94,16 +88,8 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Get recent orders since timestamp',
-    description:
-      'Returns orders created after the given ISO timestamp. Used for admin notification polling.',
-  })
-  @ApiQuery({
-    name: 'since',
-    required: true,
-    description: 'ISO timestamp (e.g. 2025-01-01T00:00:00.000Z)',
-  })
+  @ApiOperation({ summary: 'Recent orders since timestamp (poll)' })
+  @ApiQuery({ name: 'since', required: true })
   getRecentOrders(@Query('since') since?: string) {
     return this.ordersService.findRecent(since || new Date(0).toISOString());
   }
@@ -112,10 +98,7 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Get daily overview stats',
-    description: "Returns today's revenue, total orders, and active tables.",
-  })
+  @ApiOperation({ summary: "Today's overview stats" })
   getOverview() {
     return this.ordersService.getOverviewStats();
   }
@@ -124,37 +107,15 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'List orders',
-    description: 'Returns all orders with optional status/table filtering.',
-  })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    description: 'Filter by status (comma-separated)',
-  })
-  @ApiQuery({
-    name: 'table',
-    required: false,
-    description: 'Filter by table number',
-  })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    description: 'Page number (1-based)',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Items per page (max 100)',
-  })
+  @ApiOperation({ summary: 'List orders' })
+  @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
   findAll(
     @Query('status') status?: string,
-    @Query('table') table?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    if (table) return this.ordersService.findByTable(table);
     return this.ordersService.findAll(
       status,
       page ? parseInt(page, 10) : 1,
@@ -166,11 +127,7 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Get order by ID',
-    description:
-      'Returns full order details including items, payments, and customer info.',
-  })
+  @ApiOperation({ summary: 'Get order by ID' })
   @ApiParam({ name: 'id', description: 'Order ID (UUID)' })
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(id);
@@ -180,11 +137,7 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Update order status',
-    description:
-      'Updates the order status following the valid state machine transitions.',
-  })
+  @ApiOperation({ summary: 'Update order status' })
   @ApiParam({ name: 'id', description: 'Order ID (UUID)' })
   @ApiBody({
     schema: {
@@ -214,12 +167,13 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Cancel an order',
-    description: 'Cancels an order with an optional reason.',
-  })
+  @ApiOperation({ summary: 'Cancel an order (staff)' })
   @ApiParam({ name: 'id', description: 'Order ID (UUID)' })
-  cancelOrder(@Param('id') id: string, @Body('reason') _reason: string) {
-    return this.ordersService.updateStatus(id, OrderStatus.CANCELLED);
+  cancelOrder(@Param('id') id: string, @Body('reason') reason: string) {
+    return this.ordersService.updateStatus(
+      id,
+      OrderStatus.CANCELLED,
+      reason || 'Cancelled by staff',
+    );
   }
 }
