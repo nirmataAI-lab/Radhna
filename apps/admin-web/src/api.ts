@@ -10,8 +10,9 @@ export interface LoginResponse {
 export interface DashboardStats {
   revenue: number;
   totalOrders: number;
-  activeTables: number;
+  activeOrders: number;
 }
+
 
 export interface Category {
   id: string;
