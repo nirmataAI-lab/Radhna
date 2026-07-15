@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -178,5 +179,37 @@ export class MenuController {
   @ApiOperation({ summary: 'Delete food item' })
   deleteFoodItem(@Param('id') id: string) {
     return this.menuService.deleteFoodItem(id);
+  }
+
+  // ─── Production Stock (Chief + Admin) ──────────────
+
+  @Get('stock')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'List production stock for all enabled items',
+    description:
+      'Returns every enabled food item with current availableQty. Used by the Chief prep-stock screen and Admin dashboards.',
+  })
+  listStock() {
+    return this.menuService.listStock();
+  }
+
+  @Patch('items/:id/stock')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Set daily production stock for an item',
+    description:
+      'Chief sets morning batch quantity (e.g. 50 burgers). Auto-decrements on order placement and restores on cancellation.',
+  })
+  setStock(
+    @Param('id') id: string,
+    @Body() body: { availableQty: number },
+    @Req() req: any,
+  ) {
+    return this.menuService.setStock(id, body.availableQty, req.user?.userId);
   }
 }

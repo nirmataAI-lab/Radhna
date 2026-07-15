@@ -1,10 +1,11 @@
-import { ChefHat, LogOut, CookingPot, CheckCheck, X, RefreshCw, Maximize2, Minimize2, Bell, BellOff, Keyboard } from 'lucide-react';
+import { ChefHat, LogOut, CookingPot, CheckCheck, X, RefreshCw, Maximize2, Minimize2, Bell, BellOff, Keyboard, Package } from 'lucide-react';
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { fetchActiveOrders, loginApi, updateOrderStatus } from './api';
 import type { OrderStatus } from './api';
 import { useAuthStore } from './authStore';
 import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
+import { PrepStockTab } from './components/PrepStockTab';
 import { useItemCheckoff } from './hooks/useItemCheckoff';
 
 // ─── Notification Sound ─────────────────────────────
@@ -284,7 +285,7 @@ function KitchenDashboard() {
   const [completed, setCompleted] = useState<Order[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'completed' | 'stock'>('active');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -528,6 +529,17 @@ function KitchenDashboard() {
                 </span>
               )}
             </button>
+            <button
+              onClick={() => setActiveTab('stock')}
+              className={`flex items-center gap-2.5 rounded-lg p-3 text-left transition ${
+                activeTab === 'stock'
+                  ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] shadow-inner'
+                  : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]'
+              }`}
+            >
+              <Package className="h-4 w-4" />
+              Prep Stock
+            </button>
           </nav>
           <div className="mt-auto flex flex-col gap-1 border-t border-[var(--color-border)] pt-4">
             <button
@@ -554,7 +566,7 @@ function KitchenDashboard() {
         <header className={`mb-6 flex items-center justify-between border-b border-[var(--color-border)] pb-4 ${isFullscreen ? 'kds-header' : ''}`}>
           <div className="min-w-0">
             <h2 className={`font-display font-bold tracking-tight flex items-center gap-3 ${isFullscreen ? 'text-4xl' : 'text-3xl'}`}>
-              {activeTab === 'active' ? 'Kitchen Display' : 'Completed Orders'}
+              {activeTab === 'active' ? 'Kitchen Display' : activeTab === 'completed' ? 'Completed Orders' : 'Prep Stock'}
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${isConnected ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]' : 'bg-[var(--color-destructive)]/15 text-[var(--color-destructive)]'}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-[var(--color-success)] animate-pulse' : 'bg-[var(--color-destructive)]'}`} />
                 {isConnected ? 'Live' : 'Offline'}
@@ -563,7 +575,9 @@ function KitchenDashboard() {
             <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
               {activeTab === 'active'
                 ? `${activeOrders.length} order${activeOrders.length === 1 ? '' : 's'} in queue`
-                : `${completed.length} completed today`}
+                : activeTab === 'completed'
+                ? `${completed.length} completed today`
+                : 'Set today\u2019s batch quantities'}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -605,7 +619,9 @@ function KitchenDashboard() {
           </div>
         </header>
 
-        {activeTab === 'active' ? (
+        {activeTab === 'stock' ? (
+          <PrepStockTab />
+        ) : activeTab === 'active' ? (
           <>
             {/* Active orders grid */}
             <div className={`grid gap-6 ${isFullscreen ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}`}>
