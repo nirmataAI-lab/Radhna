@@ -3,7 +3,7 @@ import {
   TrendingUp, ChefHat, ListOrdered, UtensilsCrossed, Sun, Moon, Plus,
   Edit3, Trash2, X, Loader2, BarChart3, Tag, Calendar, Percent,
   Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
-  Sparkles, Zap, ArrowRight, Clock, Download, Search,
+  Sparkles, Zap, ArrowRight, Clock, Download, Search, Users, CheckSquare, Square,
 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import {
