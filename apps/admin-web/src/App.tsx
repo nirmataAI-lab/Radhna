@@ -2,7 +2,8 @@ import {
   LayoutDashboard, RefreshCcw, LogOut, IndianRupee, ShoppingBag, Table2,
   TrendingUp, ChefHat, ListOrdered, UtensilsCrossed, Sun, Moon, Plus,
   Edit3, Trash2, X, Loader2, QrCode, BarChart3, Tag, Calendar, Percent,
-  Bell, BellRing, Package, Star, ScrollText,
+  Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
+  Sparkles, Zap, ArrowRight,
 } from 'lucide-react';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
