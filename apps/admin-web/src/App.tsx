@@ -2,7 +2,7 @@ import {
   LayoutDashboard, RefreshCcw, LogOut, IndianRupee, ShoppingBag, Table2,
   TrendingUp, ChefHat, ListOrdered, UtensilsCrossed, Sun, Moon, Plus,
   Edit3, Trash2, X, Loader2, QrCode, BarChart3, Tag, Calendar, Percent,
-  Bell, BellRing,
+  Bell, BellRing, Package, Star, ScrollText,
 } from 'lucide-react';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
@@ -19,8 +19,9 @@ import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
+import { InventoryTab, ReviewsTab, AuditTab } from './newTabs';
 
-type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'tables' | 'coupons';
+type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'tables' | 'coupons' | 'inventory' | 'reviews' | 'audit';
 
 const CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -111,8 +112,11 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
     { tab: 'analytics', icon: BarChart3, label: 'Analytics' },
     { tab: 'orders', icon: ListOrdered, label: 'Orders' },
     { tab: 'menu', icon: UtensilsCrossed, label: 'Menu' },
+    { tab: 'inventory', icon: Package, label: 'Inventory' },
     { tab: 'tables', icon: Table2, label: 'Tables' },
     { tab: 'coupons', icon: Tag, label: 'Coupons' },
+    { tab: 'reviews', icon: Star, label: 'Reviews' },
+    { tab: 'audit', icon: ScrollText, label: 'Audit Log' },
   ];
 
   return (
@@ -1223,8 +1227,11 @@ export default function App() {
         {tab === 'analytics' && <AnalyticsTab />}
         {tab === 'orders' && <OrdersTab />}
         {tab === 'menu' && <MenuTab />}
+        {tab === 'inventory' && <InventoryTab />}
         {tab === 'tables' && <TablesTab />}
         {tab === 'coupons' && <CouponsTab />}
+        {tab === 'reviews' && <ReviewsTab />}
+        {tab === 'audit' && <AuditTab />}
       </main>
 
       {/* Toast Notification */}

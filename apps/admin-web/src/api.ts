@@ -320,3 +320,94 @@ export async function trackOrder(orderId: string): Promise<Order | null> {
   if (!res.ok) return null;
   return res.json();
 }
+
+// ─── Inventory ──────────────────────────────────────
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  unit: string;
+  quantity: string | number;
+  lowStockThreshold: string | number;
+  supplierReference?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Paginated<T> {
+  data: T[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
+export async function fetchInventory(search?: string, page = 1, limit = 50): Promise<Paginated<InventoryItem>> {
+  const params = new URLSearchParams();
+  if (search) params.set('search', search);
+  params.set('page', String(page));
+  params.set('limit', String(limit));
+  const res = await fetch(`${API_URL}/inventory?${params}`, { headers: authHeaders() });
+  return handleResponse(res);
+}
+
+export async function fetchInventoryAlerts(): Promise<{ outOfStock: InventoryItem[]; lowStock: InventoryItem[] }> {
+  const res = await fetch(`${API_URL}/inventory/alerts`, { headers: authHeaders() });
+  return handleResponse(res);
+}
+
+export async function createInventoryItem(data: {
+  name: string; unit: string; quantity: number; lowStockThreshold: number; supplierReference?: string;
+}): Promise<InventoryItem> {
+  const res = await fetch(`${API_URL}/inventory`, {
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function updateInventoryItem(id: string, data: Partial<InventoryItem> & { quantity?: number; lowStockThreshold?: number }): Promise<InventoryItem> {
+  const res = await fetch(`${API_URL}/inventory/${id}`, {
+    method: 'PATCH', headers: authHeaders(), body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteInventoryItem(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/inventory/${id}`, { method: 'DELETE', headers: authHeaders() });
+  return handleResponse(res);
+}
+
+// ─── Reviews ────────────────────────────────────────
+
+export interface Review {
+  id: string;
+  rating: number;
+  comment?: string | null;
+  createdAt: string;
+  customer?: { id: string; name: string };
+}
+
+export interface ItemReviews {
+  reviews: Review[];
+  averageRating: number;
+  totalReviews: number;
+}
+
+export async function fetchItemReviews(foodItemId: string): Promise<ItemReviews> {
+  const res = await fetch(`${API_URL}/reviews/item/${foodItemId}`);
+  return handleResponse(res);
+}
+
+// ─── Audit Log ──────────────────────────────────────
+
+export interface AuditEntry {
+  id: string;
+  action: string;
+  entity: string;
+  entityId: string;
+  reason?: string | null;
+  timestamp: string;
+  admin?: { id: string; name: string; email: string };
+}
+
+export async function fetchAuditLog(page = 1, limit = 50): Promise<Paginated<AuditEntry>> {
+  const res = await fetch(`${API_URL}/audit-log?page=${page}&limit=${limit}`, { headers: authHeaders() });
+  return handleResponse(res);
+}
