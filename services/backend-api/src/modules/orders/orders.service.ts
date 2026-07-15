@@ -2,13 +2,15 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { OrderStatus, OrderType, PaymentStatus, Prisma } from '@prisma/client';
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
 import { OrdersGateway } from './orders.gateway';
 import { EmailService } from '../notifications/email.service';
 import { SmsService } from '../notifications/sms.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CouponsService } from '../coupons/coupons.service';
 import { paginate } from '../../common/pagination.dto';
 
@@ -19,38 +21,19 @@ export class OrdersService {
     private ordersGateway: OrdersGateway,
     private emailService: EmailService,
     private smsService: SmsService,
+    private notificationsService: NotificationsService,
     private couponsService: CouponsService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
-    const {
-      tableNumber,
-      items,
-      customerId,
-      customerEmail,
-      customerPhone,
-      couponCode,
-    } = createOrderDto;
+    const { items, customerId, customerEmail, customerPhone, couponCode } =
+      createOrderDto;
 
     if (!items || items.length === 0) {
       throw new BadRequestException('Order must contain at least one item');
     }
 
     return this.prisma.$transaction(async (tx) => {
-      let tableId: string | null = null;
-      let orderType: OrderType = OrderType.TAKEAWAY;
-
-      if (tableNumber) {
-        const table = await tx.table.findUnique({
-          where: { tableNumber },
-        });
-        if (!table) {
-          throw new NotFoundException(`Table ${tableNumber} not found`);
-        }
-        tableId = table.id;
-        orderType = OrderType.DINE_IN;
-      }
-
       const foodItemIds = items.map((i) => i.foodItemId);
 
       // Use SELECT FOR UPDATE to lock stock rows and prevent race conditions
@@ -124,7 +107,6 @@ export class OrdersService {
         });
       }
 
-      // Apply stock decrements after validation (still in transaction)
       for (const update of stockUpdates) {
         await tx.productionStock.update({
           where: { id: update.stockId },
@@ -151,8 +133,6 @@ export class OrdersService {
 
       const order = await tx.order.create({
         data: {
-          orderType,
-          tableId,
           customerId: customerId || null,
           status: OrderStatus.PLACED,
           paymentStatus: PaymentStatus.PENDING,
@@ -160,13 +140,10 @@ export class OrdersService {
           tax,
           discount,
           total,
-          orderItems: {
-            create: orderItemsData,
-          },
+          orderItems: { create: orderItemsData },
         },
         include: {
           orderItems: { include: { foodItem: true } },
-          table: true,
           customer: {
             select: { id: true, email: true, name: true, phone: true },
           },
@@ -190,7 +167,7 @@ export class OrdersService {
   }
 
   async findAll(statusStr?: string, page: number = 1, limit: number = 20) {
-    let where: any = {};
+    let where: Prisma.OrderWhereInput = {};
     if (statusStr) {
       const statuses = statusStr.split(',') as OrderStatus[];
       where = { status: { in: statuses } };
@@ -201,7 +178,6 @@ export class OrdersService {
         where,
         include: {
           orderItems: { include: { foodItem: true } },
-          table: true,
           customer: { select: { id: true, email: true, name: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -219,26 +195,9 @@ export class OrdersService {
       where: { customerId },
       include: {
         orderItems: { include: { foodItem: true } },
-        table: true,
       },
       orderBy: { createdAt: 'desc' },
       take: 50,
-    });
-  }
-
-  async findByTable(tableNumber: string) {
-    const table = await this.prisma.table.findUnique({
-      where: { tableNumber },
-    });
-    if (!table) throw new NotFoundException(`Table ${tableNumber} not found`);
-
-    return this.prisma.order.findMany({
-      where: { tableId: table.id },
-      include: {
-        orderItems: { include: { foodItem: true } },
-        table: true,
-      },
-      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -248,16 +207,16 @@ export class OrdersService {
       select: {
         id: true,
         status: true,
-        orderType: true,
         subtotal: true,
+        tax: true,
         discount: true,
         total: true,
         createdAt: true,
         updatedAt: true,
-        table: { select: { tableNumber: true } },
         orderItems: {
           select: {
             quantity: true,
+            unitPrice: true,
             foodItem: { select: { id: true, name: true } },
           },
         },
@@ -265,16 +224,13 @@ export class OrdersService {
     });
   }
 
-  /** Find orders created after a given timestamp (for admin notification polling) */
+  /** Recent orders (for admin new-order polling) */
   async findRecent(since: string) {
     const sinceDate = new Date(since);
     return this.prisma.order.findMany({
-      where: {
-        createdAt: { gte: sinceDate },
-      },
+      where: { createdAt: { gte: sinceDate } },
       include: {
         orderItems: { include: { foodItem: { select: { name: true } } } },
-        table: { select: { tableNumber: true } },
       },
       orderBy: { createdAt: 'desc' },
       take: 20,
@@ -298,17 +254,15 @@ export class OrdersService {
     );
     const totalOrders = todaysOrders.length;
 
-    const activeOrders = await this.prisma.order.findMany({
+    const activeOrders = await this.prisma.order.count({
       where: {
         status: {
           in: [OrderStatus.PLACED, OrderStatus.ACCEPTED, OrderStatus.PREPARING],
         },
-        tableId: { not: null },
       },
-      distinct: ['tableId'],
     });
 
-    return { revenue, totalOrders, activeTables: activeOrders.length };
+    return { revenue, totalOrders, activeOrders };
   }
 
   findOne(id: string) {
@@ -316,24 +270,20 @@ export class OrdersService {
       where: { id },
       include: {
         orderItems: { include: { foodItem: true } },
-        table: true,
         customer: { select: { id: true, email: true, name: true } },
       },
     });
   }
 
-  async updateStatus(id: string, status: OrderStatus) {
+  async updateStatus(id: string, status: OrderStatus, reason?: string) {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
         orderItems: { include: { foodItem: true } },
-        table: true,
-        customer: { select: { id: true, email: true, phone: true } },
+        customer: { select: { id: true, email: true, phone: true, name: true } },
       },
     });
-    if (!order) {
-      throw new NotFoundException(`Order ${id} not found`);
-    }
+    if (!order) throw new NotFoundException(`Order ${id} not found`);
 
     const validTransitions: Record<OrderStatus, OrderStatus[]> = {
       PLACED: ['ACCEPTED', 'PREPARING', 'CANCELLED'],
@@ -347,11 +297,10 @@ export class OrdersService {
     const allowed = validTransitions[order.status];
     if (!allowed.includes(status)) {
       throw new BadRequestException(
-        `Cannot transition from ${order.status} to ${status}. Allowed transitions: ${allowed.join(', ') || 'none'}`,
+        `Cannot transition from ${order.status} to ${status}. Allowed: ${allowed.join(', ') || 'none'}`,
       );
     }
 
-    // Handle stock restoration on cancellation
     const statusesRequiringRestore: OrderStatus[] = [
       OrderStatus.PLACED,
       OrderStatus.ACCEPTED,
@@ -366,17 +315,13 @@ export class OrdersService {
         where: { id },
         data: {
           status,
-          ...(status === 'CANCELLED'
-            ? { cancelReason: 'Cancelled by staff' }
+          ...(status === OrderStatus.CANCELLED
+            ? { cancelReason: reason || 'Cancelled' }
             : {}),
         },
-        include: {
-          orderItems: { include: { foodItem: true } },
-          table: true,
-        },
+        include: { orderItems: { include: { foodItem: true } } },
       });
 
-      // Restore stock if order is cancelled from active status
       if (shouldRestoreStock) {
         for (const item of order.orderItems) {
           const stock = await tx.productionStock.findUnique({
@@ -396,7 +341,20 @@ export class OrdersService {
 
     this.ordersGateway.broadcastOrderStatusUpdate(updatedOrder);
 
-    // Send notifications (fire-and-forget)
+    // Persist in-app notification for the customer (so they see it on next
+    // login / poll). This is what drives "order completed" alerts in the
+    // customer app now that dine-in/table flow is gone.
+    if (order.customerId) {
+      void this.notificationsService
+        .create({
+          userId: order.customerId,
+          title: this.notificationTitle(status),
+          message: this.notificationBody(order.id, status),
+        })
+        .catch(() => {});
+    }
+
+    // Fire-and-forget email / SMS
     void this.sendOrderNotifications(
       { ...updatedOrder, customer: order.customer },
       status,
@@ -408,8 +366,27 @@ export class OrdersService {
   }
 
   /**
-   * Get comprehensive analytics — now includes coupon discount data.
+   * Customer-initiated cancel. Only the order's own customer may call this,
+   * and only while the order is still in PLACED status.
    */
+  async cancelByCustomer(id: string, userId: string, reason?: string) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) throw new NotFoundException(`Order ${id} not found`);
+    if (order.customerId !== userId) {
+      throw new ForbiddenException('You can only cancel your own orders');
+    }
+    if (order.status !== OrderStatus.PLACED) {
+      throw new BadRequestException(
+        'Order can no longer be cancelled — the kitchen has already picked it up.',
+      );
+    }
+    return this.updateStatus(
+      id,
+      OrderStatus.CANCELLED,
+      reason || 'Cancelled by customer',
+    );
+  }
+
   async getAnalytics(days: number = 30) {
     const since = new Date();
     since.setDate(since.getDate() - days);
@@ -420,19 +397,15 @@ export class OrdersService {
         createdAt: { gte: since },
         status: { not: OrderStatus.CANCELLED },
       },
-      include: {
-        orderItems: { include: { foodItem: true } },
-      },
+      include: { orderItems: { include: { foodItem: true } } },
       orderBy: { createdAt: 'asc' },
     });
 
-    // ─── Revenue by day ───────────────────────────
     const revenueByDay: Record<string, number> = {};
     for (const order of orders) {
       const day = order.createdAt.toISOString().split('T')[0];
       revenueByDay[day] = (revenueByDay[day] || 0) + Number(order.total);
     }
-
     const revenueTrend = Object.entries(revenueByDay)
       .map(([date, revenue]) => ({
         date,
@@ -440,7 +413,6 @@ export class OrdersService {
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    // ─── Popular items ────────────────────────────
     const itemCounts: Record<
       string,
       { name: string; count: number; revenue: number }
@@ -448,46 +420,36 @@ export class OrdersService {
     for (const order of orders) {
       for (const oi of order.orderItems) {
         const itemName = oi.foodItem?.name || 'Unknown';
-        if (!itemCounts[itemName]) {
+        if (!itemCounts[itemName])
           itemCounts[itemName] = { name: itemName, count: 0, revenue: 0 };
-        }
         itemCounts[itemName].count += oi.quantity;
         itemCounts[itemName].revenue += Number(oi.unitPrice) * oi.quantity;
       }
     }
-
     const popularItems = Object.values(itemCounts)
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
-    // ─── Peak hours ───────────────────────────────
     const hourCounts: Record<number, number> = {};
     for (const order of orders) {
       const hour = order.createdAt.getHours();
       hourCounts[hour] = (hourCounts[hour] || 0) + 1;
     }
-
     const peakHours = Array.from({ length: 24 }, (_, i) => ({
       hour: i,
       label: `${i.toString().padStart(2, '0')}:00`,
       orders: hourCounts[i] || 0,
     }));
 
-    // ─── Payment breakdown ────────────────────────
     const paymentStatusCounts: Record<string, number> = {};
     for (const order of orders) {
       const status = order.paymentStatus || 'PENDING';
       paymentStatusCounts[status] = (paymentStatusCounts[status] || 0) + 1;
     }
-
     const paymentBreakdown = Object.entries(paymentStatusCounts).map(
-      ([status, count]) => ({
-        status,
-        count,
-      }),
+      ([status, count]) => ({ status, count }),
     );
 
-    // ─── Coupon / Discount analytics ──────────────
     const ordersWithDiscount = orders.filter((o) => Number(o.discount) > 0);
     const totalDiscountGiven = ordersWithDiscount.reduce(
       (s, o) => s + Number(o.discount),
@@ -495,7 +457,6 @@ export class OrdersService {
     );
     const discountOrderCount = ordersWithDiscount.length;
 
-    // ─── Top-level stats ──────────────────────────
     const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
     const totalOrders = orders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
@@ -509,7 +470,6 @@ export class OrdersService {
       popularItems,
       peakHours,
       paymentBreakdown,
-      // New coupon analytics data
       discountStats: {
         totalDiscountGiven: Math.round(totalDiscountGiven * 100) / 100,
         discountOrderCount,
@@ -525,7 +485,39 @@ export class OrdersService {
     };
   }
 
-  /** Fire-and-forget notifications */
+  // ─── Helpers ─────────────────────────────────────────
+
+  private notificationTitle(status: OrderStatus): string {
+    switch (status) {
+      case OrderStatus.ACCEPTED:
+        return 'Order accepted';
+      case OrderStatus.PREPARING:
+        return 'The kitchen is on it';
+      case OrderStatus.READY:
+        return 'Your order is ready!';
+      case OrderStatus.COMPLETED:
+        return 'Enjoy your meal 🍽️';
+      case OrderStatus.CANCELLED:
+        return 'Order cancelled';
+      default:
+        return 'Order update';
+    }
+  }
+
+  private notificationBody(orderId: string, status: OrderStatus): string {
+    const short = orderId.slice(0, 8);
+    switch (status) {
+      case OrderStatus.READY:
+        return `Order #${short} is ready for pickup.`;
+      case OrderStatus.COMPLETED:
+        return `Order #${short} is complete. Thanks for ordering!`;
+      case OrderStatus.CANCELLED:
+        return `Order #${short} has been cancelled.`;
+      default:
+        return `Order #${short} status: ${status}.`;
+    }
+  }
+
   private sendOrderNotifications(
     order: any,
     status: OrderStatus,
@@ -540,7 +532,6 @@ export class OrdersService {
           .join(', ') + (order.orderItems?.length > 3 ? ' + more' : '');
 
       const details = {
-        tableNumber: order.table?.tableNumber,
         items: itemsSummary,
         total: `₹${Number(order.total).toFixed(2)}`,
       };
