@@ -23,7 +23,8 @@
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "setup": "npm run docker:up && sleep 3 && npm run db:setup",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:dev": "cd apps/admin-web && npm run build"
   },
   "keywords": ["restaurant", "ordering", "kds", "management"],
   "author": "",
