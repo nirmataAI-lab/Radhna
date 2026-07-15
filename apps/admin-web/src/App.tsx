@@ -203,7 +203,7 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
     { tab: 'orders', icon: ListOrdered, label: 'Orders' },
     { tab: 'menu', icon: UtensilsCrossed, label: 'Menu' },
     { tab: 'inventory', icon: Package, label: 'Inventory' },
-    { tab: 'tables', icon: Table2, label: 'Tables' },
+    
     { tab: 'coupons', icon: Tag, label: 'Coupons' },
     { tab: 'reviews', icon: Star, label: 'Reviews' },
     { tab: 'audit', icon: ScrollText, label: 'Audit Log' },
