@@ -119,8 +119,8 @@ export class BillingService {
       data: { paymentStatus: PaymentStatus.PAID },
       include: {
         orderItems: { include: { foodItem: true } },
-        table: true,
       },
+
     });
 
     this.logger.log(`Payment verified for order ${dto.orderId}`);
