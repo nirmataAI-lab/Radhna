@@ -23,7 +23,8 @@ jobs:
       - name: Install workspace dependencies
         run: npm ci --no-audit --no-fund
       - name: Generate Prisma client
-        run: npx prisma generate --schema database/prisma/schema.prisma
+        working-directory: database
+        run: npx prisma generate
         env:
           DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/restaurant_db
       - name: Typecheck
@@ -108,9 +109,11 @@ jobs:
           cache: 'npm'
       - run: npm ci --no-audit --no-fund
       - name: Generate Prisma client
-        run: npx prisma generate --schema database/prisma/schema.prisma
+        working-directory: database
+        run: npx prisma generate
       - name: Apply migrations
-        run: npx prisma migrate deploy --schema database/prisma/schema.prisma
+        working-directory: database
+        run: npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/restaurant_db
       - name: E2E tests
