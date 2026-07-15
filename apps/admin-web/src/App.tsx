@@ -24,6 +24,8 @@ import { InventoryTab, ReviewsTab, AuditTab } from './newTabs';
 import { StaffTab } from './StaffTab';
 import { CommandPalette, useCommandPaletteHotkey } from './components/CommandPalette';
 import { exportRowsAsCSV } from './lib/csv';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 
 type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'coupons' | 'inventory' | 'reviews' | 'audit' | 'staff';
 
@@ -200,24 +202,25 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
   newOrderCount: number; onNewOrdersClick: () => void;
 }) {
   const user = useAuthStore((s) => s.user);
+  const { t } = useTranslation();
   const items: { tab: Tab; icon: any; label: string }[] = [
-    { tab: 'dashboard', icon: TrendingUp, label: 'Dashboard' },
-    { tab: 'analytics', icon: BarChart3, label: 'Analytics' },
-    { tab: 'orders', icon: ListOrdered, label: 'Orders' },
-    { tab: 'menu', icon: UtensilsCrossed, label: 'Menu' },
-    { tab: 'inventory', icon: Package, label: 'Inventory' },
-    
-    { tab: 'coupons', icon: Tag, label: 'Coupons' },
-    { tab: 'reviews', icon: Star, label: 'Reviews' },
-    { tab: 'audit', icon: ScrollText, label: 'Audit Log' },
-    { tab: 'staff', icon: Users, label: 'Staff' },
+    { tab: 'dashboard', icon: TrendingUp, label: t('nav.dashboard') },
+    { tab: 'analytics', icon: BarChart3, label: t('nav.analytics') },
+    { tab: 'orders', icon: ListOrdered, label: t('nav.orders') },
+    { tab: 'menu', icon: UtensilsCrossed, label: t('nav.menu') },
+    { tab: 'inventory', icon: Package, label: t('nav.inventory') },
+
+    { tab: 'coupons', icon: Tag, label: t('nav.coupons') },
+    { tab: 'reviews', icon: Star, label: t('nav.reviews') },
+    { tab: 'audit', icon: ScrollText, label: t('nav.audit') },
+    { tab: 'staff', icon: Users, label: t('nav.staff') },
   ];
 
   return (
     <aside className="w-64 bg-[var(--color-card)] border-r border-[var(--color-border)] p-6 flex flex-col">
       <div className="flex items-center gap-2 mb-8">
         <LayoutDashboard className="w-6 h-6 text-[var(--color-primary)]" />
-        <h1 className="text-xl font-bold tracking-tight text-[var(--color-primary)]">Admin Panel</h1>
+        <h1 className="text-xl font-bold tracking-tight text-[var(--color-primary)]">{t('app.title')}</h1>
       </div>
       <nav className="flex flex-col gap-1 text-sm font-medium flex-1">
         {items.map(({ tab: t, icon: Icon, label }) => (
@@ -236,14 +239,14 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
       >
         {newOrderCount > 0 ? (
           <><BellRing className="w-4 h-4 text-[var(--color-primary)] animate-pulse" />
-            <span className="text-[var(--color-primary)]">New Orders</span>
+            <span className="text-[var(--color-primary)]">{t('sidebar.newOrders')}</span>
             <span className="ml-auto bg-[var(--color-primary)] text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
               {newOrderCount}
             </span>
           </>
         ) : (
           <><Bell className="w-4 h-4 text-[var(--color-muted-foreground)]" />
-            <span className="text-[var(--color-muted-foreground)]">No new orders</span>
+            <span className="text-[var(--color-muted-foreground)]">{t('sidebar.noNewOrders')}</span>
           </>
         )}
       </button>
@@ -251,15 +254,16 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
         <p className="font-medium text-[var(--color-foreground)] mb-1">{user?.name || 'Admin'}</p>
         <p>{user?.email}</p>
       </div>
-      <div className="flex gap-2 mb-2">
+      <div className="flex gap-2 mb-2 items-center">
         <button onClick={toggleTheme}
           className="flex-1 p-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center gap-1">
-          {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} {dark ? 'Light' : 'Dark'}
+          {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} {dark ? t('sidebar.light') : t('sidebar.dark')}
         </button>
+        <LanguageSwitcher />
       </div>
       <button onClick={logout}
         className="flex items-center gap-2 text-sm font-medium text-red-500 p-3 hover:bg-red-50 rounded-lg transition-colors">
-        <LogOut className="w-4 h-4" /> Logout
+        <LogOut className="w-4 h-4" /> {t('sidebar.logout')}
       </button>
     </aside>
   );

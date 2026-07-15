@@ -7,6 +7,8 @@ import { useAuthStore } from './authStore';
 import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
 import { PrepStockTab } from './components/PrepStockTab';
 import { useItemCheckoff } from './hooks/useItemCheckoff';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 
 
 // ─── Notification Sound ─────────────────────────────
@@ -318,6 +320,7 @@ function OrderCard({ order, onStatusUpdate, onRecall, statusLoading, isChecked, 
 // ─── Kitchen Dashboard ──────────────────────────────
 
 function KitchenDashboard() {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [completed, setCompleted] = useState<Order[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -560,14 +563,14 @@ function KitchenDashboard() {
               <ChefHat className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0">
-              <h1 className="font-display text-lg font-bold leading-tight tracking-tight text-[var(--color-foreground)]">Chief KDS</h1>
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">Kitchen Display</p>
+              <h1 className="font-display text-lg font-bold leading-tight tracking-tight text-[var(--color-foreground)]">{t('app.title')}</h1>
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">{t('app.subtitle')}</p>
             </div>
           </div>
 
           <div className={`mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium ${isConnected ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'border-[var(--color-destructive)]/30 bg-[var(--color-destructive)]/10 text-[var(--color-destructive)]'}`}>
             <span className={`h-2 w-2 rounded-full ${isConnected ? 'bg-[var(--color-success)]' : 'bg-[var(--color-destructive)]'} ${isConnected ? 'animate-pulse' : ''}`} />
-            {isConnected ? 'Live · connected' : 'Offline · reconnecting'}
+            {isConnected ? t('status.live') : t('status.offline')}
           </div>
 
           <nav className="flex flex-1 flex-col gap-1 text-sm font-medium">
@@ -580,7 +583,7 @@ function KitchenDashboard() {
               }`}
             >
               <CookingPot className="h-4 w-4" />
-              Active Orders
+              {t('nav.active')}
               {activeOrders.length > 0 && (
                 <span className="ml-auto rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-xs font-bold text-white shadow-sm">
                   {activeOrders.length}
@@ -596,7 +599,7 @@ function KitchenDashboard() {
               }`}
             >
               <Undo2 className="h-4 w-4" />
-              Recall Lane
+              {t('nav.recall')}
               {recalledOrders.length > 0 && (
                 <span className="ml-auto rounded-full bg-[var(--color-destructive)] px-2 py-0.5 text-xs font-bold text-white shadow-sm">
                   {recalledOrders.length}
@@ -613,7 +616,7 @@ function KitchenDashboard() {
               }`}
             >
               <CheckCheck className="h-4 w-4" />
-              Completed
+              {t('nav.completed')}
               {completed.length > 0 && (
                 <span className="ml-auto rounded-full bg-[var(--color-muted)] px-2 py-0.5 text-xs font-semibold text-[var(--color-muted-foreground)]">
                   {completed.length}
@@ -629,10 +632,11 @@ function KitchenDashboard() {
               }`}
             >
               <Package className="h-4 w-4" />
-              Prep Stock
+              {t('nav.stock')}
             </button>
           </nav>
           <div className="mt-auto flex flex-col gap-1 border-t border-[var(--color-border)] pt-4">
+            <div className="px-1 pb-1"><LanguageSwitcher /></div>
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
               className={`flex items-center gap-2 rounded-lg p-3 text-sm font-medium transition ${
@@ -640,13 +644,13 @@ function KitchenDashboard() {
               }`}
             >
               {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-              {soundEnabled ? 'Sound On' : 'Sound Off'}
+              {soundEnabled ? t('sidebar.soundOn') : t('sidebar.soundOff')}
             </button>
             <button
               onClick={logout}
               className="flex items-center gap-2 rounded-lg p-3 text-sm font-medium text-[var(--color-destructive)] transition hover:bg-[var(--color-destructive)]/10"
             >
-              <LogOut className="h-4 w-4" /> Logout
+              <LogOut className="h-4 w-4" /> {t('sidebar.logout')}
             </button>
           </div>
         </aside>
