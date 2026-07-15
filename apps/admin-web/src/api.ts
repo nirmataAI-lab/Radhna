@@ -227,29 +227,6 @@ export async function deleteFoodItem(id: string): Promise<void> {
   return handleResponse(res);
 }
 
-// ─── Tables ─────────────────────────────────────────
-
-export async function fetchTables(): Promise<Table[]> {
-  const res = await fetch(`${API_URL}/tables`, { headers: authHeaders() });
-  return handleResponse(res);
-}
-
-export async function createTable(data: { tableNumber: string; capacity: number }): Promise<Table> {
-  const res = await fetch(`${API_URL}/tables`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
-  });
-  return handleResponse(res);
-}
-
-export async function deleteTable(id: string): Promise<void> {
-  const res = await fetch(`${API_URL}/tables/${id}`, {
-    method: 'DELETE',
-    headers: authHeaders(),
-  });
-  return handleResponse(res);
-}
 
 // ─── Analytics ─────────────────────────────────────
 
