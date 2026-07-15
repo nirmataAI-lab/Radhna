@@ -350,106 +350,120 @@ function KitchenDashboard() {
     <div ref={containerRef} className={`min-h-screen flex bg-[var(--color-background)] ${isFullscreen ? 'kds-fullscreen' : ''}`}>
       {/* Sidebar — collapsed in full-screen mode */}
       {!isFullscreen && (
-        <aside className="w-64 bg-[var(--color-card)] border-r border-[var(--color-border)] p-6 flex flex-col">
-          <div className="flex items-center gap-2 mb-8">
-            <ChefHat className="w-6 h-6 text-[var(--color-primary)]" />
-            <h1 className="text-xl font-bold tracking-tight text-[var(--color-primary)]">Chief Panel</h1>
+        <aside className="flex w-64 flex-col border-r border-[var(--color-border)] bg-[var(--color-card)] p-6">
+          <div className="mb-8 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl shadow-[var(--shadow-glow)]" style={{ background: 'var(--gradient-primary)' }}>
+              <ChefHat className="h-5 w-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-display text-lg font-bold leading-tight tracking-tight text-[var(--color-foreground)]">Chief KDS</h1>
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">Kitchen Display</p>
+            </div>
           </div>
-          <nav className="flex flex-col gap-1 text-sm font-medium flex-1">
+
+          <div className={`mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium ${isConnected ? 'border-[var(--color-success)]/30 bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'border-[var(--color-destructive)]/30 bg-[var(--color-destructive)]/10 text-[var(--color-destructive)]'}`}>
+            <span className={`h-2 w-2 rounded-full ${isConnected ? 'bg-[var(--color-success)]' : 'bg-[var(--color-destructive)]'} ${isConnected ? 'animate-pulse' : ''}`} />
+            {isConnected ? 'Live · connected' : 'Offline · reconnecting'}
+          </div>
+
+          <nav className="flex flex-1 flex-col gap-1 text-sm font-medium">
             <button
               onClick={() => setActiveTab('active')}
-              className={`p-3 rounded-lg text-left transition-colors flex items-center gap-2 ${
+              className={`flex items-center gap-2.5 rounded-lg p-3 text-left transition ${
                 activeTab === 'active'
-                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                  : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
+                  ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] shadow-inner'
+                  : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]'
               }`}
             >
-              <CookingPot className="w-4 h-4" />
+              <CookingPot className="h-4 w-4" />
               Active Orders
               {activeOrders.length > 0 && (
-                <span className="ml-auto bg-[var(--color-primary)] text-white text-xs px-2 py-0.5 rounded-full">
+                <span className="ml-auto rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-xs font-bold text-white shadow-sm">
                   {activeOrders.length}
                 </span>
               )}
             </button>
             <button
               onClick={() => setActiveTab('completed')}
-              className={`p-3 rounded-lg text-left transition-colors flex items-center gap-2 ${
+              className={`flex items-center gap-2.5 rounded-lg p-3 text-left transition ${
                 activeTab === 'completed'
-                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                  : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
+                  ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] shadow-inner'
+                  : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]'
               }`}
             >
-              <CheckCheck className="w-4 h-4" />
+              <CheckCheck className="h-4 w-4" />
               Completed
+              {completed.length > 0 && (
+                <span className="ml-auto rounded-full bg-[var(--color-muted)] px-2 py-0.5 text-xs font-semibold text-[var(--color-muted-foreground)]">
+                  {completed.length}
+                </span>
+              )}
             </button>
           </nav>
-          <div className="flex flex-col gap-2 mt-auto">
+          <div className="mt-auto flex flex-col gap-1 border-t border-[var(--color-border)] pt-4">
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`flex items-center gap-2 text-sm font-medium p-3 rounded-lg transition-colors ${
-                soundEnabled ? 'text-green-600 hover:bg-green-50' : 'text-muted-foreground hover:bg-muted'
+              className={`flex items-center gap-2 rounded-lg p-3 text-sm font-medium transition ${
+                soundEnabled ? 'text-[var(--color-success)] hover:bg-[var(--color-success)]/10' : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
               }`}
             >
-              {soundEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+              {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
               {soundEnabled ? 'Sound On' : 'Sound Off'}
             </button>
             <button
               onClick={logout}
-              className="flex items-center gap-2 text-sm font-medium text-red-500 p-3 hover:bg-red-50 rounded-lg transition-colors"
+              className="flex items-center gap-2 rounded-lg p-3 text-sm font-medium text-[var(--color-destructive)] transition hover:bg-[var(--color-destructive)]/10"
             >
-              <LogOut className="w-4 h-4" /> Logout
+              <LogOut className="h-4 w-4" /> Logout
             </button>
           </div>
         </aside>
       )}
 
-      <main className={`flex-1 overflow-y-auto max-h-screen ${isFullscreen ? 'p-6' : 'p-8'}`}>
+      <main className={`max-h-screen flex-1 overflow-y-auto ${isFullscreen ? 'p-6' : 'p-8'}`}>
         {/* Header */}
-        <header className={`flex justify-between items-center mb-6 border-b border-[var(--color-border)] pb-4 ${isFullscreen ? 'kds-header' : ''}`}>
-          <h2 className={`font-bold flex items-center gap-3 ${isFullscreen ? 'text-4xl' : 'text-3xl'}`}>
-            {activeTab === 'active' ? (
-              <><ChefHat className="w-8 h-8 text-[var(--color-primary)]" /> Kitchen Display</>
-            ) : 'Completed Orders'}
-            <span
-              className={`text-xs font-bold px-2 py-1 rounded-full ${
-                isConnected
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
-              }`}
-            >
-              {isConnected ? 'LIVE' : 'OFFLINE'}
-            </span>
-          </h2>
-          <div className="flex items-center gap-3">
-            {/* Fullscreen toggle */}
+        <header className={`mb-6 flex items-center justify-between border-b border-[var(--color-border)] pb-4 ${isFullscreen ? 'kds-header' : ''}`}>
+          <div className="min-w-0">
+            <h2 className={`font-display font-bold tracking-tight flex items-center gap-3 ${isFullscreen ? 'text-4xl' : 'text-3xl'}`}>
+              {activeTab === 'active' ? 'Kitchen Display' : 'Completed Orders'}
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${isConnected ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]' : 'bg-[var(--color-destructive)]/15 text-[var(--color-destructive)]'}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-[var(--color-success)] animate-pulse' : 'bg-[var(--color-destructive)]'}`} />
+                {isConnected ? 'Live' : 'Offline'}
+              </span>
+            </h2>
+            <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
+              {activeTab === 'active'
+                ? `${activeOrders.length} order${activeOrders.length === 1 ? '' : 's'} in queue`
+                : `${completed.length} completed today`}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
             <button
               onClick={toggleFullscreen}
-              className={`flex items-center gap-2 text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors ${
-                isFullscreen ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' : ''
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                isFullscreen ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]'
               }`}
               title={isFullscreen ? 'Exit full screen' : 'Full screen mode'}
             >
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               {isFullscreen ? 'Exit' : 'Full Screen'}
             </button>
-            {/* Auto-refresh toggle */}
             {!isFullscreen && (
               <button
                 onClick={() => setAutoRefresh(!autoRefresh)}
-                className={`flex items-center gap-2 text-sm border px-3 py-2 rounded-lg transition-colors ${
-                  autoRefresh ? 'border-green-300 text-green-600' : 'border-[var(--color-border)]'
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                  autoRefresh ? 'border-[var(--color-success)]/40 text-[var(--color-success)]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)]'
                 }`}
               >
-                <RefreshCw className={`w-4 h-4 ${autoRefresh ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
                 Auto
               </button>
             )}
             <button
               onClick={loadOrders}
-              className="flex items-center gap-2 text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors"
+              className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-muted-foreground)] transition hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
             >
-              <RefreshCw className="w-4 h-4" /> Refresh
+              <RefreshCw className="h-4 w-4" /> Refresh
             </button>
           </div>
         </header>
