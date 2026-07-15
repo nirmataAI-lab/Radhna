@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Package, AlertTriangle, Plus, Loader2, Trash2, Edit3, RefreshCcw,
-  Star, MessageSquare, ScrollText, User as UserIcon, Search,
+  Star, MessageSquare, ScrollText, User as UserIcon, Search, Download,
 } from 'lucide-react';
 import {
   fetchInventory, fetchInventoryAlerts, createInventoryItem, updateInventoryItem, deleteInventoryItem,
   fetchAllFoodItems, fetchItemReviews, fetchAuditLog,
 } from './api';
 import type { InventoryItem, FoodItem, ItemReviews, AuditEntry } from './api';
+import { exportRowsAsCSV } from './lib/csv';
 
 // ─── Inventory Tab ──────────────────────────────────
 
@@ -358,9 +359,25 @@ export function AuditTab() {
           <h2 className="text-3xl font-bold tracking-tight">Audit Log</h2>
           <p className="text-[var(--color-muted-foreground)] text-sm mt-1">Admin actions & sensitive changes</p>
         </div>
-        <button onClick={() => load(page)} className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-muted)]">
-          <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => exportRowsAsCSV(`audit-log-${new Date().toISOString().slice(0,10)}`, entries, [
+              { key: 'timestamp', label: 'When', format: (v) => new Date(v).toISOString() },
+              { key: 'admin', label: 'Admin', format: (_v, r) => r.admin?.name || r.admin?.email || '' },
+              { key: 'action', label: 'Action' },
+              { key: 'entity', label: 'Entity' },
+              { key: 'entityId', label: 'Entity ID' },
+              { key: 'reason', label: 'Reason' },
+            ])}
+            disabled={entries.length === 0}
+            className="flex items-center gap-2 text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors disabled:opacity-50"
+          >
+            <Download className="w-4 h-4" /> Export
+          </button>
+          <button onClick={() => load(page)} className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-muted)]">
+            <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </header>
 
       <div className="premium-card overflow-hidden">

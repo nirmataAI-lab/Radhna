@@ -3,7 +3,7 @@ import {
   TrendingUp, ChefHat, ListOrdered, UtensilsCrossed, Sun, Moon, Plus,
   Edit3, Trash2, X, Loader2, BarChart3, Tag, Calendar, Percent,
   Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
-  Sparkles, Zap, ArrowRight, Clock,
+  Sparkles, Zap, ArrowRight, Clock, Download, Search,
 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import {
@@ -21,6 +21,8 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { InventoryTab, ReviewsTab, AuditTab } from './newTabs';
+import { CommandPalette, useCommandPaletteHotkey } from './components/CommandPalette';
+import { exportRowsAsCSV } from './lib/csv';
 
 type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'coupons' | 'inventory' | 'reviews' | 'audit';
 
@@ -535,6 +537,25 @@ function OrdersTab() {
             <option value="PLACED">Placed</option><option value="PREPARING">Preparing</option>
             <option value="READY">Ready</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option>
           </select>
+          <button
+            onClick={() => exportRowsAsCSV(`orders-${new Date().toISOString().slice(0,10)}`, orders, [
+              { key: 'id', label: 'Order ID' },
+              { key: 'createdAt', label: 'Created', format: (v) => new Date(v).toISOString() },
+              { key: 'status', label: 'Status' },
+              { key: 'paymentStatus', label: 'Payment' },
+              { key: 'customer', label: 'Customer', format: (_v, r) => r.customer?.name || r.customer?.email || '' },
+              { key: 'orderItems', label: 'Items', format: (v) => (v?.length ?? 0) },
+              { key: 'subtotal', label: 'Subtotal' },
+              { key: 'discount', label: 'Discount' },
+              { key: 'tax', label: 'Tax' },
+              { key: 'total', label: 'Total' },
+            ])}
+            disabled={orders.length === 0}
+            className="flex items-center gap-2 text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors disabled:opacity-50"
+            title="Export as CSV"
+          >
+            <Download className="w-4 h-4" /> Export
+          </button>
           <button onClick={load} disabled={loading}
             className="flex items-center gap-2 text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors">
             <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -1066,8 +1087,11 @@ export default function App() {
   const [newOrders, setNewOrders] = useState<any[]>([]);
   const [lastPollTime, setLastPollTime] = useState(() => new Date().toISOString());
   const [toastOrder, setToastOrder] = useState<any | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const apiToken = useAuthStore((s) => s.token);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+  useCommandPaletteHotkey(paletteOpen, setPaletteOpen);
 
   // Poll for new orders every 10 seconds
   useEffect(() => {
@@ -1124,6 +1148,18 @@ export default function App() {
         newOrderCount={newOrders.length} onNewOrdersClick={() => { setTab('orders'); dismissNewOrders(); }}
       />
       <main className="flex-1 p-8 overflow-y-auto max-h-screen">
+        {/* Command palette trigger */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="flex items-center gap-2 text-xs text-[var(--color-muted-foreground)] border border-[var(--color-border)] px-3 py-1.5 rounded-lg hover:bg-[var(--color-muted)] transition-colors"
+            title="Command palette"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Search commands…</span>
+            <kbd className="ml-2 text-[10px] px-1.5 py-0.5 rounded border border-[var(--color-border)]">⌘K</kbd>
+          </button>
+        </div>
         {tab === 'dashboard' && <DashboardTab />}
         {tab === 'analytics' && <AnalyticsTab />}
         {tab === 'orders' && <OrdersTab />}
@@ -1134,6 +1170,15 @@ export default function App() {
         {tab === 'reviews' && <ReviewsTab />}
         {tab === 'audit' && <AuditTab />}
       </main>
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        setTab={(t) => setTab(t as Tab)}
+        toggleTheme={toggleTheme}
+        dark={dark}
+        logout={logout}
+      />
 
       {/* Toast Notification */}
       {toastOrder && (
