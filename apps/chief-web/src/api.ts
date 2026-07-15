@@ -3,7 +3,7 @@ import { useAuthStore } from './authStore';
 export type OrderStatus = 'PLACED' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
 
 interface LoginResponse {
-  access_token: string;
+  access_token: string; refresh_token?: string;
   user: {
     id: string;
     email: string;

@@ -3,7 +3,7 @@ import { useAuthStore } from './authStore';
 // ─── Types ──────────────────────────────────────────
 
 export interface LoginResponse {
-  access_token: string;
+  access_token: string; refresh_token?: string;
   user: { id: string; email: string; name: string; role: string };
 }
 
