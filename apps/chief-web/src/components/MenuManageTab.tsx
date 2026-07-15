@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Loader2, Plus, Edit3, Trash2, UtensilsCrossed } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Loader2, Plus, Edit3, Trash2, UtensilsCrossed, Upload, Eye, EyeOff } from 'lucide-react';
 import {
   fetchCategories, createCategory, updateCategory, deleteCategory,
   fetchAllFoodItems, createFoodItem, updateFoodItem, deleteFoodItem,
   type Category, type FoodItem,
 } from '../menuApi';
+import { fileToCompressedDataUrl } from '../lib/imageUpload';
+
 
 export function MenuManageTab() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -41,6 +43,17 @@ export function MenuManageTab() {
     if (!confirm('Delete this category? All items must be moved or removed first.')) return;
     try { await deleteCategory(id); load(); } catch (e: any) { alert(e.message); }
   };
+  const handleToggleAvailability = async (item: FoodItem) => {
+    // optimistic
+    setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, isEnabled: !i.isEnabled } : i)));
+    try {
+      await updateFoodItem(item.id, { isEnabled: !item.isEnabled });
+    } catch (e: any) {
+      alert(e.message);
+      load();
+    }
+  };
+
 
   const visible = filterCat === 'all' ? items : items.filter((i) => i.categoryId === filterCat);
 
@@ -129,7 +142,12 @@ export function MenuManageTab() {
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {visible.map((item) => (
-                <div key={item.id} className={`premium-card p-4 ${!item.isEnabled ? 'opacity-50' : ''}`}>
+                <div key={item.id} className={`premium-card p-4 ${!item.isEnabled ? 'opacity-60' : ''}`}>
+                  {item.imageUrl && (
+                    <div className="mb-3 -mx-4 -mt-4 aspect-video overflow-hidden rounded-t-xl bg-[var(--color-muted)]">
+                      <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                    </div>
+                  )}
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <h4 className="truncate font-semibold">{item.name}</h4>
@@ -146,7 +164,7 @@ export function MenuManageTab() {
                     </span>
                     {item.isPopular && <span className="rounded bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-orange-700 dark:text-orange-400">Popular</span>}
                     {item.isTodaysSpecial && <span className="rounded bg-purple-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700 dark:text-purple-400">Special</span>}
-                    {!item.isEnabled && <span className="rounded bg-gray-500/15 px-1.5 py-0.5 text-[10px] font-semibold">Disabled</span>}
+                    {!item.isEnabled && <span className="rounded bg-gray-500/15 px-1.5 py-0.5 text-[10px] font-semibold">Unavailable</span>}
                     {item.productionStock && (
                       <span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 dark:text-blue-400">
                         Stock: {item.productionStock.availableQty}
@@ -154,6 +172,13 @@ export function MenuManageTab() {
                     )}
                   </div>
                   <div className="flex gap-2">
+                    <button
+                      onClick={() => handleToggleAvailability(item)}
+                      title={item.isEnabled ? 'Mark unavailable' : 'Mark available'}
+                      className={`flex items-center justify-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition ${item.isEnabled ? 'border-[var(--color-border)] hover:bg-[var(--color-muted)]' : 'border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-400 hover:bg-orange-500/20'}`}
+                    >
+                      {item.isEnabled ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                    </button>
                     <button
                       onClick={() => { setEditItem(item); setShowItemModal(true); }}
                       className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold hover:bg-[var(--color-muted)]"
@@ -169,6 +194,7 @@ export function MenuManageTab() {
                   </div>
                 </div>
               ))}
+
             </div>
           )}
         </div>
@@ -273,14 +299,17 @@ function FoodItemModal({ item, categories, onClose, onSaved }: {
           </select>
         </Field>
         <div className="col-span-2"><Field label="Description"><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputClass} /></Field></div>
-        <div className="col-span-2"><Field label="Image URL"><input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className={inputClass} placeholder="https://…" /></Field></div>
+        <div className="col-span-2">
+          <ImageUploadField value={imageUrl} onChange={setImageUrl} />
+        </div>
         <Field label="Today's stock"><input value={stock} onChange={(e) => setStock(e.target.value)} type="number" className={inputClass} /></Field>
         <div className="flex flex-col justify-end gap-2 pb-1 text-sm">
           <label className="flex items-center gap-2"><input type="checkbox" checked={isVeg} onChange={(e) => setIsVeg(e.target.checked)} /> Veg</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={isPopular} onChange={(e) => setIsPopular(e.target.checked)} /> Popular</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={isSpecial} onChange={(e) => setIsSpecial(e.target.checked)} /> Today's Special</label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} /> Enabled</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} /> Available to customers</label>
         </div>
+
       </div>
       <ModalActions onCancel={onClose} onSave={save} saving={saving} disabled={!canSave} label={item ? 'Update' : 'Create'} />
     </ModalShell>
@@ -327,5 +356,79 @@ function ModalActions({ onCancel, onSave, saving, disabled, label }: { onCancel:
         {label}
       </button>
     </div>
+  );
+}
+
+// ─── Image upload field ─────────────────────────────
+
+function ImageUploadField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (file: File | null) => {
+    if (!file) return;
+    setErr(null);
+    setUploading(true);
+    try {
+      const dataUrl = await fileToCompressedDataUrl(file);
+      onChange(dataUrl);
+    } catch (e: any) {
+      setErr(e.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = '';
+    }
+  };
+
+  return (
+    <Field label="Product image">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-3">
+          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]">
+            {value ? (
+              <img src={value} alt="preview" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xs text-[var(--color-muted-foreground)]">No image</div>
+            )}
+          </div>
+          <div className="flex flex-1 flex-col gap-2">
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleFile(e.target.files?.[0] || null)}
+              className="hidden"
+              id="menu-item-image-upload"
+            />
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              disabled={uploading}
+              className="flex items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-semibold hover:bg-[var(--color-muted)] disabled:opacity-50"
+            >
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {uploading ? 'Uploading…' : value ? 'Replace image' : 'Upload image'}
+            </button>
+            {value && (
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                className="text-xs font-semibold text-[var(--color-destructive)] hover:underline text-left"
+              >
+                Remove image
+              </button>
+            )}
+          </div>
+        </div>
+        <input
+          value={value.startsWith('data:') ? '' : value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="…or paste an image URL"
+          className={inputClass}
+        />
+        {err && <p className="text-xs text-[var(--color-destructive)]">{err}</p>}
+      </div>
+    </Field>
   );
 }

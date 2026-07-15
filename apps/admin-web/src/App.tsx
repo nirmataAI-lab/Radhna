@@ -4,8 +4,9 @@ import {
   Edit3, Trash2, X, Loader2, BarChart3, Tag, Calendar, Percent,
   Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
   Sparkles, Zap, ArrowRight, Clock, Download, Search, Users, CheckSquare, Square,
+  Upload,
 } from 'lucide-react';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   fetchOverviewStats, loginApi, fetchAllOrders, updateOrderStatus,
   fetchCategories, createCategory, updateCategory, deleteCategory,
@@ -13,6 +14,8 @@ import {
   fetchAnalytics,
   fetchCoupons, createCoupon, deleteCoupon,
 } from './api';
+import { fileToCompressedDataUrl } from './lib/imageUpload';
+
 import type { Category, FoodItem, Order, AnalyticsData, Coupon } from './api';
 import { AlertTriangle, PackageOpen } from 'lucide-react';
 import { useAuthStore } from './authStore';
@@ -770,6 +773,13 @@ function MenuTab() {
     load();
   };
 
+  const handleToggleAvailability = async (item: FoodItem) => {
+    setFoodItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, isEnabled: !i.isEnabled } : i)));
+    try { await updateFoodItem(item.id, { isEnabled: !item.isEnabled }); }
+    catch (e: any) { alert(e.message); load(); }
+  };
+
+
   const handleDeleteCat = async (id: string) => {
     if (!confirm('Delete this category? Items must be removed first.')) return;
     try { await deleteCategory(id); load(); }
@@ -820,7 +830,12 @@ function MenuTab() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {foodItems.map((item) => (
-                <div key={item.id} className={`premium-card p-4 ${!item.isEnabled ? 'opacity-50' : ''} animate-fade-in`}>
+                <div key={item.id} className={`premium-card p-4 ${!item.isEnabled ? 'opacity-60' : ''} animate-fade-in`}>
+                  {item.imageUrl && (
+                    <div className="mb-3 -mx-4 -mt-4 aspect-video overflow-hidden rounded-t-xl bg-[var(--color-muted)]">
+                      <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                    </div>
+                  )}
                   <div className="flex justify-between items-start mb-2">
                     <div><h4 className="font-semibold text-sm">{item.name}</h4><p className="text-xs text-[var(--color-muted-foreground)]">{item.category?.name}</p></div>
                     <span className="font-bold text-[var(--color-primary)]">₹{Number(item.price).toFixed(2)}</span>
@@ -831,10 +846,15 @@ function MenuTab() {
                     {!item.isVeg && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700">Non-Veg</span>}
                     {item.isPopular && <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">Popular</span>}
                     {item.isTodaysSpecial && <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">Special</span>}
-                    {!item.isEnabled && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">Disabled</span>}
+                    {!item.isEnabled && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">Unavailable</span>}
                     {item.productionStock && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">Stock: {item.productionStock.availableQty}</span>}
                   </div>
                   <div className="flex gap-2">
+                    <button onClick={() => handleToggleAvailability(item)}
+                      title={item.isEnabled ? 'Mark unavailable' : 'Mark available'}
+                      className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors flex items-center justify-center ${item.isEnabled ? 'border-[var(--color-border)] hover:bg-[var(--color-muted)]' : 'border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100'}`}>
+                      {item.isEnabled ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                    </button>
                     <button onClick={() => setEditItem(item)}
                       className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center gap-1">
                       <Edit3 className="w-3 h-3" /> Edit
@@ -846,6 +866,7 @@ function MenuTab() {
                   </div>
                 </div>
               ))}
+
               {foodItems.length === 0 && (
                 <div className="col-span-full text-center py-12 text-[var(--color-muted-foreground)]">
                   <UtensilsCrossed className="w-12 h-12 mx-auto mb-3 opacity-30" /><p>No menu items yet. Add your first item!</p>
@@ -933,14 +954,15 @@ function FoodItemFormModal({ item, categories, onClose, onSaved }: {
               {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select></div>
           <div className="col-span-2"><label className="text-xs font-medium mb-1 block">Description</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputClass} /></div>
-          <div className="col-span-2"><label className="text-xs font-medium mb-1 block">Image URL</label><input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className={inputClass} /></div>
+          <div className="col-span-2"><AdminImageUpload value={imageUrl} onChange={setImageUrl} /></div>
           <div><label className="text-xs font-medium mb-1 block">Stock</label><input value={stock} onChange={(e) => setStock(e.target.value)} type="number" className={inputClass} /></div>
           <div className="flex flex-col gap-2 justify-end pb-1">
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isVeg} onChange={(e) => setIsVeg(e.target.checked)} /> Veg</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isPopular} onChange={(e) => setIsPopular(e.target.checked)} /> Popular</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isSpecial} onChange={(e) => setIsSpecial(e.target.checked)} /> Today's Special</label>
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} /> Enabled</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} /> Available to customers</label>
           </div>
+
         </div>
         <div className="flex gap-2 mt-4">
           <button onClick={onClose} className="flex-1 px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-muted)] transition-colors">Cancel</button>
@@ -1306,6 +1328,44 @@ export default function App() {
           onView={() => { setTab('orders'); dismissNewOrders(); }}
         />
       )}
+    </div>
+  );
+}
+
+// ─── Admin Image Upload ────────────────────────────
+
+function AdminImageUpload({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const ref = useRef<HTMLInputElement>(null);
+  const handleFile = async (f: File | null) => {
+    if (!f) return;
+    setErr(null); setUploading(true);
+    try { onChange(await fileToCompressedDataUrl(f)); }
+    catch (e: any) { setErr(e.message || 'Upload failed'); }
+    finally { setUploading(false); if (ref.current) ref.current.value = ''; }
+  };
+  const input = "w-full p-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-background)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50";
+  return (
+    <div>
+      <label className="text-xs font-medium mb-1 block">Product image</label>
+      <div className="flex items-center gap-3">
+        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]">
+          {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--color-muted-foreground)]">No image</div>}
+        </div>
+        <div className="flex flex-1 flex-col gap-2">
+          <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0] || null)} />
+          <button type="button" onClick={() => ref.current?.click()} disabled={uploading}
+            className="flex items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-semibold hover:bg-[var(--color-muted)] disabled:opacity-50">
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {uploading ? 'Uploading…' : value ? 'Replace image' : 'Upload image'}
+          </button>
+          {value && <button type="button" onClick={() => onChange('')} className="text-xs font-semibold text-red-500 hover:underline text-left">Remove image</button>}
+        </div>
+      </div>
+      <input value={value.startsWith('data:') ? '' : value} onChange={(e) => onChange(e.target.value)}
+        placeholder="…or paste an image URL" className={`${input} mt-2`} />
+      {err && <p className="text-xs text-red-500 mt-1">{err}</p>}
     </div>
   );
 }
