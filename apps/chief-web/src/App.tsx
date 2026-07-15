@@ -594,6 +594,14 @@ function KitchenDashboard() {
             >
               <RefreshCw className="h-4 w-4" /> Refresh
             </button>
+            <button
+              onClick={() => setShowHelp(true)}
+              className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-muted-foreground)] transition hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
+              title="Keyboard shortcuts (press ?)"
+            >
+              <Keyboard className="h-4 w-4" />
+              <kbd className="hidden font-mono text-xs opacity-70 md:inline">?</kbd>
+            </button>
           </div>
         </header>
 
