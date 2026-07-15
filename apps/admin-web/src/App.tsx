@@ -304,7 +304,7 @@ function DashboardTab() {
   const cards = [
     { label: "Today's Revenue", value: `₹${stats.revenue.toFixed(2)}`, icon: IndianRupee, color: 'bg-green-50 text-green-600 dark:bg-green-900/30' },
     { label: 'Total Orders', value: stats.totalOrders.toString(), icon: ShoppingBag, color: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30' },
-    { label: 'Active Tables', value: stats.activeTables.toString(), icon: Table2, color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30' },
+    { label: 'Active Orders', value: stats.activeOrders.toString(), icon: Clock, color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30' },
   ];
 
   return (
