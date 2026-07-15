@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -17,6 +18,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 60_000 } })
   @Post('login')
   @ApiOperation({
     summary: 'Login',
@@ -34,6 +36,7 @@ export class AuthController {
     return this.authService.login(user);
   }
 
+  @Throttle({ short: { limit: 3, ttl: 60_000 } })
   @Post('register')
   @ApiOperation({
     summary: 'Register',
