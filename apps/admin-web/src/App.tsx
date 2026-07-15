@@ -1087,8 +1087,11 @@ export default function App() {
   const [newOrders, setNewOrders] = useState<any[]>([]);
   const [lastPollTime, setLastPollTime] = useState(() => new Date().toISOString());
   const [toastOrder, setToastOrder] = useState<any | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const apiToken = useAuthStore((s) => s.token);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+  useCommandPaletteHotkey(paletteOpen, setPaletteOpen);
 
   // Poll for new orders every 10 seconds
   useEffect(() => {
