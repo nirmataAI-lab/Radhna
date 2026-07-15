@@ -43,6 +43,17 @@ export function MenuManageTab() {
     if (!confirm('Delete this category? All items must be moved or removed first.')) return;
     try { await deleteCategory(id); load(); } catch (e: any) { alert(e.message); }
   };
+  const handleToggleAvailability = async (item: FoodItem) => {
+    // optimistic
+    setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, isEnabled: !i.isEnabled } : i)));
+    try {
+      await updateFoodItem(item.id, { isEnabled: !item.isEnabled });
+    } catch (e: any) {
+      alert(e.message);
+      load();
+    }
+  };
+
 
   const visible = filterCat === 'all' ? items : items.filter((i) => i.categoryId === filterCat);
 
