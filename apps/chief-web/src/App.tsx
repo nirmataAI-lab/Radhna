@@ -616,12 +616,16 @@ function KitchenDashboard() {
                   <p className="text-lg">Waiting for new orders to arrive...</p>
                 </div>
               ) : (
-                activeOrders.map((order) => (
+                activeOrders.map((order, index) => (
                   <OrderCard
                     key={order.id}
                     order={order}
+                    index={index}
+                    isFocused={focusIndex === index}
                     onStatusUpdate={handleStatusUpdate}
                     statusLoading={statusLoading}
+                    isChecked={checkoff.isChecked}
+                    onToggleItem={checkoff.toggle}
                   />
                 ))
               )}
