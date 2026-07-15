@@ -830,7 +830,12 @@ function MenuTab() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {foodItems.map((item) => (
-                <div key={item.id} className={`premium-card p-4 ${!item.isEnabled ? 'opacity-50' : ''} animate-fade-in`}>
+                <div key={item.id} className={`premium-card p-4 ${!item.isEnabled ? 'opacity-60' : ''} animate-fade-in`}>
+                  {item.imageUrl && (
+                    <div className="mb-3 -mx-4 -mt-4 aspect-video overflow-hidden rounded-t-xl bg-[var(--color-muted)]">
+                      <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                    </div>
+                  )}
                   <div className="flex justify-between items-start mb-2">
                     <div><h4 className="font-semibold text-sm">{item.name}</h4><p className="text-xs text-[var(--color-muted-foreground)]">{item.category?.name}</p></div>
                     <span className="font-bold text-[var(--color-primary)]">₹{Number(item.price).toFixed(2)}</span>
@@ -841,10 +846,15 @@ function MenuTab() {
                     {!item.isVeg && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700">Non-Veg</span>}
                     {item.isPopular && <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">Popular</span>}
                     {item.isTodaysSpecial && <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">Special</span>}
-                    {!item.isEnabled && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">Disabled</span>}
+                    {!item.isEnabled && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">Unavailable</span>}
                     {item.productionStock && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">Stock: {item.productionStock.availableQty}</span>}
                   </div>
                   <div className="flex gap-2">
+                    <button onClick={() => handleToggleAvailability(item)}
+                      title={item.isEnabled ? 'Mark unavailable' : 'Mark available'}
+                      className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors flex items-center justify-center ${item.isEnabled ? 'border-[var(--color-border)] hover:bg-[var(--color-muted)]' : 'border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100'}`}>
+                      {item.isEnabled ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                    </button>
                     <button onClick={() => setEditItem(item)}
                       className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center gap-1">
                       <Edit3 className="w-3 h-3" /> Edit
@@ -856,6 +866,7 @@ function MenuTab() {
                   </div>
                 </div>
               ))}
+
               {foodItems.length === 0 && (
                 <div className="col-span-full text-center py-12 text-[var(--color-muted-foreground)]">
                   <UtensilsCrossed className="w-12 h-12 mx-auto mb-3 opacity-30" /><p>No menu items yet. Add your first item!</p>
