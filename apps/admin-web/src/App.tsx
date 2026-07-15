@@ -565,7 +565,7 @@ function OrdersTab() {
                 {orders.map((order) => (
                   <tr key={order.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-muted)] transition-colors">
                     <td className="p-3 font-mono text-xs">{order.id.slice(0, 8)}...</td>
-                    <td className="p-3">{order.table?.tableNumber || '—'}</td>
+                    <td className="p-3">{order.customer?.name || order.customer?.email || '—'}</td>
                     <td className="p-3">{order.orderItems?.length || 0} items</td>
                     <td className="p-3 font-medium">₹{Number(order.total).toFixed(2)}</td>
                     <td className="p-3">
