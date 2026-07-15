@@ -21,8 +21,12 @@ import {
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { OrderStatus } from '@prisma/client';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { OrderStatus, Role } from '@prisma/client';
 import type { Request } from 'express';
+
+const STAFF: Role[] = [Role.SUPER_ADMIN, Role.CHIEF];
 
 @ApiTags('orders')
 @Controller('orders')
