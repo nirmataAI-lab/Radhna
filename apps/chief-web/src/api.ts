@@ -32,8 +32,10 @@ export interface Order {
   customer?: { id: string; email?: string; name?: string } | null;
   createdAt: string;
   updatedAt: string;
+  cancelReason?: string | null;
   orderItems?: OrderItem[];
 }
+
 
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
