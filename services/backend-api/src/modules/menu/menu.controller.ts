@@ -77,7 +77,7 @@ export class MenuController {
 
   @Get('categories/all')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get all categories (admin)',
@@ -89,7 +89,7 @@ export class MenuController {
 
   @Get('categories/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get category by ID' })
   @ApiParam({ name: 'id', description: 'Category ID (UUID)' })
@@ -99,7 +99,7 @@ export class MenuController {
 
   @Post('categories')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create category' })
   createCategory(@Body() dto: CreateCategoryDto) {
@@ -108,7 +108,7 @@ export class MenuController {
 
   @Patch('categories/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update category' })
   updateCategory(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
@@ -117,7 +117,7 @@ export class MenuController {
 
   @Delete('categories/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Delete category',
@@ -131,7 +131,7 @@ export class MenuController {
 
   @Get('items/all')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get all food items (admin)',
@@ -147,7 +147,7 @@ export class MenuController {
 
   @Get('items/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get food item by ID' })
   getFoodItem(@Param('id') id: string) {
@@ -156,7 +156,7 @@ export class MenuController {
 
   @Post('items')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create food item' })
   createFoodItem(@Body() dto: CreateFoodItemDto) {
@@ -165,7 +165,7 @@ export class MenuController {
 
   @Patch('items/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update food item' })
   updateFoodItem(@Param('id') id: string, @Body() dto: UpdateFoodItemDto) {
@@ -174,7 +174,7 @@ export class MenuController {
 
   @Delete('items/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete food item' })
   deleteFoodItem(@Param('id') id: string) {
