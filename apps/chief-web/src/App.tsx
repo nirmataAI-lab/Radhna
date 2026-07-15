@@ -511,10 +511,9 @@ function KitchenDashboard() {
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-lg">
-                        {order.table?.tableNumber
-                          ? `Table ${order.table.tableNumber}`
-                          : order.orderType}
+                        {order.customer?.name || 'Takeaway'}
                       </span>
+
                       <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full uppercase">
                         {order.status}
                       </span>
