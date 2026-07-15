@@ -353,6 +353,31 @@ function KitchenDashboard() {
     }
   }, []);
 
+  const handleRecall = useCallback(async (order: Order) => {
+    const reason = window.prompt(
+      `Recall order #${order.id.slice(0, 6)} back to the kitchen?\n\nReason (customer complaint, cold food, wrong item…):`,
+      'Customer sent it back',
+    );
+    if (reason === null) return; // cancelled dialog
+    setStatusLoading(order.id);
+    try {
+      const updated = await recallOrder(order.id, reason);
+      // Optimistic local move — the socket will also deliver this, but updating
+      // immediately keeps the UI snappy when the user recalls from Completed.
+      setCompleted((prev) => prev.filter((o) => o.id !== updated.id));
+      setOrders((prev) => {
+        const without = prev.filter((o) => o.id !== updated.id);
+        return [updated as unknown as Order, ...without];
+      });
+    } catch (err: any) {
+      console.error('Failed to recall order:', err);
+      alert(err?.message || 'Failed to recall order');
+    } finally {
+      setStatusLoading(null);
+    }
+  }, []);
+
+
   const toggleFullscreen = useCallback(async () => {
     if (!document.fullscreenElement) {
       await containerRef.current?.requestFullscreen();
