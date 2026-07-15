@@ -21,26 +21,20 @@ interface OrderItem {
   foodItem?: { name: string };
 }
 
-interface Table {
-  id: string;
-  tableNumber: string;
-  capacity: number;
-}
-
+// Backend paginates active orders in an envelope; unwrap if present.
 export interface Order {
   id: string;
-  orderType: 'DINE_IN' | 'TAKEAWAY';
-  tableId?: string;
   status: OrderStatus;
   subtotal: string;
   tax: string;
   total: string;
   customerId?: string;
+  customer?: { id: string; email?: string; name?: string } | null;
   createdAt: string;
   updatedAt: string;
-  table?: Table | null;
   orderItems?: OrderItem[];
 }
+
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
