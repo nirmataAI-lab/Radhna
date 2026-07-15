@@ -121,7 +121,8 @@ export class OrdersController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'List orders',
@@ -176,7 +177,8 @@ export class OrdersController {
   }
 
   @Patch(':id/status')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Update order status',
