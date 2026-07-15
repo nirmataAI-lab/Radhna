@@ -163,7 +163,7 @@ function OrderCard({ order, onStatusUpdate, onRecall, statusLoading, isChecked, 
 
   return (
     <div
-      className={`premium-card relative flex flex-col overflow-hidden ${isNew ? 'status-urgent' : ''} ${isUrgent ? 'ring-2 ring-[var(--color-warning)]/50' : ''} ${isFocused ? 'ring-4 ring-[var(--color-primary)] ring-offset-2 ring-offset-[var(--color-background)]' : ''}`}
+      className={`premium-card relative flex flex-col overflow-hidden ${isNew ? 'status-urgent' : ''} ${isUrgent ? 'ring-2 ring-[var(--color-warning)]/50' : ''} ${isRecalled ? 'ring-2 ring-[var(--color-destructive)]' : ''} ${isFocused ? 'ring-4 ring-[var(--color-primary)] ring-offset-2 ring-offset-[var(--color-background)]' : ''}`}
       style={{ animation: 'slide-up 0.35s cubic-bezier(0.22,1,0.36,1)' }}
     >
       {/* Position badge for keyboard shortcut */}
@@ -172,6 +172,15 @@ function OrderCard({ order, onStatusUpdate, onRecall, statusLoading, isChecked, 
           {index + 1}
         </div>
       )}
+      {isRecalled && (
+        <div className="flex items-start gap-2 border-b border-[var(--color-destructive)]/30 bg-[var(--color-destructive)]/15 px-4 py-2 text-[var(--color-destructive)]">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="min-w-0 flex-1 text-xs font-semibold uppercase tracking-wider">
+            Recalled · <span className="font-normal normal-case tracking-normal">{recallReason}</span>
+          </div>
+        </div>
+      )}
+
       {/* Header bar */}
       <div className={`relative ${s.bg} p-4 text-white`}>
         <div className="flex items-start justify-between gap-3">
