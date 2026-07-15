@@ -17,7 +17,7 @@ import type { Category, FoodItem, Order, AnalyticsData, Coupon } from './api';
 import { AlertTriangle, PackageOpen } from 'lucide-react';
 import { useAuthStore } from './authStore';
 import {
-  LineChart, Line, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell, Legend,
+  BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell, Legend,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { InventoryTab, ReviewsTab, AuditTab } from './newTabs';
