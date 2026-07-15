@@ -288,8 +288,11 @@ function KitchenDashboard() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const logout = useAuthStore((state) => state.logout);
+  const checkoff = useItemCheckoff();
 
   const loadOrders = useCallback(async () => {
     try {
