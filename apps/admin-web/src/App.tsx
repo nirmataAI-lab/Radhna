@@ -1331,3 +1331,41 @@ export default function App() {
     </div>
   );
 }
+
+// ─── Admin Image Upload ────────────────────────────
+
+function AdminImageUpload({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const ref = useRef<HTMLInputElement>(null);
+  const handleFile = async (f: File | null) => {
+    if (!f) return;
+    setErr(null); setUploading(true);
+    try { onChange(await fileToCompressedDataUrl(f)); }
+    catch (e: any) { setErr(e.message || 'Upload failed'); }
+    finally { setUploading(false); if (ref.current) ref.current.value = ''; }
+  };
+  const input = "w-full p-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-background)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50";
+  return (
+    <div>
+      <label className="text-xs font-medium mb-1 block">Product image</label>
+      <div className="flex items-center gap-3">
+        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]">
+          {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--color-muted-foreground)]">No image</div>}
+        </div>
+        <div className="flex flex-1 flex-col gap-2">
+          <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0] || null)} />
+          <button type="button" onClick={() => ref.current?.click()} disabled={uploading}
+            className="flex items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-semibold hover:bg-[var(--color-muted)] disabled:opacity-50">
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {uploading ? 'Uploading…' : value ? 'Replace image' : 'Upload image'}
+          </button>
+          {value && <button type="button" onClick={() => onChange('')} className="text-xs font-semibold text-red-500 hover:underline text-left">Remove image</button>}
+        </div>
+      </div>
+      <input value={value.startsWith('data:') ? '' : value} onChange={(e) => onChange(e.target.value)}
+        placeholder="…or paste an image URL" className={`${input} mt-2`} />
+      {err && <p className="text-xs text-red-500 mt-1">{err}</p>}
+    </div>
+  );
+}
