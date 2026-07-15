@@ -657,7 +657,13 @@ function KitchenDashboard() {
         <header className={`mb-6 flex items-center justify-between border-b border-[var(--color-border)] pb-4 ${isFullscreen ? 'kds-header' : ''}`}>
           <div className="min-w-0">
             <h2 className={`font-display font-bold tracking-tight flex items-center gap-3 ${isFullscreen ? 'text-4xl' : 'text-3xl'}`}>
-              {activeTab === 'active' ? 'Kitchen Display' : activeTab === 'completed' ? 'Completed Orders' : 'Prep Stock'}
+              {activeTab === 'active'
+                ? 'Kitchen Display'
+                : activeTab === 'recall'
+                ? 'Recall Lane'
+                : activeTab === 'completed'
+                ? 'Completed Orders'
+                : 'Prep Stock'}
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${isConnected ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]' : 'bg-[var(--color-destructive)]/15 text-[var(--color-destructive)]'}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-[var(--color-success)] animate-pulse' : 'bg-[var(--color-destructive)]'}`} />
                 {isConnected ? 'Live' : 'Offline'}
@@ -666,10 +672,13 @@ function KitchenDashboard() {
             <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
               {activeTab === 'active'
                 ? `${activeOrders.length} order${activeOrders.length === 1 ? '' : 's'} in queue`
+                : activeTab === 'recall'
+                ? `${recalledOrders.length} order${recalledOrders.length === 1 ? '' : 's'} sent back to the kitchen`
                 : activeTab === 'completed'
                 ? `${completed.length} completed today`
                 : 'Set today\u2019s batch quantities'}
             </p>
+
           </div>
           <div className="flex items-center gap-2">
             <button
