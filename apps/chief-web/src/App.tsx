@@ -145,9 +145,15 @@ function OrderCard({ order, onStatusUpdate, statusLoading, isChecked, onToggleIt
 
   return (
     <div
-      className={`premium-card flex flex-col overflow-hidden ${isNew ? 'status-urgent' : ''} ${isUrgent ? 'ring-2 ring-[var(--color-warning)]/50' : ''}`}
+      className={`premium-card flex flex-col overflow-hidden ${isNew ? 'status-urgent' : ''} ${isUrgent ? 'ring-2 ring-[var(--color-warning)]/50' : ''} ${isFocused ? 'ring-4 ring-[var(--color-primary)] ring-offset-2 ring-offset-[var(--color-background)]' : ''}`}
       style={{ animation: 'slide-up 0.35s cubic-bezier(0.22,1,0.36,1)' }}
     >
+      {/* Position badge for keyboard shortcut */}
+      {index < 9 && (
+        <div className="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md bg-black/40 font-mono text-xs font-bold text-white/90 backdrop-blur">
+          {index + 1}
+        </div>
+      )}
       {/* Header bar */}
       <div className={`relative ${s.bg} p-4 text-white`}>
         <div className="flex items-start justify-between gap-3">
