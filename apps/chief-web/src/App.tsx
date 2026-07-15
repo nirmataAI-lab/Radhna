@@ -739,7 +739,9 @@ function KitchenDashboard() {
           </div>
         </header>
 
-        {activeTab === 'stock' ? (
+        {activeTab === 'menu' ? (
+          <MenuManageTab />
+        ) : activeTab === 'stock' ? (
           <PrepStockTab />
         ) : activeTab === 'active' ? (
           <>
