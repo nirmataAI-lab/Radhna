@@ -7,6 +7,8 @@ import { useAuthStore } from './authStore';
 import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
 import { PrepStockTab } from './components/PrepStockTab';
 import { useItemCheckoff } from './hooks/useItemCheckoff';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 
 
 // ─── Notification Sound ─────────────────────────────
