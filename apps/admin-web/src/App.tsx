@@ -275,7 +275,7 @@ const STATUS_COLORS: Record<string, string> = {
 // ─── Dashboard Tab ──────────────────────────────────
 
 function DashboardTab() {
-  const [stats, setStats] = useState({ revenue: 0, totalOrders: 0, activeTables: 0 });
+  const [stats, setStats] = useState({ revenue: 0, totalOrders: 0, activeOrders: 0 });
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);
 
