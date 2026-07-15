@@ -386,3 +386,48 @@ export async function fetchAuditLog(page = 1, limit = 50): Promise<Paginated<Aud
   const res = await fetch(`${API_URL}/audit-log?page=${page}&limit=${limit}`, { headers: authHeaders() });
   return handleResponse(res);
 }
+
+// ─── Staff ──────────────────────────────────────────
+
+export type StaffRole = 'SUPER_ADMIN' | 'CHIEF';
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  role: StaffRole;
+  status: 'ACTIVE' | 'SUSPENDED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function fetchStaff(): Promise<StaffMember[]> {
+  const res = await fetch(`${API_URL}/users/staff`, { headers: authHeaders() });
+  return handleResponse(res);
+}
+
+export async function createStaff(data: {
+  name: string; email: string; phone?: string; password: string; role: StaffRole;
+}): Promise<StaffMember> {
+  const res = await fetch(`${API_URL}/users/staff`, {
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function updateStaff(id: string, data: Partial<{
+  name: string; phone: string; role: StaffRole; status: 'ACTIVE' | 'SUSPENDED'; password: string;
+}>): Promise<StaffMember> {
+  const res = await fetch(`${API_URL}/users/staff/${id}`, {
+    method: 'PATCH', headers: authHeaders(), body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteStaff(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/users/staff/${id}`, {
+    method: 'DELETE', headers: authHeaders(),
+  });
+  return handleResponse(res);
+}
