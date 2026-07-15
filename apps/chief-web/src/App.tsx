@@ -320,6 +320,7 @@ function OrderCard({ order, onStatusUpdate, onRecall, statusLoading, isChecked, 
 // ─── Kitchen Dashboard ──────────────────────────────
 
 function KitchenDashboard() {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [completed, setCompleted] = useState<Order[]>([]);
   const [isConnected, setIsConnected] = useState(false);
