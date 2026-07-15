@@ -105,11 +105,16 @@ async function handleResponse(res: Response) {
 // ─── Auth ───────────────────────────────────────────
 
 export async function loginApi(email: string, password: string): Promise<LoginResponse> {
-  const res = await fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+  } catch {
+    throw new Error(`Cannot reach the API at ${API_URL}. Start the backend with "npm run backend:dev" or set VITE_API_URL.`);
+  }
   return handleResponse(res);
 }
 
