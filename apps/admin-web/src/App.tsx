@@ -954,14 +954,15 @@ function FoodItemFormModal({ item, categories, onClose, onSaved }: {
               {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select></div>
           <div className="col-span-2"><label className="text-xs font-medium mb-1 block">Description</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputClass} /></div>
-          <div className="col-span-2"><label className="text-xs font-medium mb-1 block">Image URL</label><input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className={inputClass} /></div>
+          <div className="col-span-2"><AdminImageUpload value={imageUrl} onChange={setImageUrl} /></div>
           <div><label className="text-xs font-medium mb-1 block">Stock</label><input value={stock} onChange={(e) => setStock(e.target.value)} type="number" className={inputClass} /></div>
           <div className="flex flex-col gap-2 justify-end pb-1">
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isVeg} onChange={(e) => setIsVeg(e.target.checked)} /> Veg</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isPopular} onChange={(e) => setIsPopular(e.target.checked)} /> Popular</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isSpecial} onChange={(e) => setIsSpecial(e.target.checked)} /> Today's Special</label>
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} /> Enabled</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} /> Available to customers</label>
           </div>
+
         </div>
         <div className="flex gap-2 mt-4">
           <button onClick={onClose} className="flex-1 px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-muted)] transition-colors">Cancel</button>
