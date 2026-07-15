@@ -17,9 +17,6 @@ import type { Request } from 'express';
 const STAFF_ROLES: Role[] = [Role.SUPER_ADMIN, Role.CHIEF];
 
 @ApiTags('users')
-@ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.SUPER_ADMIN)
 @Controller('users')
 export class UsersController {
   constructor(
@@ -41,6 +38,9 @@ export class UsersController {
   // ─── Staff (admins & chefs) ────────────────────────
 
   @Get('staff')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
   @ApiOperation({ summary: 'List staff (SUPER_ADMIN + CHIEF)' })
   async listStaff() {
     return this.prisma.user.findMany({
