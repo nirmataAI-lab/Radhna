@@ -110,6 +110,7 @@ interface Order {
   id: string;
   status: string;
   createdAt: string;
+  cancelReason?: string | null;
   customer?: { id: string; email?: string; name?: string } | null;
   orderItems?: {
     id: string;
@@ -118,6 +119,17 @@ interface Order {
     foodItem?: { name: string } | null;
   }[];
 }
+
+// A recalled order = still active (PREPARING/READY) but its cancelReason
+// starts with "RECALL:". Backend uses this convention to avoid a schema change.
+const RECALL_PREFIX = 'RECALL:';
+function getRecallReason(order: Pick<Order, 'cancelReason' | 'status'>): string | null {
+  if (!order.cancelReason) return null;
+  if (order.status === 'CANCELLED') return null;
+  if (!order.cancelReason.startsWith(RECALL_PREFIX)) return null;
+  return order.cancelReason.slice(RECALL_PREFIX.length).trim() || 'Sent back to kitchen';
+}
+
 
 
 // ─── KDS Order Card ─────────────────────────────────
