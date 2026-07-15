@@ -1017,7 +1017,7 @@ function CouponFormModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
 // ─── New Order Notification Toast ───────────────────
 
 function NotificationToast({ order, onClose, onView }: {
-  order: { id: string; table?: { tableNumber: string } | null; orderType: string; createdAt: string };
+  order: { id: string; createdAt: string };
   onClose: () => void; onView: () => void;
 }) {
   useEffect(() => {
