@@ -1148,6 +1148,18 @@ export default function App() {
         newOrderCount={newOrders.length} onNewOrdersClick={() => { setTab('orders'); dismissNewOrders(); }}
       />
       <main className="flex-1 p-8 overflow-y-auto max-h-screen">
+        {/* Command palette trigger */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="flex items-center gap-2 text-xs text-[var(--color-muted-foreground)] border border-[var(--color-border)] px-3 py-1.5 rounded-lg hover:bg-[var(--color-muted)] transition-colors"
+            title="Command palette"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Search commands…</span>
+            <kbd className="ml-2 text-[10px] px-1.5 py-0.5 rounded border border-[var(--color-border)]">⌘K</kbd>
+          </button>
+        </div>
         {tab === 'dashboard' && <DashboardTab />}
         {tab === 'analytics' && <AnalyticsTab />}
         {tab === 'orders' && <OrdersTab />}
@@ -1158,6 +1170,15 @@ export default function App() {
         {tab === 'reviews' && <ReviewsTab />}
         {tab === 'audit' && <AuditTab />}
       </main>
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        setTab={(t) => setTab(t as Tab)}
+        toggleTheme={toggleTheme}
+        dark={dark}
+        logout={logout}
+      />
 
       {/* Toast Notification */}
       {toastOrder && (
