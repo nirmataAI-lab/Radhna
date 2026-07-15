@@ -19,11 +19,13 @@
     "customer:dev": "cd apps/customer-web && npm run dev",
     "admin:dev": "cd apps/admin-web && npm run dev",
     "chief:dev": "cd apps/chief-web && npm run dev",
-    "dev": "concurrently \"npm run backend:dev\" \"npm run customer:dev\" \"npm run admin:dev\" \"npm run chief:dev\"",
+    "dev": "cd apps/admin-web && npm run dev -- --port 8080 --host",
+    "dev:all": "concurrently \"npm run backend:dev\" \"npm run customer:dev\" \"npm run admin:dev\" \"npm run chief:dev\"",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "setup": "npm run docker:up && sleep 3 && npm run db:setup",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:dev": "cd apps/admin-web && npm run build"
   },
   "keywords": ["restaurant", "ordering", "kds", "management"],
   "author": "",
