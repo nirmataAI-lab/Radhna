@@ -588,6 +588,23 @@ function KitchenDashboard() {
               )}
             </button>
             <button
+              onClick={() => setActiveTab('recall')}
+              className={`flex items-center gap-2.5 rounded-lg p-3 text-left transition ${
+                activeTab === 'recall'
+                  ? 'bg-[var(--color-destructive)]/15 text-[var(--color-destructive)] shadow-inner'
+                  : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]'
+              }`}
+            >
+              <Undo2 className="h-4 w-4" />
+              Recall Lane
+              {recalledOrders.length > 0 && (
+                <span className="ml-auto rounded-full bg-[var(--color-destructive)] px-2 py-0.5 text-xs font-bold text-white shadow-sm">
+                  {recalledOrders.length}
+                </span>
+              )}
+            </button>
+
+            <button
               onClick={() => setActiveTab('completed')}
               className={`flex items-center gap-2.5 rounded-lg p-3 text-left transition ${
                 activeTab === 'completed'
