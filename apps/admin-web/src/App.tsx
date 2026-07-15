@@ -536,7 +536,7 @@ function OrdersTab() {
   const allSelected = selectableIds.length > 0 && selectableIds.every(id => selected.has(id));
 
   const toggleAll = () => {
-    setSelected(prev => {
+    setSelected(() => {
       if (allSelected) return new Set();
       return new Set(selectableIds);
     });
