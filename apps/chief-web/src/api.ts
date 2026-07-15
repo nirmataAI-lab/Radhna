@@ -67,8 +67,10 @@ export async function fetchActiveOrders(): Promise<Order[]> {
   if (!res.ok) {
     throw new Error('Failed to fetch active orders');
   }
-  return res.json();
+  const body = await res.json();
+  return Array.isArray(body) ? body : body.data ?? [];
 }
+
 
 export async function updateOrderStatus(orderId: string, status: OrderStatus): Promise<Order> {
   const token = useAuthStore.getState().token;
