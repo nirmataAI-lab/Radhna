@@ -1034,9 +1034,9 @@ function NotificationToast({ order, onClose, onView }: {
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm">New Order Received!</p>
           <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
-            {order.table?.tableNumber ? `Table ${order.table.tableNumber}` : order.orderType}
-            {' · '}{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
+
           <p className="text-xs font-mono text-[var(--color-muted-foreground)] mt-0.5">
             #{order.id.slice(0, 8)}
           </p>
