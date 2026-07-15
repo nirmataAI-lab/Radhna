@@ -210,6 +210,7 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
     { tab: 'coupons', icon: Tag, label: 'Coupons' },
     { tab: 'reviews', icon: Star, label: 'Reviews' },
     { tab: 'audit', icon: ScrollText, label: 'Audit Log' },
+    { tab: 'staff', icon: Users, label: 'Staff' },
   ];
 
   return (
