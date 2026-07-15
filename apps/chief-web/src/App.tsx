@@ -635,6 +635,17 @@ function KitchenDashboard() {
               <Package className="h-4 w-4" />
               {t('nav.stock')}
             </button>
+            <button
+              onClick={() => setActiveTab('menu')}
+              className={`flex items-center gap-2.5 rounded-lg p-3 text-left transition ${
+                activeTab === 'menu'
+                  ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] shadow-inner'
+                  : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]'
+              }`}
+            >
+              <UtensilsCrossed className="h-4 w-4" />
+              Menu
+            </button>
           </nav>
           <div className="mt-auto flex flex-col gap-1 border-t border-[var(--color-border)] pt-4">
             <div className="px-1 pb-1"><LanguageSwitcher /></div>
