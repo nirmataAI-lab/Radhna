@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  CHIEF
+  CUSTOMER
+}
+
+enum OrderType {
+  DINE_IN
+  TAKEAWAY
+}
+
+enum OrderStatus {
+  PLACED
+  ACCEPTED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  UPI
+  CARD
+  CASH
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FLAT
+}
+
+enum NotificationType {
+  ORDER_UPDATE
+  OFFER
+  SYSTEM_ALERT
+}
+
+model User {
+  id             String   @id @default(uuid())
+  name           String
+  email          String?  @unique
+  phone          String?  @unique
+  passwordHash   String?
+  role           Role     @default(CUSTOMER)
+  status         String   @default("ACTIVE") // ACTIVE, SUSPENDED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  orders        Order[]        @relation("CustomerOrders")
+  reviews       Review[]
+  favorites     Favorite[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+}
+
+model Category {
+  id           String   @id @default(uuid())
+  name         String
+  image        String?
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  foodItems FoodItem[]
+}
+
+model FoodItem {
+  id              String   @id @default(uuid())
+  categoryId      String
+  name            String
+  description     String?
+  price           Decimal  @db.Decimal(10, 2)
+  imageUrl        String?
+  isVeg           Boolean  @default(true)
+  isEnabled       Boolean  @default(true)
+  isPopular       Boolean  @default(false)
+  isTodaysSpecial Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  category        Category         @relation(fields: [categoryId], references: [id])
+  productionStock ProductionStock?
+  orderItems      OrderItem[]
+  reviews         Review[]
+  favoritedBy     Favorite[]
+}
+
+model ProductionStock {
+  id           String   @id @default(uuid())
+  foodItemId   String   @unique
+  availableQty Int      @default(0)
+  updatedBy    String?
+  updatedAt    DateTime @updatedAt
+
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id])
+}
+
+model InventoryRawMaterial {
+  id                String   @id @default(uuid())
+  name              String
+  unit              String
+  quantity          Decimal  @db.Decimal(10, 2)
+  lowStockThreshold Decimal  @db.Decimal(10, 2)
+  supplierReference String?
+  updatedAt         DateTime @updatedAt
+}
+
+model Table {
+  id          String   @id @default(uuid())
+  tableNumber String   @unique
+  capacity    Int
+  qrCode      String?
+  createdAt   DateTime @default(now())
+
+  orders Order[]
+}
+
+model Order {
+  id            String        @id @default(uuid())
+  customerId    String?
+  orderType     OrderType
+  tableId       String?
+  status        OrderStatus   @default(PLACED)
+  subtotal      Decimal       @db.Decimal(10, 2)
+  tax           Decimal       @db.Decimal(10, 2)
+  discount      Decimal       @default(0) @db.Decimal(10, 2)
+  total         Decimal       @db.Decimal(10, 2)
+  paymentStatus PaymentStatus @default(PENDING)
+  cancelReason  String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  customer   User?       @relation("CustomerOrders", fields: [customerId], references: [id])
+  table      Table?      @relation(fields: [tableId], references: [id])
+  orderItems OrderItem[]
+  payments   Payment[]
+}
+
+model OrderItem {
+  id                  String  @id @default(uuid())
+  orderId             String
+  foodItemId          String
+  quantity            Int
+  unitPrice           Decimal @db.Decimal(10, 2)
+  specialInstructions String?
+
+  order    Order    @relation(fields: [orderId], references: [id])
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id])
+}
+
+model Payment {
+  id           String        @id @default(uuid())
+  orderId      String
+  method       PaymentMethod
+  amount       Decimal       @db.Decimal(10, 2)
+  gatewayRef   String?
+  status       PaymentStatus @default(PENDING)
+  refundReason String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model Coupon {
+  id           String       @id @default(uuid())
+  code         String       @unique
+  discountType DiscountType
+  value        Decimal      @db.Decimal(10, 2)
+  validFrom    DateTime
+  validTo      DateTime
+  usageLimit   Int?
+  usageCount   Int          @default(0)
+  createdAt    DateTime     @default(now())
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  customerId String
+  foodItemId String
+  rating     Int
+  comment    String?
+  images     String[] // Array of image URLs
+  isFlagged  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  customer User     @relation(fields: [customerId], references: [id])
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id])
+
+  @@unique([customerId, foodItemId])
+}
+
+model Favorite {
+  id         String   @id @default(uuid())
+  customerId String
+  foodItemId String
+  createdAt  DateTime @default(now())
+
+  customer User     @relation(fields: [customerId], references: [id])
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id])
+
+  @@unique([customerId, foodItemId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String? // Nullable for broadcast
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  action    String
+  entity    String
+  entityId  String
+  reason    String?
+  timestamp DateTime @default(now())
+
+  admin User @relation(fields: [adminId], references: [id])
+}

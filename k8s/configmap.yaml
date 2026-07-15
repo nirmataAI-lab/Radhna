@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: radhna-config
+  namespace: radhna-cuisine
+data:
+  # Backend
+  PORT: "3000"
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_NAME: "restaurant_db"
+  CORS_ORIGINS: "http://customer-web-service,http://admin-web-service,http://chief-web-service"
+  JWT_SECRET: "change-me-in-production-use-a-real-secret"
+
+  # Frontends
+  NEXT_PUBLIC_API_URL: "http://backend-api-service:3000/api"
+  CUSTOMER_URL: "https://order.radhnacuisine.com"

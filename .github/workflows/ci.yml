@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ─── Backend: TypeScript check + Tests ─────────────
+  backend:
+    name: Backend (NestJS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/backend-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: services/backend-api/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/restaurant_db
+      - run: npx tsc --noEmit --project tsconfig.json
+      - run: npx jest --no-coverage
+
+  # ─── Customer Web: TypeScript check + Build ────────
+  customer-web:
+    name: Customer Web (Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/customer-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: apps/customer-web/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3000/api
+
+  # ─── Admin Web: TypeScript check + Build ───────────
+  admin-web:
+    name: Admin Web (Vite + React)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/admin-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: apps/admin-web/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit --project tsconfig.app.json
+      - run: npm run build
+
+  # ─── Chief Web: TypeScript check + Build ───────────
+  chief-web:
+    name: Chief Web (Vite + React)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/chief-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: apps/chief-web/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit --project tsconfig.app.json
+      - run: npm run build
+
+  # ─── E2E Tests (requires PostgreSQL) ───────────────
+  e2e:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: restaurant_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: services/backend-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: services/backend-api/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/restaurant_db
+      - run: npm run test:e2e
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/restaurant_db
+          JWT_SECRET: test-secret

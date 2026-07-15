@@ -1,0 +1,55 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: radhna-ingress
+  namespace: radhna-cuisine
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - order.radhnacuisine.com
+        - admin.radhnacuisine.com
+        - kitchen.radhnacuisine.com
+      secretName: radhna-tls
+  rules:
+    - host: order.radhnacuisine.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-api-service
+                port:
+                  number: 3000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: customer-web-service
+                port:
+                  number: 80
+    - host: admin.radhnacuisine.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: admin-web-service
+                port:
+                  number: 80
+    - host: kitchen.radhnacuisine.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: chief-web-service
+                port:
+                  number: 80
