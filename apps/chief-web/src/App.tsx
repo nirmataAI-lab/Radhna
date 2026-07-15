@@ -378,6 +378,102 @@ function KitchenDashboard() {
   }, [loadOrders, soundEnabled]);
 
   const activeOrders = orders;
+  const visibleOrders = useMemo(
+    () => (activeTab === 'active' ? activeOrders : completed),
+    [activeTab, activeOrders, completed],
+  );
+
+  const advanceOrder = useCallback((order: Order) => {
+    const next: Record<string, OrderStatus | undefined> = {
+      PLACED: 'PREPARING',
+      ACCEPTED: 'PREPARING',
+      PREPARING: 'READY',
+      READY: 'COMPLETED',
+    };
+    const nextStatus = next[order.status];
+    if (nextStatus) handleStatusUpdate(order.id, nextStatus);
+  }, [handleStatusUpdate]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const isTyping = (el: EventTarget | null) => {
+      const t = el as HTMLElement | null;
+      if (!t) return false;
+      const tag = t.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t as any).isContentEditable;
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isTyping(e.target)) return;
+
+      if (e.key === 'Escape') {
+        if (showHelp) setShowHelp(false);
+        else setFocusIndex(null);
+        return;
+      }
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setShowHelp((v) => !v);
+        return;
+      }
+      if (showHelp) return;
+
+      const key = e.key.toLowerCase();
+      if (key === 'f') { e.preventDefault(); toggleFullscreen(); return; }
+      if (key === 's') { e.preventDefault(); setSoundEnabled((v) => !v); return; }
+      if (key === 'a') { e.preventDefault(); setAutoRefresh((v) => !v); return; }
+      if (key === 'r') { e.preventDefault(); loadOrders(); return; }
+      if (key === 't') {
+        e.preventDefault();
+        setActiveTab((t) => (t === 'active' ? 'completed' : 'active'));
+        setFocusIndex(null);
+        return;
+      }
+
+      // Number keys 1-9 → focus by position
+      if (/^[1-9]$/.test(e.key)) {
+        const idx = parseInt(e.key, 10) - 1;
+        if (idx < visibleOrders.length) {
+          e.preventDefault();
+          setFocusIndex(idx);
+        }
+        return;
+      }
+
+      // Focused-order shortcuts
+      if (focusIndex === null) return;
+      const order = visibleOrders[focusIndex];
+      if (!order) return;
+
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        advanceOrder(order);
+      } else if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        if (order.status !== 'CANCELLED' && order.status !== 'COMPLETED') {
+          handleStatusUpdate(order.id, 'CANCELLED');
+        }
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusIndex((i) => Math.min((i ?? -1) + 1, visibleOrders.length - 1));
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusIndex((i) => Math.max((i ?? 1) - 1, 0));
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showHelp, focusIndex, visibleOrders, advanceOrder, handleStatusUpdate, loadOrders, toggleFullscreen]);
+
+  // Clamp focus when list shrinks
+  useEffect(() => {
+    if (focusIndex !== null && focusIndex >= visibleOrders.length) {
+      setFocusIndex(visibleOrders.length > 0 ? visibleOrders.length - 1 : null);
+    }
+  }, [visibleOrders.length, focusIndex]);
+
 
   return (
     <div ref={containerRef} className={`min-h-screen flex bg-[var(--color-background)] ${isFullscreen ? 'kds-fullscreen' : ''}`}>
