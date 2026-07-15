@@ -189,4 +189,32 @@ export class MenuService {
 
     return this.enrichWithRating(items);
   }
+
+  // ─── Production Stock (Chief + Admin) ──────────────
+
+  async listStock() {
+    return this.prisma.foodItem.findMany({
+      where: { isEnabled: true },
+      select: {
+        id: true,
+        name: true,
+        imageUrl: true,
+        category: { select: { id: true, name: true } },
+        productionStock: { select: { availableQty: true, updatedAt: true } },
+      },
+      orderBy: [{ category: { displayOrder: 'asc' } }, { name: 'asc' }],
+    });
+  }
+
+  async setStock(id: string, availableQty: number, updatedBy?: string) {
+    if (!Number.isInteger(availableQty) || availableQty < 0) {
+      throw new BadRequestException('availableQty must be a non-negative integer');
+    }
+    await this.getFoodItem(id);
+    return this.prisma.productionStock.upsert({
+      where: { foodItemId: id },
+      create: { foodItemId: id, availableQty, updatedBy },
+      update: { availableQty, updatedBy },
+    });
+  }
 }
