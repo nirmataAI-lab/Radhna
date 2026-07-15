@@ -1,4 +1,4 @@
-import { ChefHat, LogOut, CookingPot, CheckCheck, X, RefreshCw, Maximize2, Minimize2, Bell, BellOff, Keyboard, Package, Undo2, AlertTriangle } from 'lucide-react';
+import { ChefHat, LogOut, CookingPot, CheckCheck, X, RefreshCw, Maximize2, Minimize2, Bell, BellOff, Keyboard, Package, Undo2, AlertTriangle, UtensilsCrossed } from 'lucide-react';
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { fetchActiveOrders, loginApi, updateOrderStatus, recallOrder } from './api';
@@ -6,6 +6,7 @@ import type { OrderStatus } from './api';
 import { useAuthStore } from './authStore';
 import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
 import { PrepStockTab } from './components/PrepStockTab';
+import { MenuManageTab } from './components/MenuManageTab';
 import { useItemCheckoff } from './hooks/useItemCheckoff';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
@@ -325,7 +326,7 @@ function KitchenDashboard() {
   const [completed, setCompleted] = useState<Order[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'active' | 'recall' | 'completed' | 'stock'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'recall' | 'completed' | 'stock' | 'menu'>('active');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -634,6 +635,17 @@ function KitchenDashboard() {
               <Package className="h-4 w-4" />
               {t('nav.stock')}
             </button>
+            <button
+              onClick={() => setActiveTab('menu')}
+              className={`flex items-center gap-2.5 rounded-lg p-3 text-left transition ${
+                activeTab === 'menu'
+                  ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] shadow-inner'
+                  : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]'
+              }`}
+            >
+              <UtensilsCrossed className="h-4 w-4" />
+              Menu
+            </button>
           </nav>
           <div className="mt-auto flex flex-col gap-1 border-t border-[var(--color-border)] pt-4">
             <div className="px-1 pb-1"><LanguageSwitcher /></div>
@@ -667,7 +679,9 @@ function KitchenDashboard() {
                 ? 'Recall Lane'
                 : activeTab === 'completed'
                 ? 'Completed Orders'
-                : 'Prep Stock'}
+                : activeTab === 'stock'
+                ? 'Prep Stock'
+                : 'Menu Manager'}
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${isConnected ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]' : 'bg-[var(--color-destructive)]/15 text-[var(--color-destructive)]'}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-[var(--color-success)] animate-pulse' : 'bg-[var(--color-destructive)]'}`} />
                 {isConnected ? 'Live' : 'Offline'}
@@ -680,7 +694,9 @@ function KitchenDashboard() {
                 ? `${recalledOrders.length} order${recalledOrders.length === 1 ? '' : 's'} sent back to the kitchen`
                 : activeTab === 'completed'
                 ? `${completed.length} completed today`
-                : 'Set today\u2019s batch quantities'}
+                : activeTab === 'stock'
+                ? 'Set today\u2019s batch quantities'
+                : 'Add, edit and remove menu items and categories'}
             </p>
 
           </div>
@@ -723,7 +739,9 @@ function KitchenDashboard() {
           </div>
         </header>
 
-        {activeTab === 'stock' ? (
+        {activeTab === 'menu' ? (
+          <MenuManageTab />
+        ) : activeTab === 'stock' ? (
           <PrepStockTab />
         ) : activeTab === 'active' ? (
           <>
