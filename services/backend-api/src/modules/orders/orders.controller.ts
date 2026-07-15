@@ -21,8 +21,12 @@ import {
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { OrderStatus } from '@prisma/client';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { OrderStatus, Role } from '@prisma/client';
 import type { Request } from 'express';
+
+const STAFF: Role[] = [Role.SUPER_ADMIN, Role.CHIEF];
 
 @ApiTags('orders')
 @Controller('orders')
@@ -69,7 +73,8 @@ export class OrdersController {
   // ─── Admin/Chief Protected Endpoints ───────────────
 
   @Get('analytics')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get business analytics',
@@ -86,7 +91,8 @@ export class OrdersController {
   }
 
   @Get('recent')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get recent orders since timestamp',
@@ -103,7 +109,8 @@ export class OrdersController {
   }
 
   @Get('overview')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get daily overview stats',
@@ -114,7 +121,8 @@ export class OrdersController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'List orders',
@@ -155,7 +163,8 @@ export class OrdersController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get order by ID',
@@ -168,7 +177,8 @@ export class OrdersController {
   }
 
   @Patch(':id/status')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Update order status',
@@ -201,7 +211,8 @@ export class OrdersController {
   }
 
   @Patch(':id/cancel')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Cancel an order',
