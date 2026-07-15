@@ -26,7 +26,7 @@ export class AuthService {
 
   private issueTokens(user: {
     id: string;
-    email: string;
+    email: string | null;
     role: string;
   }) {
     const payload = { email: user.email, sub: user.id, role: user.role };
