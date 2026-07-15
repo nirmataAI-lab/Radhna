@@ -529,6 +529,17 @@ function KitchenDashboard() {
                 </span>
               )}
             </button>
+            <button
+              onClick={() => setActiveTab('stock')}
+              className={`flex items-center gap-2.5 rounded-lg p-3 text-left transition ${
+                activeTab === 'stock'
+                  ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] shadow-inner'
+                  : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]'
+              }`}
+            >
+              <Package className="h-4 w-4" />
+              Prep Stock
+            </button>
           </nav>
           <div className="mt-auto flex flex-col gap-1 border-t border-[var(--color-border)] pt-4">
             <button
