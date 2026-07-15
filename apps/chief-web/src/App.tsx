@@ -127,68 +127,63 @@ function OrderCard({ order, onStatusUpdate, statusLoading }: {
   const isUrgent = timeSince > 15 && order.status !== 'READY' && order.status !== 'COMPLETED';
   const isNew = timeSince < 2 && order.status === 'PLACED';
 
+  const statusStyles: Record<string, { bg: string; ring: string; label: string }> = {
+    PLACED:    { bg: 'bg-[var(--color-destructive)]', ring: 'ring-[var(--color-destructive)]/60', label: 'New order' },
+    ACCEPTED:  { bg: 'bg-[var(--color-warning)]',     ring: 'ring-[var(--color-warning)]/60',     label: 'Accepted' },
+    PREPARING: { bg: 'bg-[var(--color-primary)]',     ring: 'ring-[var(--color-primary)]/60',     label: 'Preparing' },
+    READY:     { bg: 'bg-[var(--color-success)]',     ring: 'ring-[var(--color-success)]/60',     label: 'Ready' },
+    COMPLETED: { bg: 'bg-[var(--color-muted-foreground)]', ring: 'ring-white/10', label: 'Completed' },
+    CANCELLED: { bg: 'bg-neutral-600', ring: 'ring-white/10', label: 'Cancelled' },
+  };
+  const s = statusStyles[order.status] ?? statusStyles.PLACED;
+
   return (
     <div
-      className={`premium-card flex flex-col overflow-hidden animate-fade-in border-2 ${
-        isNew
-          ? 'border-red-400 shadow-lg shadow-red-200 dark:shadow-red-900/30'
-          : isUrgent
-            ? 'border-amber-400 shadow-md shadow-amber-200 dark:shadow-amber-900/20'
-            : 'border-transparent'
-      }`}
-      style={{ animation: 'fade-in 0.3s ease-out' }}
+      className={`premium-card flex flex-col overflow-hidden ${isNew ? 'status-urgent' : ''} ${isUrgent ? 'ring-2 ring-[var(--color-warning)]/50' : ''}`}
+      style={{ animation: 'slide-up 0.35s cubic-bezier(0.22,1,0.36,1)' }}
     >
       {/* Header bar */}
-      <div
-        className={`text-white p-4 font-bold flex justify-between items-center text-lg ${
-          order.status === 'PLACED'
-            ? 'bg-red-500'
-            : order.status === 'ACCEPTED'
-              ? 'bg-yellow-500'
-              : order.status === 'PREPARING'
-                ? 'bg-blue-500'
-                : 'bg-green-500'
-        }`}
-      >
-        <div className="flex items-center gap-3">
-          <span className="text-xl">
-            {order.table?.tableNumber
-              ? `Table ${order.table.tableNumber}`
-              : order.orderType}
-          </span>
-          <span className="text-xs bg-white/20 px-3 py-1 rounded-full uppercase tracking-wide">
-            {order.status}
-          </span>
-          {isUrgent && <span className="text-sm bg-red-600 px-3 py-1 rounded-full animate-pulse">⚠️ URGENT</span>}
-        </div>
-        <div className="flex items-center gap-3">
-          {timeSince < 60 ? (
-            <span className="text-sm opacity-90">{timeSince}m ago</span>
-          ) : (
-            <span className="text-sm opacity-90">
-              {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
+      <div className={`relative ${s.bg} p-4 text-white`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="font-display text-2xl font-bold leading-tight tracking-tight">
+              {order.table?.tableNumber ? `Table ${order.table.tableNumber}` : order.orderType.replace('_', ' ')}
+            </div>
+            <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] opacity-90">
+              {s.label} · #{order.id.slice(0, 6)}
+            </div>
+          </div>
+          <div className="shrink-0 text-right">
+            <div className="font-mono text-2xl font-bold leading-none tabular-nums">
+              {timeSince < 60 ? `${timeSince}` : new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {timeSince < 60 && <span className="ml-0.5 text-xs font-normal opacity-80">m</span>}
+            </div>
+            {isUrgent && (
+              <div className="mt-1.5 inline-flex animate-pulse items-center gap-1 rounded-full bg-black/25 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                ⚠ Urgent
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Items list */}
-      <div className="p-5 flex-1">
-        <ul className="space-y-4">
+      <div className="flex-1 p-5">
+        <ul className="space-y-3">
           {order.orderItems?.map((item: any) => (
-            <li
-              key={item.id}
-              className="flex flex-col gap-1 border-b border-[var(--color-border)] pb-3 last:border-0"
-            >
-              <div className="flex justify-between font-semibold text-lg">
-                <span>
-                  {item.quantity}x {item.foodItem?.name || 'Unknown Item'}
+            <li key={item.id} className="border-b border-[var(--color-border)] pb-3 last:border-0 last:pb-0">
+              <div className="flex items-baseline gap-3">
+                <span className="font-mono text-xl font-bold text-[var(--color-primary)] tabular-nums">
+                  {item.quantity}×
+                </span>
+                <span className="flex-1 font-display text-lg font-semibold leading-tight text-[var(--color-foreground)]">
+                  {item.foodItem?.name || 'Unknown Item'}
                 </span>
               </div>
               {item.specialInstructions && (
-                <div className="flex items-start gap-2 text-amber-600">
-                  <span className="text-lg">📝</span>
-                  <span className="font-medium text-base">{item.specialInstructions}</span>
+                <div className="mt-2 flex items-start gap-2 rounded-lg border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-3 py-2 text-sm font-medium text-[var(--color-warning)]">
+                  <span className="mt-0.5">📝</span>
+                  <span className="flex-1">{item.specialInstructions}</span>
                 </div>
               )}
             </li>
@@ -197,33 +192,27 @@ function OrderCard({ order, onStatusUpdate, statusLoading }: {
       </div>
 
       {/* Actions */}
-      <div className="p-4 border-t border-[var(--color-border)] flex gap-3">
+      <div className="flex gap-2 border-t border-[var(--color-border)] bg-black/20 p-3">
         {order.status === 'CANCELLED' ? (
-          <div className="w-full text-center text-red-500 font-bold text-lg py-3">
-            ❌ Order Cancelled
+          <div className="w-full py-2 text-center text-base font-bold text-[var(--color-destructive)]">
+            ❌ Cancelled
           </div>
         ) : order.status === 'PLACED' ? (
           <>
             <button
               onClick={() => onStatusUpdate(order.id, 'PREPARING')}
               disabled={statusLoading === order.id}
-              className="flex-1 bg-[var(--color-primary)] text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md flex items-center justify-center gap-2 text-lg"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] py-3 text-base font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-50"
             >
-              {statusLoading === order.id ? (
-                <RefreshCw className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <CookingPot className="w-5 h-5" /> Start Preparing
-                </>
-              )}
+              {statusLoading === order.id ? <RefreshCw className="h-5 w-5 animate-spin" /> : <><CookingPot className="h-5 w-5" /> Start Preparing</>}
             </button>
             <button
               onClick={() => onStatusUpdate(order.id, 'CANCELLED')}
               disabled={statusLoading === order.id}
-              className="px-4 py-3 border-2 border-red-300 text-red-500 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50"
+              className="rounded-xl border border-[var(--color-destructive)]/40 px-4 text-[var(--color-destructive)] transition hover:bg-[var(--color-destructive)]/10 disabled:opacity-50"
               title="Cancel Order"
             >
-              <X className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </button>
           </>
         ) : order.status === 'PREPARING' ? (
@@ -231,38 +220,26 @@ function OrderCard({ order, onStatusUpdate, statusLoading }: {
             <button
               onClick={() => onStatusUpdate(order.id, 'READY')}
               disabled={statusLoading === order.id}
-              className="flex-1 bg-green-500 text-white font-bold py-3 rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-2 text-lg"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--color-success)] py-3 text-base font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-50"
             >
-              {statusLoading === order.id ? (
-                <RefreshCw className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <CheckCheck className="w-5 h-5" /> Mark Ready
-                </>
-              )}
+              {statusLoading === order.id ? <RefreshCw className="h-5 w-5 animate-spin" /> : <><CheckCheck className="h-5 w-5" /> Mark Ready</>}
             </button>
             <button
               onClick={() => onStatusUpdate(order.id, 'CANCELLED')}
               disabled={statusLoading === order.id}
-              className="px-4 py-3 border-2 border-red-300 text-red-500 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50"
+              className="rounded-xl border border-[var(--color-destructive)]/40 px-4 text-[var(--color-destructive)] transition hover:bg-[var(--color-destructive)]/10 disabled:opacity-50"
               title="Cancel Order"
             >
-              <X className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </button>
           </>
         ) : order.status === 'READY' ? (
           <button
             onClick={() => onStatusUpdate(order.id, 'COMPLETED')}
             disabled={statusLoading === order.id}
-            className="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 shadow-md flex items-center justify-center gap-2 text-lg"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-success)] py-3 text-base font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-50"
           >
-            {statusLoading === order.id ? (
-              <RefreshCw className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <CheckCheck className="w-5 h-5" /> Complete Order
-              </>
-            )}
+            {statusLoading === order.id ? <RefreshCw className="h-5 w-5 animate-spin" /> : <><CheckCheck className="h-5 w-5" /> Complete Order</>}
           </button>
         ) : null}
       </div>
