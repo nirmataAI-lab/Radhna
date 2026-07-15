@@ -145,7 +145,7 @@ function OrderCard({ order, onStatusUpdate, statusLoading, isChecked, onToggleIt
 
   return (
     <div
-      className={`premium-card flex flex-col overflow-hidden ${isNew ? 'status-urgent' : ''} ${isUrgent ? 'ring-2 ring-[var(--color-warning)]/50' : ''} ${isFocused ? 'ring-4 ring-[var(--color-primary)] ring-offset-2 ring-offset-[var(--color-background)]' : ''}`}
+      className={`premium-card relative flex flex-col overflow-hidden ${isNew ? 'status-urgent' : ''} ${isUrgent ? 'ring-2 ring-[var(--color-warning)]/50' : ''} ${isFocused ? 'ring-4 ring-[var(--color-primary)] ring-offset-2 ring-offset-[var(--color-background)]' : ''}`}
       style={{ animation: 'slide-up 0.35s cubic-bezier(0.22,1,0.36,1)' }}
     >
       {/* Position badge for keyboard shortcut */}
