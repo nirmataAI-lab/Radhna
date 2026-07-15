@@ -441,10 +441,17 @@ function KitchenDashboard() {
   }, [loadOrders, soundEnabled]);
 
   const activeOrders = orders;
-  const visibleOrders = useMemo(
-    () => (activeTab === 'active' ? activeOrders : completed),
-    [activeTab, activeOrders, completed],
+  const recalledOrders = useMemo(
+    () => orders.filter((o) => getRecallReason(o) !== null),
+    [orders],
   );
+  const visibleOrders = useMemo(() => {
+    if (activeTab === 'active') return activeOrders;
+    if (activeTab === 'recall') return recalledOrders;
+    if (activeTab === 'completed') return completed;
+    return [];
+  }, [activeTab, activeOrders, recalledOrders, completed]);
+
 
   const advanceOrder = useCallback((order: Order) => {
     const next: Record<string, OrderStatus | undefined> = {
