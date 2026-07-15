@@ -773,6 +773,13 @@ function MenuTab() {
     load();
   };
 
+  const handleToggleAvailability = async (item: FoodItem) => {
+    setFoodItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, isEnabled: !i.isEnabled } : i)));
+    try { await updateFoodItem(item.id, { isEnabled: !item.isEnabled }); }
+    catch (e: any) { alert(e.message); load(); }
+  };
+
+
   const handleDeleteCat = async (id: string) => {
     if (!confirm('Delete this category? Items must be removed first.')) return;
     try { await deleteCategory(id); load(); }
