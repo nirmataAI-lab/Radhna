@@ -455,7 +455,7 @@ function AnalyticsTab() {
                     <YAxis dataKey="name" type="category" width={110} tick={{ fontSize: 11 }} />
                     <Tooltip
                       contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12 }}
-                      formatter={(v: any, key: string) => key === 'revenue' ? [`₹${Number(v).toFixed(2)}`, 'Revenue'] : [Number(v), 'Sold']}
+                      formatter={(v: any, name: any) => name === 'revenue' ? [`₹${Number(v).toFixed(2)}`, 'Revenue'] : [Number(v), 'Sold']}
                     />
                     <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
                   </BarChart>
