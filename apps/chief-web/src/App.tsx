@@ -120,10 +120,14 @@ interface Order {
 
 // ─── KDS Order Card ─────────────────────────────────
 
-function OrderCard({ order, onStatusUpdate, statusLoading }: {
+function OrderCard({ order, onStatusUpdate, statusLoading, isChecked, onToggleItem, isFocused, index }: {
   order: Order;
   onStatusUpdate: (id: string, status: OrderStatus) => void;
   statusLoading: string | null;
+  isChecked: (itemId: string) => boolean;
+  onToggleItem: (itemId: string) => void;
+  isFocused: boolean;
+  index: number;
 }) {
   const timeSince = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000);
   const isUrgent = timeSince > 15 && order.status !== 'READY' && order.status !== 'COMPLETED';
