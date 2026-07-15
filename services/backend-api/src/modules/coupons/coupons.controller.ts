@@ -11,6 +11,9 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CouponsService } from './coupons.service';
 import { ValidateCouponDto } from './dto/validate-coupon.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@prisma/client';
 
 @ApiTags('coupons')
 @Controller('coupons')
@@ -28,7 +31,8 @@ export class CouponsController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'List all coupons',
@@ -39,7 +43,8 @@ export class CouponsController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Create a coupon',
@@ -50,7 +55,8 @@ export class CouponsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Delete a coupon',
