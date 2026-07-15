@@ -552,7 +552,7 @@ function OrdersTab() {
               <thead>
                 <tr className="border-b border-[var(--color-border)] bg-[var(--color-muted)]">
                   <th className="text-left p-3 font-semibold">Order</th>
-                  <th className="text-left p-3 font-semibold">Table</th>
+                  <th className="text-left p-3 font-semibold">Customer</th>
                   <th className="text-left p-3 font-semibold">Items</th>
                   <th className="text-left p-3 font-semibold">Total</th>
                   <th className="text-left p-3 font-semibold">Payment</th>
