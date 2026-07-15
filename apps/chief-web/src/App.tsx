@@ -147,7 +147,8 @@ function OrderCard({ order, onStatusUpdate, statusLoading }: {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="font-display text-2xl font-bold leading-tight tracking-tight">
-              {order.table?.tableNumber ? `Table ${order.table.tableNumber}` : order.orderType.replace('_', ' ')}
+              {order.customer?.name || 'Takeaway'}
+
             </div>
             <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] opacity-90">
               {s.label} · #{order.id.slice(0, 6)}
