@@ -32,8 +32,10 @@ export interface Order {
   customer?: { id: string; email?: string; name?: string } | null;
   createdAt: string;
   updatedAt: string;
+  cancelReason?: string | null;
   orderItems?: OrderItem[];
 }
+
 
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -141,3 +143,26 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus): P
 
   return res.json();
 }
+
+export async function recallOrder(orderId: string, reason?: string): Promise<Order> {
+  const token = useAuthStore.getState().token;
+  const res = await fetch(`${API_URL}/orders/${orderId}/recall`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ reason: reason ?? '' }),
+  });
+
+  if (res.status === 401) {
+    useAuthStore.getState().logout();
+    throw new Error('Session expired. Please login again.');
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.message?.[0] || err?.message || 'Failed to recall order');
+  }
+  return res.json();
+}
+
