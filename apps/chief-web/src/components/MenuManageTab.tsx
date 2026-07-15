@@ -299,14 +299,17 @@ function FoodItemModal({ item, categories, onClose, onSaved }: {
           </select>
         </Field>
         <div className="col-span-2"><Field label="Description"><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputClass} /></Field></div>
-        <div className="col-span-2"><Field label="Image URL"><input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className={inputClass} placeholder="https://…" /></Field></div>
+        <div className="col-span-2">
+          <ImageUploadField value={imageUrl} onChange={setImageUrl} />
+        </div>
         <Field label="Today's stock"><input value={stock} onChange={(e) => setStock(e.target.value)} type="number" className={inputClass} /></Field>
         <div className="flex flex-col justify-end gap-2 pb-1 text-sm">
           <label className="flex items-center gap-2"><input type="checkbox" checked={isVeg} onChange={(e) => setIsVeg(e.target.checked)} /> Veg</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={isPopular} onChange={(e) => setIsPopular(e.target.checked)} /> Popular</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={isSpecial} onChange={(e) => setIsSpecial(e.target.checked)} /> Today's Special</label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} /> Enabled</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} /> Available to customers</label>
         </div>
+
       </div>
       <ModalActions onCancel={onClose} onSave={save} saving={saving} disabled={!canSave} label={item ? 'Update' : 'Create'} />
     </ModalShell>
