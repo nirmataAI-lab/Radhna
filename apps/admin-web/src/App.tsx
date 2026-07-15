@@ -1129,7 +1129,7 @@ export default function App() {
         {tab === 'orders' && <OrdersTab />}
         {tab === 'menu' && <MenuTab />}
         {tab === 'inventory' && <InventoryTab />}
-        {tab === 'tables' && <TablesTab />}
+        
         {tab === 'coupons' && <CouponsTab />}
         {tab === 'reviews' && <ReviewsTab />}
         {tab === 'audit' && <AuditTab />}
