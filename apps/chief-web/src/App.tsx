@@ -183,24 +183,41 @@ function OrderCard({ order, onStatusUpdate, statusLoading, isChecked, onToggleIt
       {/* Items list */}
       <div className="flex-1 p-5">
         <ul className="space-y-3">
-          {order.orderItems?.map((item: any) => (
-            <li key={item.id} className="border-b border-[var(--color-border)] pb-3 last:border-0 last:pb-0">
-              <div className="flex items-baseline gap-3">
-                <span className="font-mono text-xl font-bold text-[var(--color-primary)] tabular-nums">
-                  {item.quantity}×
-                </span>
-                <span className="flex-1 font-display text-lg font-semibold leading-tight text-[var(--color-foreground)]">
-                  {item.foodItem?.name || 'Unknown Item'}
-                </span>
-              </div>
-              {item.specialInstructions && (
-                <div className="mt-2 flex items-start gap-2 rounded-lg border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-3 py-2 text-sm font-medium text-[var(--color-warning)]">
-                  <span className="mt-0.5">📝</span>
-                  <span className="flex-1">{item.specialInstructions}</span>
-                </div>
-              )}
-            </li>
-          ))}
+          {order.orderItems?.map((item: any) => {
+            const checked = isChecked(item.id);
+            const interactive = order.status === 'PREPARING' || order.status === 'ACCEPTED';
+            return (
+              <li key={item.id} className="border-b border-[var(--color-border)] pb-3 last:border-0 last:pb-0">
+                <button
+                  type="button"
+                  onClick={() => interactive && onToggleItem(item.id)}
+                  disabled={!interactive}
+                  className={`flex w-full items-baseline gap-3 rounded-lg text-left transition ${
+                    interactive ? 'cursor-pointer hover:bg-[var(--color-muted)]/60 px-2 -mx-2 py-1' : 'cursor-default'
+                  } ${checked ? 'opacity-50 line-through decoration-2' : ''}`}
+                  title={interactive ? (checked ? 'Mark as pending' : 'Mark as done') : undefined}
+                >
+                  <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition ${
+                    checked ? 'border-[var(--color-success)] bg-[var(--color-success)] text-white' : 'border-[var(--color-border)]'
+                  } ${!interactive ? 'opacity-40' : ''}`}>
+                    {checked && <CheckCheck className="h-3 w-3" />}
+                  </span>
+                  <span className="font-mono text-xl font-bold text-[var(--color-primary)] tabular-nums">
+                    {item.quantity}×
+                  </span>
+                  <span className="flex-1 font-display text-lg font-semibold leading-tight text-[var(--color-foreground)]">
+                    {item.foodItem?.name || 'Unknown Item'}
+                  </span>
+                </button>
+                {item.specialInstructions && (
+                  <div className="mt-2 flex items-start gap-2 rounded-lg border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-3 py-2 text-sm font-medium text-[var(--color-warning)]">
+                    <span className="mt-0.5">📝</span>
+                    <span className="flex-1">{item.specialInstructions}</span>
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </div>
 
