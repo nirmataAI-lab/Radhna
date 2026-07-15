@@ -21,10 +21,11 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { InventoryTab, ReviewsTab, AuditTab } from './newTabs';
+import { StaffTab } from './StaffTab';
 import { CommandPalette, useCommandPaletteHotkey } from './components/CommandPalette';
 import { exportRowsAsCSV } from './lib/csv';
 
-type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'coupons' | 'inventory' | 'reviews' | 'audit';
+type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'coupons' | 'inventory' | 'reviews' | 'audit' | 'staff';
 
 
 const CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
