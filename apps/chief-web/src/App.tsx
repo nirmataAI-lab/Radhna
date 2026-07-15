@@ -47,7 +47,7 @@ function Login() {
     setLoading(true);
     try {
       const data = await loginApi(email, password);
-      setAuth(data.access_token, data.user);
+      setAuth(data.access_token, data.user, data.refresh_token);
     } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {
