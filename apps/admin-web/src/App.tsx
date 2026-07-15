@@ -1171,6 +1171,7 @@ export default function App() {
         {tab === 'coupons' && <CouponsTab />}
         {tab === 'reviews' && <ReviewsTab />}
         {tab === 'audit' && <AuditTab />}
+        {tab === 'staff' && <StaffTab />}
       </main>
 
       <CommandPalette
