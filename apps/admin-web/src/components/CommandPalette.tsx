@@ -39,6 +39,7 @@ export function CommandPalette({
     { id: 'go:coupons', label: 'Go to Coupons', icon: Tag, keywords: 'promo discount', run: () => setTab('coupons') },
     { id: 'go:reviews', label: 'Go to Reviews', icon: Star, keywords: 'ratings feedback', run: () => setTab('reviews') },
     { id: 'go:audit', label: 'Go to Audit Log', icon: ScrollText, keywords: 'history activity', run: () => setTab('audit') },
+    { id: 'go:staff', label: 'Go to Staff', icon: Users, keywords: 'users team admins chefs', run: () => setTab('staff') },
     { id: 'act:theme', label: dark ? 'Switch to Light Mode' : 'Switch to Dark Mode', icon: dark ? Sun : Moon, keywords: 'theme appearance', run: toggleTheme },
     { id: 'act:logout', label: 'Log Out', icon: LogOut, keywords: 'signout exit', run: logout },
   ], [setTab, toggleTheme, dark, logout]);
