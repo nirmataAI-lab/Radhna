@@ -682,6 +682,7 @@ function KitchenDashboard() {
           </div>
         )}
       </main>
+      <KeyboardShortcutsHelp open={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );
 }
