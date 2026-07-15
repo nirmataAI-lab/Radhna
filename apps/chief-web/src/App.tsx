@@ -723,7 +723,6 @@ function KitchenDashboard() {
           <PrepStockTab />
         ) : activeTab === 'active' ? (
           <>
-            {/* Active orders grid */}
             <div className={`grid gap-6 ${isFullscreen ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}`}>
               {activeOrders.length === 0 ? (
                 <div className="col-span-full text-center py-20 text-[var(--color-muted-foreground)]">
@@ -739,6 +738,7 @@ function KitchenDashboard() {
                     index={index}
                     isFocused={focusIndex === index}
                     onStatusUpdate={handleStatusUpdate}
+                    onRecall={handleRecall}
                     statusLoading={statusLoading}
                     isChecked={checkoff.isChecked}
                     onToggleItem={checkoff.toggle}
@@ -747,6 +747,30 @@ function KitchenDashboard() {
               )}
             </div>
           </>
+        ) : activeTab === 'recall' ? (
+          <div className={`grid gap-6 ${isFullscreen ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}`}>
+            {recalledOrders.length === 0 ? (
+              <div className="col-span-full text-center py-20 text-[var(--color-muted-foreground)]">
+                <Undo2 className="w-20 h-20 mx-auto mb-4 opacity-10" />
+                <p className="text-2xl font-medium">Nothing recalled</p>
+                <p className="text-lg">Recalled orders will land here so you can prioritise them.</p>
+              </div>
+            ) : (
+              recalledOrders.map((order, index) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  index={index}
+                  isFocused={focusIndex === index}
+                  onStatusUpdate={handleStatusUpdate}
+                  onRecall={handleRecall}
+                  statusLoading={statusLoading}
+                  isChecked={checkoff.isChecked}
+                  onToggleItem={checkoff.toggle}
+                />
+              ))
+            )}
+          </div>
         ) : (
           <div className={`grid gap-6 ${isFullscreen ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}`}>
             {completed.length === 0 ? (
@@ -758,7 +782,7 @@ function KitchenDashboard() {
               completed.map((order) => (
                 <div
                   key={order.id}
-                  className="premium-card flex flex-col opacity-75 overflow-hidden"
+                  className="premium-card flex flex-col opacity-90 overflow-hidden"
                 >
                   <div
                     className={`text-white p-4 font-bold flex justify-between items-center ${
@@ -766,10 +790,7 @@ function KitchenDashboard() {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">
-                        {order.customer?.name || 'Takeaway'}
-                      </span>
-
+                      <span className="text-lg">{order.customer?.name || 'Takeaway'}</span>
                       <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full uppercase">
                         {order.status}
                       </span>
@@ -785,13 +806,23 @@ function KitchenDashboard() {
                     <ul className="space-y-2">
                       {order.orderItems?.map((item: any) => (
                         <li key={item.id} className="flex justify-between text-base">
-                          <span>
-                            {item.quantity}x {item.foodItem?.name || 'Unknown'}
-                          </span>
+                          <span>{item.quantity}x {item.foodItem?.name || 'Unknown'}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
+                  {order.status === 'COMPLETED' && (
+                    <div className="border-t border-[var(--color-border)] bg-black/10 p-3">
+                      <button
+                        onClick={() => handleRecall(order)}
+                        disabled={statusLoading === order.id}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-destructive)]/40 py-2.5 text-sm font-bold text-[var(--color-destructive)] transition hover:bg-[var(--color-destructive)]/10 disabled:opacity-50"
+                        title="Send this order back to the kitchen"
+                      >
+                        {statusLoading === order.id ? <RefreshCw className="h-4 w-4 animate-spin" /> : <><Undo2 className="h-4 w-4" /> Recall to Kitchen</>}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             )}
@@ -802,6 +833,7 @@ function KitchenDashboard() {
     </div>
   );
 }
+
 
 export default function App() {
   const token = useAuthStore((state) => state.token);
