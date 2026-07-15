@@ -15,7 +15,10 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-i18next": "^17.0.10",
+    "react-router-dom": "^7.18.1",
+    "shared-types": "*",
     "socket.io-client": "^4.8.3",
+    "ui-components": "*",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

@@ -27,9 +27,15 @@ describe('OrdersService', () => {
     broadcastNewOrder: jest.fn(),
     broadcastOrderStatusUpdate: jest.fn(),
   };
-  const mockEmail = { sendOrderStatus: jest.fn().mockResolvedValue({ preview: true }) };
-  const mockSms = { sendOrderStatus: jest.fn().mockResolvedValue({ success: true }) };
-  const mockNotifications = { create: jest.fn().mockResolvedValue({ id: 'n1' }) };
+  const mockEmail = {
+    sendOrderStatus: jest.fn().mockResolvedValue({ preview: true }),
+  };
+  const mockSms = {
+    sendOrderStatus: jest.fn().mockResolvedValue({ success: true }),
+  };
+  const mockNotifications = {
+    create: jest.fn().mockResolvedValue({ id: 'n1' }),
+  };
   const mockCoupons = { validate: jest.fn(), markUsed: jest.fn() };
 
   beforeEach(async () => {
@@ -94,11 +100,61 @@ describe('OrdersService', () => {
 
   describe('getAnalytics — discountStats', () => {
     const baseOrders = [
-      { id: 'o1', total: '100', subtotal: '110', discount: '0', paymentStatus: 'PAID', createdAt: new Date('2025-01-01T12:00:00Z'), orderItems: [{ quantity: 2, unitPrice: '50', foodItem: { name: 'Pizza' } }] },
-      { id: 'o2', total: '80', subtotal: '90', discount: '10', paymentStatus: 'PAID', createdAt: new Date('2025-01-02T13:00:00Z'), orderItems: [{ quantity: 1, unitPrice: '80', foodItem: { name: 'Burger' } }] },
-      { id: 'o3', total: '150', subtotal: '170', discount: '20', paymentStatus: 'PENDING', createdAt: new Date('2025-01-03T14:00:00Z'), orderItems: [{ quantity: 3, unitPrice: '50', foodItem: { name: 'Pasta' } }] },
-      { id: 'o4', total: '50', subtotal: '55', discount: '5', paymentStatus: 'PAID', createdAt: new Date('2025-01-04T10:00:00Z'), orderItems: [{ quantity: 1, unitPrice: '50', foodItem: { name: 'Salad' } }] },
-      { id: 'o5', total: '200', subtotal: '220', discount: '0', paymentStatus: 'PAID', createdAt: new Date('2025-01-05T18:00:00Z'), orderItems: [{ quantity: 4, unitPrice: '50', foodItem: { name: 'Sushi' } }] },
+      {
+        id: 'o1',
+        total: '100',
+        subtotal: '110',
+        discount: '0',
+        paymentStatus: 'PAID',
+        createdAt: new Date('2025-01-01T12:00:00Z'),
+        orderItems: [
+          { quantity: 2, unitPrice: '50', foodItem: { name: 'Pizza' } },
+        ],
+      },
+      {
+        id: 'o2',
+        total: '80',
+        subtotal: '90',
+        discount: '10',
+        paymentStatus: 'PAID',
+        createdAt: new Date('2025-01-02T13:00:00Z'),
+        orderItems: [
+          { quantity: 1, unitPrice: '80', foodItem: { name: 'Burger' } },
+        ],
+      },
+      {
+        id: 'o3',
+        total: '150',
+        subtotal: '170',
+        discount: '20',
+        paymentStatus: 'PENDING',
+        createdAt: new Date('2025-01-03T14:00:00Z'),
+        orderItems: [
+          { quantity: 3, unitPrice: '50', foodItem: { name: 'Pasta' } },
+        ],
+      },
+      {
+        id: 'o4',
+        total: '50',
+        subtotal: '55',
+        discount: '5',
+        paymentStatus: 'PAID',
+        createdAt: new Date('2025-01-04T10:00:00Z'),
+        orderItems: [
+          { quantity: 1, unitPrice: '50', foodItem: { name: 'Salad' } },
+        ],
+      },
+      {
+        id: 'o5',
+        total: '200',
+        subtotal: '220',
+        discount: '0',
+        paymentStatus: 'PAID',
+        createdAt: new Date('2025-01-05T18:00:00Z'),
+        orderItems: [
+          { quantity: 4, unitPrice: '50', foodItem: { name: 'Sushi' } },
+        ],
+      },
     ];
 
     it('correct discount stats with mixed orders', async () => {
@@ -107,7 +163,10 @@ describe('OrdersService', () => {
       expect(result.discountStats.totalDiscountGiven).toBe(35);
       expect(result.discountStats.discountOrderCount).toBe(3);
       expect(result.discountStats.discountPercentage).toBe(60);
-      expect(result.discountStats.averageDiscountPerOrder).toBeCloseTo(11.67, 1);
+      expect(result.discountStats.averageDiscountPerOrder).toBeCloseTo(
+        11.67,
+        1,
+      );
     });
 
     it('zero discount stats when none applied', async () => {

@@ -1,4 +1,5 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { WinstonModule } from 'nest-winston';
@@ -78,6 +79,14 @@ import { RequestLoggerMiddleware } from './common/logger/request-logger.middlewa
       },
     ]),
 
+    // ─── Message Queue ────────────────────────────
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+      },
+    }),
+
     // ─── Application Modules ─────────────────────
     PrismaModule,
     AuthModule,
@@ -86,7 +95,7 @@ import { RequestLoggerMiddleware } from './common/logger/request-logger.middlewa
     OrdersModule,
     InventoryModule,
     BillingModule,
-    
+
     HealthModule,
     NotificationsModule,
     ReviewsModule,

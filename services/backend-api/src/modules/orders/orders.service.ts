@@ -114,6 +114,27 @@ export class OrdersService {
         });
       }
 
+      // BOM Deduction: Fetch recipe items and deduct raw materials
+      const recipeItems = await tx.recipeItem.findMany({
+        where: { foodItemId: { in: foodItemIds } },
+      });
+
+      const materialUpdates: Record<string, number> = {};
+      for (const item of items) {
+        const itemRecipes = recipeItems.filter(r => r.foodItemId === item.foodItemId);
+        for (const recipe of itemRecipes) {
+          const qtyToDeduct = Number(recipe.quantityUsed) * item.quantity;
+          materialUpdates[recipe.materialId] = (materialUpdates[recipe.materialId] || 0) + qtyToDeduct;
+        }
+      }
+
+      for (const [materialId, qty] of Object.entries(materialUpdates)) {
+        await tx.inventoryRawMaterial.update({
+          where: { id: materialId },
+          data: { quantity: { decrement: qty } },
+        });
+      }
+
       const tax = subtotal * 0.1;
 
       let discount = 0;
@@ -280,7 +301,9 @@ export class OrdersService {
       where: { id },
       include: {
         orderItems: { include: { foodItem: true } },
-        customer: { select: { id: true, email: true, phone: true, name: true } },
+        customer: {
+          select: { id: true, email: true, phone: true, name: true },
+        },
       },
     });
     if (!order) throw new NotFoundException(`Order ${id} not found`);
@@ -420,9 +443,6 @@ export class OrdersService {
 
     return updatedOrder;
   }
-
-
-
 
   /**
    * Customer-initiated cancel. Only the order's own customer may call this,

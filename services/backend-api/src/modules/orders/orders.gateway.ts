@@ -35,9 +35,18 @@ export class OrdersGateway
   }
 
   handleConnection(client: Socket) {
+    const user = client.data.user;
     this.logger.log(
-      `Client connected: ${client.id} (${client.data.user?.email || 'unknown'})`,
+      `Client connected: ${client.id} (${user?.email || 'unknown'})`,
     );
+
+    if (user) {
+      if (user.role === 'CHIEF' || user.role === 'SUPER_ADMIN') {
+        client.join('staff_room');
+      } else if (user.role === 'CUSTOMER') {
+        client.join(`customer_${user.userId}`);
+      }
+    }
   }
 
   handleDisconnect(client: Socket) {
@@ -46,13 +55,18 @@ export class OrdersGateway
     );
   }
 
-  // Emits the order object to all authenticated connected clients
+  // Emits the order object to staff clients
   broadcastNewOrder(order: any) {
-    this.server.emit('newOrder', order);
+    this.server.to('staff_room').emit('newOrder', order);
   }
 
-  // Emits order status updates to all authenticated connected clients
+  // Emits order status updates to staff and the specific customer
   broadcastOrderStatusUpdate(order: any) {
-    this.server.emit('orderStatusUpdate', order);
+    this.server.to('staff_room').emit('orderStatusUpdate', order);
+    if (order.customerId) {
+      this.server
+        .to(`customer_${order.customerId}`)
+        .emit('orderStatusUpdate', order);
+    }
   }
 }

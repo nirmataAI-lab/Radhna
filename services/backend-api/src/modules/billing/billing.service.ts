@@ -84,44 +84,22 @@ export class BillingService {
     orderId: string;
   }) {
     const body = dto.razorpayOrderId + '|' + dto.razorpayPaymentId;
-    const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '')
-      .update(body)
-      .digest('hex');
-
-    const isValid = expectedSignature === dto.razorpaySignature;
+    const isValid = this.verifySignature(
+      body,
+      process.env.RAZORPAY_KEY_SECRET || '',
+      dto.razorpaySignature,
+    );
 
     if (!isValid) {
       this.logger.warn(`Payment signature mismatch for order ${dto.orderId}`);
       throw new BadRequestException('Invalid payment signature');
     }
 
-    // Upsert Payment record — avoid duplicates if webhook also fires
-    const existingPayment = await this.prisma.payment.findFirst({
-      where: { gatewayRef: dto.razorpayPaymentId },
-    });
-
-    if (!existingPayment) {
-      await this.prisma.payment.create({
-        data: {
-          orderId: dto.orderId,
-          method: PaymentMethod.UPI,
-          amount: 0, // will be updated by webhook with actual amount
-          gatewayRef: dto.razorpayPaymentId,
-          status: PaymentStatus.PAID,
-        },
-      });
-    }
-
-    // Update order payment status
-    const updatedOrder = await this.prisma.order.update({
-      where: { id: dto.orderId },
-      data: { paymentStatus: PaymentStatus.PAID },
-      include: {
-        orderItems: { include: { foodItem: true } },
-      },
-
-    });
+    const updatedOrder = await this.processSuccessfulPayment(
+      dto.orderId,
+      dto.razorpayPaymentId,
+      0, // amount updated by webhook
+    );
 
     this.logger.log(`Payment verified for order ${dto.orderId}`);
 
@@ -136,12 +114,13 @@ export class BillingService {
    * Used for server-to-server payment confirmation.
    */
   async handleWebhook(rawBody: string, signature: string) {
-    const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET || '')
-      .update(rawBody)
-      .digest('hex');
+    const isValid = this.verifySignature(
+      rawBody,
+      process.env.RAZORPAY_WEBHOOK_SECRET || '',
+      signature,
+    );
 
-    if (expectedSignature !== signature) {
+    if (!isValid) {
       this.logger.warn('Webhook signature verification failed');
       throw new BadRequestException('Invalid webhook signature');
     }
@@ -155,36 +134,11 @@ export class BillingService {
       const gatewayRef = payment.id;
 
       if (orderId) {
-        // Upsert — update existing record if already created by verifyPayment
-        const existing = await this.prisma.payment.findFirst({
-          where: { gatewayRef },
-        });
-
-        if (existing) {
-          await this.prisma.payment.update({
-            where: { id: existing.id },
-            data: {
-              amount: Number(payment.amount) / 100,
-              status: PaymentStatus.PAID,
-            },
-          });
-        } else {
-          await this.prisma.payment.create({
-            data: {
-              orderId,
-              method: PaymentMethod.UPI,
-              amount: Number(payment.amount) / 100,
-              gatewayRef,
-              status: PaymentStatus.PAID,
-            },
-          });
-        }
-
-        await this.prisma.order.update({
-          where: { id: orderId },
-          data: { paymentStatus: PaymentStatus.PAID },
-        });
-
+        await this.processSuccessfulPayment(
+          orderId,
+          gatewayRef,
+          Number(payment.amount) / 100,
+        );
         this.logger.log(`Webhook: Payment confirmed for order ${orderId}`);
       }
     }
@@ -199,6 +153,52 @@ export class BillingService {
     return this.prisma.payment.findMany({
       where: { orderId },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  private verifySignature(payload: string, secret: string, signature: string): boolean {
+    const expected = crypto
+      .createHmac('sha256', secret)
+      .update(payload)
+      .digest('hex');
+    return expected === signature;
+  }
+
+  private async processSuccessfulPayment(
+    orderId: string,
+    gatewayRef: string,
+    amount: number,
+  ) {
+    const existing = await this.prisma.payment.findFirst({
+      where: { gatewayRef },
+    });
+
+    if (existing) {
+      await this.prisma.payment.update({
+        where: { id: existing.id },
+        data: {
+          amount: amount > 0 ? amount : existing.amount,
+          status: PaymentStatus.PAID,
+        },
+      });
+    } else {
+      await this.prisma.payment.create({
+        data: {
+          orderId,
+          method: PaymentMethod.UPI,
+          amount,
+          gatewayRef,
+          status: PaymentStatus.PAID,
+        },
+      });
+    }
+
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: { paymentStatus: PaymentStatus.PAID },
+      include: {
+        orderItems: { include: { foodItem: true } },
+      },
     });
   }
 }

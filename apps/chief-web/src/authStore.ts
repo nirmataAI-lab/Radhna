@@ -21,6 +21,6 @@ export const useAuthStore = create<AuthState>()(
       setTokens: (token, refreshToken) => set({ token, refreshToken }),
       logout: () => set({ token: null, refreshToken: null, user: null }),
     }),
-    { name: 'auth-storage' }
+    { name: 'chief-auth-storage' }
   )
 );

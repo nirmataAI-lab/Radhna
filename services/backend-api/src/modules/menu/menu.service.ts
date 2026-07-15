@@ -176,9 +176,10 @@ export class MenuService {
 
   async deleteFoodItem(id: string) {
     await this.getFoodItem(id);
-    // Delete associated stock first
-    await this.prisma.productionStock.deleteMany({ where: { foodItemId: id } });
-    return this.prisma.foodItem.delete({ where: { id } });
+    return this.prisma.foodItem.update({
+      where: { id },
+      data: { isEnabled: false },
+    });
   }
 
   async getTodaysSpecials() {
@@ -208,13 +209,35 @@ export class MenuService {
 
   async setStock(id: string, availableQty: number, updatedBy?: string) {
     if (!Number.isInteger(availableQty) || availableQty < 0) {
-      throw new BadRequestException('availableQty must be a non-negative integer');
+      throw new BadRequestException(
+        'availableQty must be a non-negative integer',
+      );
     }
-    await this.getFoodItem(id);
-    return this.prisma.productionStock.upsert({
-      where: { foodItemId: id },
-      create: { foodItemId: id, availableQty, updatedBy },
-      update: { availableQty, updatedBy },
+
+    return this.prisma.$transaction(async (tx) => {
+      // Lock the FoodItem to serialize concurrent stock modifications (e.g. OrdersService)
+      const foodItems = await tx.$queryRaw<any[]>`
+        SELECT id FROM "FoodItem" WHERE id = ${id} FOR UPDATE
+      `;
+
+      if (foodItems.length === 0) {
+        throw new NotFoundException(`Food item ${id} not found`);
+      }
+
+      const existingStock = await tx.productionStock.findUnique({
+        where: { foodItemId: id },
+      });
+
+      if (existingStock) {
+        return tx.productionStock.update({
+          where: { foodItemId: id },
+          data: { availableQty, updatedBy },
+        });
+      } else {
+        return tx.productionStock.create({
+          data: { foodItemId: id, availableQty, updatedBy },
+        });
+      }
     });
   }
 }

@@ -1,42 +1,7 @@
 import { useAuthStore } from './authStore';
+import type { OrderStatus, LoginResponse, OrderItem, Order } from 'shared-types';
 
-export type OrderStatus = 'PLACED' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
-
-interface LoginResponse {
-  access_token: string; refresh_token?: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-  };
-}
-
-interface OrderItem {
-  id: string;
-  foodItemId: string;
-  quantity: number;
-  unitPrice: string;
-  specialInstructions?: string;
-  foodItem?: { name: string };
-}
-
-// Backend paginates active orders in an envelope; unwrap if present.
-export interface Order {
-  id: string;
-  status: OrderStatus;
-  subtotal: string;
-  tax: string;
-  total: string;
-  customerId?: string;
-  customer?: { id: string; email?: string; name?: string } | null;
-  createdAt: string;
-  updatedAt: string;
-  cancelReason?: string | null;
-  orderItems?: OrderItem[];
-}
-
-
+export type { OrderStatus, LoginResponse, OrderItem, Order };
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 

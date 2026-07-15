@@ -93,6 +93,7 @@ model FoodItem {
   orderItems      OrderItem[]
   reviews         Review[]
   favoritedBy     Favorite[]
+  recipeItems     RecipeItem[]
 }
 
 model ProductionStock {
@@ -113,6 +114,20 @@ model InventoryRawMaterial {
   lowStockThreshold Decimal  @db.Decimal(10, 2)
   supplierReference String?
   updatedAt         DateTime @updatedAt
+
+  recipeItems       RecipeItem[]
+}
+
+model RecipeItem {
+  id           String               @id @default(uuid())
+  foodItemId   String
+  materialId   String
+  quantityUsed Decimal              @db.Decimal(10, 2)
+  
+  foodItem     FoodItem             @relation(fields: [foodItemId], references: [id])
+  material     InventoryRawMaterial @relation(fields: [materialId], references: [id])
+
+  @@unique([foodItemId, materialId])
 }
 
 model Order {

@@ -1,41 +1,29 @@
 import {
-  LayoutDashboard, RefreshCcw, LogOut, IndianRupee, ShoppingBag,
-  TrendingUp, ChefHat, ListOrdered, UtensilsCrossed, Sun, Moon, Plus,
-  Edit3, Trash2, X, Loader2, BarChart3, Tag, Calendar, Percent,
-  Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
-  Sparkles, Zap, ArrowRight, Clock, Download, Search, Users, CheckSquare, Square,
-  Upload,
+  LayoutDashboard, LogOut, TrendingUp, ChefHat, ListOrdered, UtensilsCrossed, Sun, Moon, 
+  BarChart3, Tag, Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
+  Sparkles, Zap, ArrowRight, Search, Users, X
 } from 'lucide-react';
-import { useEffect, useState, useCallback, useRef } from 'react';
-import {
-  fetchOverviewStats, loginApi, fetchAllOrders, updateOrderStatus,
-  fetchCategories, createCategory, updateCategory, deleteCategory,
-  fetchAllFoodItems, createFoodItem, updateFoodItem, deleteFoodItem,
-  fetchAnalytics,
-  fetchCoupons, createCoupon, deleteCoupon,
-} from './api';
-import { fileToCompressedDataUrl } from './lib/imageUpload';
-
-import type { Category, FoodItem, Order, AnalyticsData, Coupon } from './api';
-import { AlertTriangle, PackageOpen } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { loginApi } from './api';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuthStore } from './authStore';
-import {
-  BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell, Legend,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-} from 'recharts';
-import { InventoryTab, ReviewsTab, AuditTab } from './newTabs';
-import { StaffTab } from './StaffTab';
 import { CommandPalette, useCommandPaletteHotkey } from './components/CommandPalette';
-import { exportRowsAsCSV } from './lib/csv';
+import { SUPPORTED_LANGS } from './lib/i18n';
+import { LanguageSwitcher } from 'ui-components';
 import { useTranslation } from 'react-i18next';
-import { LanguageSwitcher } from './components/LanguageSwitcher';
+
+// Pages
+import { DashboardPage } from './pages/DashboardPage';
+import { AnalyticsPage } from './pages/AnalyticsPage';
+import { OrdersPage } from './pages/OrdersPage';
+import { MenuPage } from './pages/MenuPage';
+import { CouponsPage } from './pages/CouponsPage';
+import { InventoryPage } from './pages/InventoryPage';
+import { ReviewsPage } from './pages/ReviewsPage';
+import { AuditPage } from './pages/AuditPage';
+import { StaffTab as StaffPage } from './pages/StaffPage';
 
 type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'coupons' | 'inventory' | 'reviews' | 'audit' | 'staff';
-
-
-const CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
-
-// ─── Theme Context ──────────────────────────────────
 
 function useTheme() {
   const [dark, setDark] = useState(() => {
@@ -51,8 +39,6 @@ function useTheme() {
 
   return { dark, toggle: () => setDark((d) => !d) };
 }
-
-// ─── Login ──────────────────────────────────────────
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -89,7 +75,6 @@ function Login() {
 
   return (
     <div className="min-h-dvh grid lg:grid-cols-2 bg-[var(--color-background)]">
-      {/* Brand rail */}
       <aside className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden text-white"
         style={{ background: 'var(--gradient-primary)' }}>
         <div className="absolute inset-0 opacity-40"
@@ -129,7 +114,6 @@ function Login() {
         </div>
       </aside>
 
-      {/* Form */}
       <main className="flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md">
           <div className="flex items-center gap-2 mb-8 lg:hidden">
@@ -143,7 +127,7 @@ function Login() {
 
           {error && (
             <div role="alert" className="flex gap-2 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 p-3 rounded-lg mb-4 text-sm border border-red-200 dark:border-red-900">
-              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+              <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
           )}
@@ -158,7 +142,6 @@ function Login() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label htmlFor="password" className="block text-sm font-medium">Password</label>
-                <button type="button" className="text-xs text-[var(--color-primary)] hover:underline">Forgot?</button>
               </div>
               <div className="relative">
                 <input id="password" type={showPw ? 'text' : 'password'} value={password}
@@ -166,7 +149,6 @@ function Login() {
                   placeholder="••••••••" required autoComplete="current-password"
                   className="w-full px-3.5 py-2.5 pr-10 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40 focus:border-[var(--color-primary)] transition" />
                 <button type="button" onClick={() => setShowPw((v) => !v)}
-                  aria-label={showPw ? 'Hide password' : 'Show password'}
                   className="absolute inset-y-0 right-0 px-3 grid place-items-center text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]">
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -175,11 +157,7 @@ function Login() {
 
             <button type="submit" disabled={loading}
               className="gradient-button w-full font-semibold py-2.5 rounded-lg mt-2 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-              {loading ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Signing in…</>
-              ) : (
-                <>Sign in <ArrowRight className="w-4 h-4" /></>
-              )}
+              {loading ? 'Signing in…' : <>Sign in <ArrowRight className="w-4 h-4" /></>}
             </button>
 
             <button type="button" onClick={fillDemo}
@@ -187,17 +165,11 @@ function Login() {
               <Zap className="w-3.5 h-3.5" /> Fill demo credentials
             </button>
           </form>
-
-          <p className="text-xs text-[var(--color-muted-foreground)] mt-8 text-center">
-            Protected by role-based access control · Audit-logged
-          </p>
         </div>
       </main>
     </div>
   );
 }
-
-// ─── Sidebar ────────────────────────────────────────
 
 function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewOrdersClick }: {
   tab: Tab; setTab: (t: Tab) => void;
@@ -206,13 +178,13 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
 }) {
   const user = useAuthStore((s) => s.user);
   const { t } = useTranslation();
+  
   const items: { tab: Tab; icon: any; label: string }[] = [
     { tab: 'dashboard', icon: TrendingUp, label: t('nav.dashboard') },
     { tab: 'analytics', icon: BarChart3, label: t('nav.analytics') },
     { tab: 'orders', icon: ListOrdered, label: t('nav.orders') },
     { tab: 'menu', icon: UtensilsCrossed, label: t('nav.menu') },
     { tab: 'inventory', icon: Package, label: t('nav.inventory') },
-
     { tab: 'coupons', icon: Tag, label: t('nav.coupons') },
     { tab: 'reviews', icon: Star, label: t('nav.reviews') },
     { tab: 'audit', icon: ScrollText, label: t('nav.audit') },
@@ -235,7 +207,6 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
           </button>
         ))}
       </nav>
-      {/* Notification Bell */}
       <button
         onClick={onNewOrdersClick}
         className="flex items-center gap-2 px-3 py-2.5 mb-2 rounded-lg text-sm font-medium transition-colors hover:bg-[var(--color-muted)] relative"
@@ -262,7 +233,7 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
           className="flex-1 p-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center gap-1">
           {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} {dark ? t('sidebar.light') : t('sidebar.dark')}
         </button>
-        <LanguageSwitcher />
+        <LanguageSwitcher supportedLangs={SUPPORTED_LANGS} />
       </div>
       <button onClick={logout}
         className="flex items-center gap-2 text-sm font-medium text-red-500 p-3 hover:bg-red-50 rounded-lg transition-colors">
@@ -271,910 +242,6 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
     </aside>
   );
 }
-
-// ─── Status Colors ──────────────────────────────────
-
-const STATUS_COLORS: Record<string, string> = {
-  PLACED: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
-  ACCEPTED: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400',
-  PREPARING: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
-  READY: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
-  COMPLETED: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
-  CANCELLED: 'bg-red-50 text-red-500 line-through dark:bg-red-900/20',
-};
-
-// ─── Dashboard Tab ──────────────────────────────────
-
-function DashboardTab() {
-  const [stats, setStats] = useState({ revenue: 0, totalOrders: 0, activeOrders: 0 });
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [statsData, items] = await Promise.all([
-        fetchOverviewStats(),
-        fetchAllFoodItems(),
-      ]);
-      setStats(statsData);
-      setFoodItems(items);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { load(); const i = setInterval(load, 30000); return () => clearInterval(i); }, [load]);
-
-  const lowStockItems = foodItems.filter(
-    (item) => item.productionStock && item.productionStock.availableQty <= 5 && item.isEnabled
-  );
-  const outOfStockItems = foodItems.filter(
-    (item) => item.productionStock && item.productionStock.availableQty <= 0
-  );
-
-  const cards = [
-    { label: "Today's Revenue", value: `₹${stats.revenue.toFixed(2)}`, icon: IndianRupee, color: 'bg-green-50 text-green-600 dark:bg-green-900/30' },
-    { label: 'Total Orders', value: stats.totalOrders.toString(), icon: ShoppingBag, color: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30' },
-    { label: 'Active Orders', value: stats.activeOrders.toString(), icon: Clock, color: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30' },
-  ];
-
-  return (
-    <div>
-      <header className="flex justify-between items-center mb-8">
-        <div><h2 className="text-3xl font-bold">Dashboard</h2><p className="text-[var(--color-muted-foreground)] text-sm mt-1">Today's business overview</p></div>
-        <button onClick={load} disabled={loading}
-          className="flex items-center gap-2 text-sm font-bold bg-white dark:bg-[var(--color-card)] border border-[var(--color-border)] px-4 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors">
-          <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
-        </button>
-      </header>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {cards.map((c) => (
-          <div key={c.label} className="premium-card p-6">
-            <div className={`p-2 rounded-lg w-fit ${c.color} mb-4`}><c.icon className="w-5 h-5" /></div>
-            <p className="text-[var(--color-muted-foreground)] font-medium text-sm mb-1">{c.label}</p>
-            <p className="text-3xl font-bold">{c.value}</p>
-          </div>
-        ))}
-      </div>
-      {(lowStockItems.length > 0 || outOfStockItems.length > 0) && (
-        <div className="premium-card p-6 mb-8 border-amber-200 dark:border-amber-800">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="w-5 h-5 text-amber-500" />
-            <h3 className="font-bold text-lg">Stock Alerts</h3>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {outOfStockItems.slice(0, 5).map((item) => (
-              <div key={item.id} className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400">
-                <PackageOpen className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm font-medium">{item.name}</span>
-                <span className="text-xs ml-auto font-bold">OUT OF STOCK</span>
-              </div>
-            ))}
-            {lowStockItems.filter(i => i.productionStock && i.productionStock.availableQty > 0).slice(0, 5).map((item) => (
-              <div key={item.id} className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
-                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm font-medium">{item.name}</span>
-                <span className="text-xs ml-auto font-bold">Stock: {item.productionStock?.availableQty}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Analytics Tab ──────────────────────────────────
-
-function AnalyticsTab() {
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(30);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try { setData(await fetchAnalytics(days)); }
-    catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, [days]);
-
-  useEffect(() => { load(); }, [load]);
-
-  return (
-    <div>
-      <header className="flex justify-between items-center mb-8">
-        <div><h2 className="text-3xl font-bold">Analytics</h2><p className="text-[var(--color-muted-foreground)] text-sm mt-1">Business performance overview</p></div>
-        <div className="flex items-center gap-3">
-          <select value={days} onChange={(e) => setDays(parseInt(e.target.value))}
-            className="text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg bg-[var(--color-card)]">
-            <option value={7}>Last 7 days</option>
-            <option value={30}>Last 30 days</option>
-            <option value={90}>Last 90 days</option>
-          </select>
-          <button onClick={load} disabled={loading}
-            className="flex items-center gap-2 text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors">
-            <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-      </header>
-
-      {loading ? (
-        <div className="text-center py-16"><Loader2 className="w-8 h-8 mx-auto animate-spin" /></div>
-      ) : !data ? (
-        <div className="text-center py-16 text-[var(--color-muted-foreground)]">No data available</div>
-      ) : (
-        <div className="flex flex-col gap-6">
-          {/* Top-level KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="premium-card p-5">
-              <p className="text-sm text-[var(--color-muted-foreground)] mb-1">Total Revenue</p>
-              <p className="text-3xl font-bold text-green-600">₹{data.totalRevenue.toLocaleString()}</p>
-            </div>
-            <div className="premium-card p-5">
-              <p className="text-sm text-[var(--color-muted-foreground)] mb-1">Total Orders</p>
-              <p className="text-3xl font-bold text-blue-600">{data.totalOrders}</p>
-            </div>
-            <div className="premium-card p-5">
-              <p className="text-sm text-[var(--color-muted-foreground)] mb-1">Avg. Order Value</p>
-              <p className="text-3xl font-bold text-purple-600">₹{data.averageOrderValue.toFixed(2)}</p>
-            </div>
-          </div>
-
-          {/* Revenue Trend — Area with gradient */}
-          <div className="premium-card p-5">
-            <div className="flex items-baseline justify-between mb-4">
-              <h3 className="font-bold">Revenue Trend</h3>
-              <span className="text-xs text-[var(--color-muted-foreground)]">
-                {data.revenueTrend.length} day{data.revenueTrend.length === 1 ? '' : 's'} with sales
-              </span>
-            </div>
-            <div className="h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data.revenueTrend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(v) => v.slice(5)} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `₹${v}`} />
-                  <Tooltip
-                    contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12 }}
-                    formatter={(value: any) => [`₹${Number(value).toFixed(2)}`, 'Revenue']}
-                  />
-                  <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fill="url(#revGradient)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Popular Items (horizontal bars) & Peak Hours */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="premium-card p-5">
-              <h3 className="font-bold mb-4">Most Popular Items</h3>
-              <div className="h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.popularItems.slice(0, 8)} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 11 }} />
-                    <YAxis dataKey="name" type="category" width={110} tick={{ fontSize: 11 }} />
-                    <Tooltip
-                      contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12 }}
-                      formatter={(v: any, name: any) => name === 'revenue' ? [`₹${Number(v).toFixed(2)}`, 'Revenue'] : [Number(v), 'Sold']}
-                    />
-                    <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="premium-card p-5">
-              <h3 className="font-bold mb-4">Peak Hours</h3>
-              <div className="h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.peakHours}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                    <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={2} />
-                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                    <Tooltip
-                      contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12 }}
-                      formatter={(value: any) => [Number(value), 'Orders']}
-                    />
-                    <Bar dataKey="orders" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment Breakdown — Pie */}
-          <div className="premium-card p-5">
-            <h3 className="font-bold mb-4">Payment Status Breakdown</h3>
-            {data.paymentBreakdown.length === 0 ? (
-              <div className="text-sm text-[var(--color-muted-foreground)] py-8 text-center">No payments in range</div>
-            ) : (
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={data.paymentBreakdown}
-                      dataKey="count"
-                      nameKey="status"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={90}
-                      paddingAngle={2}
-                    >
-                      {data.paymentBreakdown.map((_, i) => (
-                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 12 }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </div>
-
-
-          {/* Coupon / Discount Analytics */}
-          {data.discountStats && (
-            <div className="premium-card p-5">
-              <h3 className="font-bold mb-4">📊 Discount &amp; Coupon Stats</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                  <p className="text-xs text-[var(--color-muted-foreground)] mb-1">Total Discount Given</p>
-                  <p className="text-xl font-bold text-blue-600">₹{data.discountStats.totalDiscountGiven.toFixed(2)}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
-                  <p className="text-xs text-[var(--color-muted-foreground)] mb-1">Orders with Discount</p>
-                  <p className="text-xl font-bold text-green-600">{data.discountStats.discountOrderCount}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20">
-                  <p className="text-xs text-[var(--color-muted-foreground)] mb-1">% Orders Discounted</p>
-                  <p className="text-xl font-bold text-purple-600">{data.discountStats.discountPercentage}%</p>
-                </div>
-                <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20">
-                  <p className="text-xs text-[var(--color-muted-foreground)] mb-1">Avg Discount/Order</p>
-                  <p className="text-xl font-bold text-amber-600">₹{data.discountStats.averageDiscountPerOrder.toFixed(2)}</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Orders Tab ─────────────────────────────────────
-
-function OrdersTab() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('');
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [bulkBusy, setBulkBusy] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try { setOrders(await fetchAllOrders(statusFilter || undefined)); setSelected(new Set()); }
-    catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, [statusFilter]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const selectableIds = orders
-    .filter(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED')
-    .map(o => o.id);
-  const allSelected = selectableIds.length > 0 && selectableIds.every(id => selected.has(id));
-
-  const toggleAll = () => {
-    setSelected(() => {
-      if (allSelected) return new Set();
-      return new Set(selectableIds);
-    });
-  };
-  const toggleOne = (id: string) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
-  const bulkUpdate = async (status: 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED') => {
-    if (selected.size === 0) return;
-    if (status === 'CANCELLED' && !confirm(`Cancel ${selected.size} order(s)?`)) return;
-    setBulkBusy(true);
-    try {
-      await Promise.all([...selected].map(id => updateOrderStatus(id, status).catch(() => null)));
-      await load();
-    } finally { setBulkBusy(false); }
-  };
-
-  return (
-    <div>
-      <header className="flex justify-between items-center mb-8">
-        <div><h2 className="text-3xl font-bold">Orders Management</h2><p className="text-[var(--color-muted-foreground)] text-sm mt-1">View and manage all orders</p></div>
-        <div className="flex gap-2">
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg bg-[var(--color-card)]">
-            <option value="">All Statuses</option>
-            <option value="PLACED">Placed</option><option value="PREPARING">Preparing</option>
-            <option value="READY">Ready</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option>
-          </select>
-          <button
-            onClick={() => exportRowsAsCSV(`orders-${new Date().toISOString().slice(0,10)}`, orders, [
-              { key: 'id', label: 'Order ID' },
-              { key: 'createdAt', label: 'Created', format: (v) => new Date(v).toISOString() },
-              { key: 'status', label: 'Status' },
-              { key: 'paymentStatus', label: 'Payment' },
-              { key: 'customer', label: 'Customer', format: (_v, r) => r.customer?.name || r.customer?.email || '' },
-              { key: 'orderItems', label: 'Items', format: (v) => (v?.length ?? 0) },
-              { key: 'subtotal', label: 'Subtotal' },
-              { key: 'discount', label: 'Discount' },
-              { key: 'tax', label: 'Tax' },
-              { key: 'total', label: 'Total' },
-            ])}
-            disabled={orders.length === 0}
-            className="flex items-center gap-2 text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors disabled:opacity-50"
-            title="Export as CSV"
-          >
-            <Download className="w-4 h-4" /> Export
-          </button>
-          <button onClick={load} disabled={loading}
-            className="flex items-center gap-2 text-sm border border-[var(--color-border)] px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors">
-            <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-      </header>
-
-      {selected.size > 0 && (
-        <div className="premium-card mb-4 px-4 py-3 flex items-center justify-between bg-[var(--color-primary)]/5 border-[var(--color-primary)]/30">
-          <div className="text-sm font-medium">
-            {selected.size} selected
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button disabled={bulkBusy} onClick={() => bulkUpdate('PREPARING')}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50">
-              <ChefHat className="w-3.5 h-3.5" /> Mark Preparing
-            </button>
-            <button disabled={bulkBusy} onClick={() => bulkUpdate('READY')}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-amber-100 text-amber-700 hover:bg-amber-200 disabled:opacity-50">
-              <Bell className="w-3.5 h-3.5" /> Mark Ready
-            </button>
-            <button disabled={bulkBusy} onClick={() => bulkUpdate('COMPLETED')}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50">
-              <ShieldCheck className="w-3.5 h-3.5" /> Complete
-            </button>
-            <button disabled={bulkBusy} onClick={() => bulkUpdate('CANCELLED')}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50">
-              <X className="w-3.5 h-3.5" /> Cancel
-            </button>
-            <button disabled={bulkBusy} onClick={() => setSelected(new Set())}
-              className="text-xs px-3 py-1.5 rounded-md border border-[var(--color-border)] hover:bg-[var(--color-muted)]">
-              Clear
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="premium-card overflow-hidden">
-        {orders.length === 0 ? (
-          <div className="p-12 text-center text-[var(--color-muted-foreground)]">
-            <ListOrdered className="w-12 h-12 mx-auto mb-3 opacity-30" /><p>No orders found</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--color-border)] bg-[var(--color-muted)]">
-                  <th className="p-3 w-10">
-                    <button onClick={toggleAll} disabled={selectableIds.length === 0}
-                      className="p-0.5 rounded hover:bg-[var(--color-border)] disabled:opacity-30" title="Select all active">
-                      {allSelected ? <CheckSquare className="w-4 h-4 text-[var(--color-primary)]" /> : <Square className="w-4 h-4" />}
-                    </button>
-                  </th>
-                  <th className="text-left p-3 font-semibold">Order</th>
-                  <th className="text-left p-3 font-semibold">Customer</th>
-                  <th className="text-left p-3 font-semibold">Items</th>
-                  <th className="text-left p-3 font-semibold">Total</th>
-                  <th className="text-left p-3 font-semibold">Payment</th>
-                  <th className="text-left p-3 font-semibold">Status</th>
-                  <th className="text-left p-3 font-semibold">Time</th>
-                  <th className="text-left p-3 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => {
-                  const selectable = order.status !== 'COMPLETED' && order.status !== 'CANCELLED';
-                  const isSel = selected.has(order.id);
-                  return (
-                  <tr key={order.id} className={`border-b border-[var(--color-border)] transition-colors ${isSel ? 'bg-[var(--color-primary)]/5' : 'hover:bg-[var(--color-muted)]'}`}>
-                    <td className="p-3">
-                      <button onClick={() => selectable && toggleOne(order.id)} disabled={!selectable}
-                        className="p-0.5 rounded hover:bg-[var(--color-border)] disabled:opacity-20 disabled:cursor-not-allowed">
-                        {isSel ? <CheckSquare className="w-4 h-4 text-[var(--color-primary)]" /> : <Square className="w-4 h-4" />}
-                      </button>
-                    </td>
-                    <td className="p-3 font-mono text-xs">{order.id.slice(0, 8)}...</td>
-                    <td className="p-3">{order.customer?.name || order.customer?.email || '—'}</td>
-                    <td className="p-3">{order.orderItems?.length || 0} items</td>
-                    <td className="p-3 font-medium">₹{Number(order.total).toFixed(2)}</td>
-                    <td className="p-3">
-                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                        order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                      }`}>{order.paymentStatus}</span>
-                    </td>
-                    <td className="p-3">
-                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${STATUS_COLORS[order.status] || ''}`}>{order.status}</span>
-                    </td>
-                    <td className="p-3 text-[var(--color-muted-foreground)]">
-                      {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </td>
-                    <td className="p-3">
-                      <div className="flex gap-1">
-                        {(order.status === 'PLACED') && (
-                          <button onClick={() => updateOrderStatus(order.id, 'PREPARING').then(load)}
-                            className="p-1.5 rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors" title="Start Preparing">
-                            <ChefHat className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        {order.status !== 'COMPLETED' && order.status !== 'CANCELLED' && (
-                          <button onClick={() => updateOrderStatus(order.id, 'CANCELLED').then(load)}
-                            className="p-1.5 rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Cancel">
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );})}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Menu Tab ───────────────────────────────────────
-
-function MenuTab() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showAddCat, setShowAddCat] = useState(false);
-  const [showAddItem, setShowAddItem] = useState(false);
-  const [editItem, setEditItem] = useState<FoodItem | null>(null);
-  const [editCat, setEditCat] = useState<Category | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try { const [c, f] = await Promise.all([fetchCategories(), fetchAllFoodItems()]); setCategories(c); setFoodItems(f); }
-    catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const handleDeleteItem = async (id: string) => {
-    if (!confirm('Delete this food item?')) return;
-    await deleteFoodItem(id);
-    load();
-  };
-
-  const handleToggleAvailability = async (item: FoodItem) => {
-    setFoodItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, isEnabled: !i.isEnabled } : i)));
-    try { await updateFoodItem(item.id, { isEnabled: !item.isEnabled }); }
-    catch (e: any) { alert(e.message); load(); }
-  };
-
-
-  const handleDeleteCat = async (id: string) => {
-    if (!confirm('Delete this category? Items must be removed first.')) return;
-    try { await deleteCategory(id); load(); }
-    catch (e: any) { alert(e.message); }
-  };
-
-  return (
-    <div>
-      <header className="flex justify-between items-center mb-8">
-        <div><h2 className="text-3xl font-bold">Menu Management</h2><p className="text-[var(--color-muted-foreground)] text-sm mt-1">Add, edit, and manage menu items</p></div>
-        <div className="flex gap-2">
-          <button onClick={() => { setShowAddCat(true); setEditCat(null); }}
-            className="flex items-center gap-2 text-sm font-bold bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
-            <Plus className="w-4 h-4" /> Category
-          </button>
-          <button onClick={() => { setShowAddItem(true); setEditItem(null); }}
-            className="flex items-center gap-2 text-sm font-bold bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
-            <Plus className="w-4 h-4" /> Food Item
-          </button>
-        </div>
-      </header>
-      {(showAddCat || editCat) && (
-        <CategoryFormModal category={editCat} onClose={() => { setShowAddCat(false); setEditCat(null); }}
-          onSaved={() => { setShowAddCat(false); setEditCat(null); load(); }} />
-      )}
-      {(showAddItem || editItem) && (
-        <FoodItemFormModal item={editItem} categories={categories} onClose={() => { setShowAddItem(false); setEditItem(null); }}
-          onSaved={() => { setShowAddItem(false); setEditItem(null); load(); }} />
-      )}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-1 premium-card p-4 h-fit">
-          <h3 className="font-bold mb-3 pb-2 border-b border-[var(--color-border)]">Categories</h3>
-          <div className="flex flex-col gap-1">
-            {categories.map((cat) => (
-              <div key={cat.id} className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] group">
-                <span className="text-sm font-medium">{cat.name}</span>
-                <div className="hidden group-hover:flex gap-1">
-                  <button onClick={() => setEditCat(cat)} className="p-1 text-blue-500 hover:bg-blue-50 rounded"><Edit3 className="w-3 h-3" /></button>
-                  <button onClick={() => handleDeleteCat(cat.id)} className="p-1 text-red-500 hover:bg-red-50 rounded"><Trash2 className="w-3 h-3" /></button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="lg:col-span-4">
-          {loading ? (
-            <div className="text-center py-12 text-[var(--color-muted-foreground)]"><Loader2 className="w-8 h-8 mx-auto animate-spin mb-2" />Loading...</div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {foodItems.map((item) => (
-                <div key={item.id} className={`premium-card p-4 ${!item.isEnabled ? 'opacity-60' : ''} animate-fade-in`}>
-                  {item.imageUrl && (
-                    <div className="mb-3 -mx-4 -mt-4 aspect-video overflow-hidden rounded-t-xl bg-[var(--color-muted)]">
-                      <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
-                    </div>
-                  )}
-                  <div className="flex justify-between items-start mb-2">
-                    <div><h4 className="font-semibold text-sm">{item.name}</h4><p className="text-xs text-[var(--color-muted-foreground)]">{item.category?.name}</p></div>
-                    <span className="font-bold text-[var(--color-primary)]">₹{Number(item.price).toFixed(2)}</span>
-                  </div>
-                  {item.description && <p className="text-xs text-[var(--color-muted-foreground)] line-clamp-2 mb-2">{item.description}</p>}
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {item.isVeg && <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">Veg</span>}
-                    {!item.isVeg && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700">Non-Veg</span>}
-                    {item.isPopular && <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">Popular</span>}
-                    {item.isTodaysSpecial && <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">Special</span>}
-                    {!item.isEnabled && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">Unavailable</span>}
-                    {item.productionStock && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">Stock: {item.productionStock.availableQty}</span>}
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => handleToggleAvailability(item)}
-                      title={item.isEnabled ? 'Mark unavailable' : 'Mark available'}
-                      className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors flex items-center justify-center ${item.isEnabled ? 'border-[var(--color-border)] hover:bg-[var(--color-muted)]' : 'border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100'}`}>
-                      {item.isEnabled ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                    </button>
-                    <button onClick={() => setEditItem(item)}
-                      className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center gap-1">
-                      <Edit3 className="w-3 h-3" /> Edit
-                    </button>
-                    <button onClick={() => handleDeleteItem(item.id)}
-                      className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors">
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {foodItems.length === 0 && (
-                <div className="col-span-full text-center py-12 text-[var(--color-muted-foreground)]">
-                  <UtensilsCrossed className="w-12 h-12 mx-auto mb-3 opacity-30" /><p>No menu items yet. Add your first item!</p>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Category Form Modal ────────────────────────────
-
-function CategoryFormModal({ category, onClose, onSaved }: { category: Category | null; onClose: () => void; onSaved: () => void }) {
-  const [name, setName] = useState(category?.name || '');
-  const [order, setOrder] = useState(category?.displayOrder?.toString() || '0');
-  const [saving, setSaving] = useState(false);
-  const handleSave = async () => {
-    if (!name.trim()) return;
-    setSaving(true);
-    try {
-      if (category) await updateCategory(category.id, { name: name.trim(), displayOrder: parseInt(order) || 0 });
-      else await createCategory({ name: name.trim(), displayOrder: parseInt(order) || 0 });
-      onSaved();
-    } catch (e: any) { alert(e.message); }
-    finally { setSaving(false); }
-  };
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-[var(--color-card)] p-6 rounded-xl shadow-xl w-full max-w-sm m-4" onClick={(e) => e.stopPropagation()}>
-        <h3 className="font-bold text-lg mb-4">{category ? 'Edit Category' : 'Add Category'}</h3>
-        <div className="flex flex-col gap-3">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Category name" className="w-full p-2 border border-[var(--color-border)] rounded-lg" />
-          <input value={order} onChange={(e) => setOrder(e.target.value)} placeholder="Display order" type="number" className="w-full p-2 border border-[var(--color-border)] rounded-lg" />
-          <div className="flex gap-2 mt-2">
-            <button onClick={onClose} className="flex-1 px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-muted)] transition-colors">Cancel</button>
-            <button onClick={handleSave} disabled={saving || !name.trim()}
-              className="flex-1 bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null} {category ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Food Item Form Modal ───────────────────────────
-
-function FoodItemFormModal({ item, categories, onClose, onSaved }: {
-  item: FoodItem | null; categories: Category[]; onClose: () => void; onSaved: () => void;
-}) {
-  const [name, setName] = useState(item?.name || '');
-  const [price, setPrice] = useState(item?.price?.toString() || '');
-  const [description, setDescription] = useState(item?.description || '');
-  const [categoryId, setCategoryId] = useState(item?.categoryId || categories[0]?.id || '');
-  const [imageUrl, setImageUrl] = useState(item?.imageUrl || '');
-  const [stock, setStock] = useState(item?.productionStock?.availableQty?.toString() || '0');
-  const [isVeg, setIsVeg] = useState(item?.isVeg ?? true);
-  const [isPopular, setIsPopular] = useState(item?.isPopular ?? false);
-  const [isSpecial, setIsSpecial] = useState(item?.isTodaysSpecial ?? false);
-  const [isEnabled, setIsEnabled] = useState(item?.isEnabled ?? true);
-  const [saving, setSaving] = useState(false);
-  const handleSave = async () => {
-    if (!name.trim() || !price || !categoryId) return;
-    setSaving(true);
-    try {
-      const data = { name: name.trim(), price: parseFloat(price), categoryId, description: description || undefined, imageUrl: imageUrl || undefined, isVeg, isPopular, isTodaysSpecial: isSpecial, isEnabled, stock: parseInt(stock) || 0 };
-      if (item) await updateFoodItem(item.id, data); else await createFoodItem(data);
-      onSaved();
-    } catch (e: any) { alert(e.message); } finally { setSaving(false); }
-  };
-  const inputClass = "w-full p-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-background)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50";
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-[var(--color-card)] p-6 rounded-xl shadow-xl w-full max-w-lg m-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <h3 className="font-bold text-lg mb-4">{item ? 'Edit Food Item' : 'Add Food Item'}</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2"><label className="text-xs font-medium mb-1 block">Name *</label><input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} /></div>
-          <div><label className="text-xs font-medium mb-1 block">Price *</label><input value={price} onChange={(e) => setPrice(e.target.value)} type="number" step="0.01" className={inputClass} /></div>
-          <div><label className="text-xs font-medium mb-1 block">Category *</label>
-            <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputClass}>
-              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select></div>
-          <div className="col-span-2"><label className="text-xs font-medium mb-1 block">Description</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputClass} /></div>
-          <div className="col-span-2"><AdminImageUpload value={imageUrl} onChange={setImageUrl} /></div>
-          <div><label className="text-xs font-medium mb-1 block">Stock</label><input value={stock} onChange={(e) => setStock(e.target.value)} type="number" className={inputClass} /></div>
-          <div className="flex flex-col gap-2 justify-end pb-1">
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isVeg} onChange={(e) => setIsVeg(e.target.checked)} /> Veg</label>
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isPopular} onChange={(e) => setIsPopular(e.target.checked)} /> Popular</label>
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isSpecial} onChange={(e) => setIsSpecial(e.target.checked)} /> Today's Special</label>
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} /> Available to customers</label>
-          </div>
-
-        </div>
-        <div className="flex gap-2 mt-4">
-          <button onClick={onClose} className="flex-1 px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-muted)] transition-colors">Cancel</button>
-          <button onClick={handleSave} disabled={saving || !name.trim() || !price || !categoryId}
-            className="flex-1 bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null} {item ? 'Update' : 'Create'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-// ─── Coupons Tab ────────────────────────────────────
-
-function CouponsTab() {
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try { setCoupons(await fetchCoupons()); }
-    catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this coupon?')) return;
-    await deleteCoupon(id);
-    load();
-  };
-
-  const now = new Date();
-
-  return (
-    <div>
-      <header className="flex justify-between items-center mb-8">
-        <div><h2 className="text-3xl font-bold">Coupons Management</h2><p className="text-[var(--color-muted-foreground)] text-sm mt-1">Create and manage discount coupons</p></div>
-        <button onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 text-sm font-bold bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
-          <Plus className="w-4 h-4" /> Create Coupon
-        </button>
-      </header>
-
-      {showAdd && (
-        <CouponFormModal onClose={() => setShowAdd(false)} onSaved={() => { setShowAdd(false); load(); }} />
-      )}
-
-      {loading ? (
-        <div className="text-center py-12"><Loader2 className="w-8 h-8 mx-auto animate-spin" /></div>
-      ) : coupons.length === 0 ? (
-        <div className="text-center py-16 premium-card">
-          <Tag className="w-12 h-12 mx-auto mb-3 opacity-30 text-[var(--color-muted-foreground)]" />
-          <p className="text-lg font-medium">No coupons created yet</p>
-          <p className="text-sm text-[var(--color-muted-foreground)] mt-1">Create your first coupon to offer discounts!</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {coupons.map((coupon) => {
-            const validFrom = new Date(coupon.validFrom);
-            const validTo = new Date(coupon.validTo);
-            const isActive = now >= validFrom && now <= validTo;
-            const isExpired = now > validTo;
-            const usageLeft = coupon.usageLimit ? coupon.usageLimit - coupon.usageCount : null;
-
-            return (
-              <div key={coupon.id} className={`premium-card p-5 animate-fade-in ${
-                isExpired ? 'opacity-50' : ''
-              }`}>
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-2">
-                    <Percent className="w-5 h-5 text-[var(--color-primary)]" />
-                    <span className="font-bold text-lg tracking-wide">{coupon.code}</span>
-                  </div>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                    isActive ? 'bg-green-100 text-green-700' :
-                    isExpired ? 'bg-red-100 text-red-500' :
-                    'bg-blue-100 text-blue-600'
-                  }`}>
-                    {isActive ? 'Active' : isExpired ? 'Expired' : 'Scheduled'}
-                  </span>
-                </div>
-
-                <div className="text-2xl font-bold mb-2">
-                  {coupon.discountType === 'PERCENTAGE' ? `${coupon.value}%` : `₹${Number(coupon.value).toFixed(2)}`}
-                  <span className="text-sm font-normal text-[var(--color-muted-foreground)] ml-1">
-                    {coupon.discountType === 'PERCENTAGE' ? 'OFF' : 'OFF'}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-1 text-xs text-[var(--color-muted-foreground)] mb-3">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {validFrom.toLocaleDateString()} → {validTo.toLocaleDateString()}
-                  </div>
-                  <span>Used: {coupon.usageCount}{coupon.usageLimit ? ` / ${coupon.usageLimit}` : ' (unlimited)'}</span>
-                  {usageLeft !== null && usageLeft > 0 && (
-                    <span className="text-green-600">{usageLeft} uses left</span>
-                  )}
-                  {usageLeft !== null && usageLeft <= 0 && (
-                    <span className="text-red-500">Fully redeemed</span>
-                  )}
-                </div>
-
-                <button onClick={() => handleDelete(coupon.id)}
-                  className="w-full text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center gap-1">
-                  <Trash2 className="w-3 h-3" /> Delete
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Coupon Form Modal ──────────────────────────────
-
-function CouponFormModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const [code, setCode] = useState('');
-  const [discountType, setDiscountType] = useState<'PERCENTAGE' | 'FLAT'>('PERCENTAGE');
-  const [value, setValue] = useState('10');
-  const [validFrom, setValidFrom] = useState(new Date().toISOString().split('T')[0]);
-  const [validTo, setValidTo] = useState(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() + 1);
-    return d.toISOString().split('T')[0];
-  });
-  const [usageLimit, setUsageLimit] = useState('100');
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    if (!code.trim() || !value || !validFrom || !validTo) return;
-    setSaving(true);
-    try {
-      await createCoupon({
-        code: code.trim(),
-        discountType,
-        value: parseFloat(value),
-        validFrom: new Date(validFrom).toISOString(),
-        validTo: new Date(validTo).toISOString(),
-        usageLimit: parseInt(usageLimit) || undefined,
-      });
-      onSaved();
-    } catch (e: any) { alert(e.message); }
-    finally { setSaving(false); }
-  };
-
-  const inputClass = "w-full p-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-background)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50";
-
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-[var(--color-card)] p-6 rounded-xl shadow-xl w-full max-w-md m-4" onClick={(e) => e.stopPropagation()}>
-        <h3 className="font-bold text-lg mb-4">Create Coupon</h3>
-        <div className="flex flex-col gap-3">
-          <div>
-            <label className="text-xs font-medium mb-1 block">Coupon Code *</label>
-            <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="e.g. SAVE20" className={inputClass} />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-xs font-medium mb-1 block">Type *</label>
-              <select value={discountType} onChange={(e) => setDiscountType(e.target.value as any)}
-                className={inputClass}>
-                <option value="PERCENTAGE">Percentage (%)</option>
-                <option value="FLAT">Flat (₹)</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-medium mb-1 block">Value *</label>
-              <input value={value} onChange={(e) => setValue(e.target.value)} type="number" step="0.01"
-                className={inputClass} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-xs font-medium mb-1 block">Valid From *</label>
-              <input value={validFrom} onChange={(e) => setValidFrom(e.target.value)} type="date"
-                className={inputClass} />
-            </div>
-            <div>
-              <label className="text-xs font-medium mb-1 block">Valid To *</label>
-              <input value={validTo} onChange={(e) => setValidTo(e.target.value)} type="date"
-                className={inputClass} />
-            </div>
-          </div>
-          <div>
-            <label className="text-xs font-medium mb-1 block">Usage Limit (leave empty for unlimited)</label>
-            <input value={usageLimit} onChange={(e) => setUsageLimit(e.target.value)} type="number"
-              className={inputClass} />
-          </div>
-          <div className="flex gap-2 mt-2">
-            <button onClick={onClose}
-              className="flex-1 px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-muted)] transition-colors">Cancel</button>
-            <button onClick={handleSave} disabled={saving || !code.trim() || !value || !validFrom || !validTo}
-              className="flex-1 bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Create
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── New Order Notification Toast ───────────────────
 
 function NotificationToast({ order, onClose, onView }: {
   order: { id: string; createdAt: string };
@@ -1186,7 +253,7 @@ function NotificationToast({ order, onClose, onView }: {
   }, [onClose]);
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 animate-slide-up max-w-sm w-full premium-card p-4 border-l-4 border-[var(--color-primary)] shadow-xl">
+    <div className="fixed bottom-4 right-4 z-50 animate-slide-up max-w-sm w-full bg-[var(--color-card)] p-4 rounded-xl shadow-xl border-l-4 border-[var(--color-primary)]">
       <div className="flex items-start gap-3">
         <div className="bg-[var(--color-primary)]/10 p-2 rounded-full flex-shrink-0">
           <BellRing className="w-5 h-5 text-[var(--color-primary)]" />
@@ -1196,18 +263,15 @@ function NotificationToast({ order, onClose, onView }: {
           <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
             {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
-
           <p className="text-xs font-mono text-[var(--color-muted-foreground)] mt-0.5">
             #{order.id.slice(0, 8)}
           </p>
         </div>
         <div className="flex gap-1 flex-shrink-0">
-          <button onClick={onView}
-            className="text-xs px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg font-medium hover:opacity-90 transition-opacity">
+          <button onClick={onView} className="text-xs px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg font-medium hover:opacity-90">
             View
           </button>
-          <button onClick={onClose}
-            className="text-xs px-2 py-1.5 text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] rounded-lg transition-colors">
+          <button onClick={onClose} className="text-xs px-2 py-1.5 text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] rounded-lg">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -1216,11 +280,13 @@ function NotificationToast({ order, onClose, onView }: {
   );
 }
 
-// ─── Main App ───────────────────────────────────────
-
 export default function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const tab = location.pathname === '/' ? 'dashboard' : location.pathname.substring(1) as Tab;
+  const setTab = (t: Tab) => navigate(`/${t === 'dashboard' ? '' : t}`);
+  
   const token = useAuthStore((state) => state.token);
-  const [tab, setTab] = useState<Tab>('dashboard');
   const { dark, toggle: toggleTheme } = useTheme();
   const logout = useAuthStore((state) => state.logout);
   const [newOrders, setNewOrders] = useState<any[]>([]);
@@ -1232,7 +298,6 @@ export default function App() {
 
   useCommandPaletteHotkey(paletteOpen, setPaletteOpen);
 
-  // Poll for new orders every 10 seconds
   useEffect(() => {
     if (!apiToken) return;
     const poll = async () => {
@@ -1248,7 +313,6 @@ export default function App() {
               const fresh = recentOrders.filter((o: any) => !existingIds.has(o.id));
               if (fresh.length > 0) {
                 setToastOrder(fresh[0]);
-                // Play a subtle notification sound
                 try {
                   const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
                   const osc = ctx.createOscillator();
@@ -1287,7 +351,6 @@ export default function App() {
         newOrderCount={newOrders.length} onNewOrdersClick={() => { setTab('orders'); dismissNewOrders(); }}
       />
       <main className="flex-1 p-8 overflow-y-auto max-h-screen">
-        {/* Command palette trigger */}
         <div className="flex justify-end mb-4">
           <button
             onClick={() => setPaletteOpen(true)}
@@ -1299,16 +362,18 @@ export default function App() {
             <kbd className="ml-2 text-[10px] px-1.5 py-0.5 rounded border border-[var(--color-border)]">⌘K</kbd>
           </button>
         </div>
-        {tab === 'dashboard' && <DashboardTab />}
-        {tab === 'analytics' && <AnalyticsTab />}
-        {tab === 'orders' && <OrdersTab />}
-        {tab === 'menu' && <MenuTab />}
-        {tab === 'inventory' && <InventoryTab />}
-        
-        {tab === 'coupons' && <CouponsTab />}
-        {tab === 'reviews' && <ReviewsTab />}
-        {tab === 'audit' && <AuditTab />}
-        {tab === 'staff' && <StaffTab />}
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/menu" element={<MenuPage />} />
+          <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/coupons" element={<CouponsPage />} />
+          <Route path="/reviews" element={<ReviewsPage />} />
+          <Route path="/audit" element={<AuditPage />} />
+          <Route path="/staff" element={<StaffPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
       <CommandPalette
@@ -1320,7 +385,6 @@ export default function App() {
         logout={logout}
       />
 
-      {/* Toast Notification */}
       {toastOrder && (
         <NotificationToast
           order={toastOrder}
@@ -1328,44 +392,6 @@ export default function App() {
           onView={() => { setTab('orders'); dismissNewOrders(); }}
         />
       )}
-    </div>
-  );
-}
-
-// ─── Admin Image Upload ────────────────────────────
-
-function AdminImageUpload({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [uploading, setUploading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const ref = useRef<HTMLInputElement>(null);
-  const handleFile = async (f: File | null) => {
-    if (!f) return;
-    setErr(null); setUploading(true);
-    try { onChange(await fileToCompressedDataUrl(f)); }
-    catch (e: any) { setErr(e.message || 'Upload failed'); }
-    finally { setUploading(false); if (ref.current) ref.current.value = ''; }
-  };
-  const input = "w-full p-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-background)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50";
-  return (
-    <div>
-      <label className="text-xs font-medium mb-1 block">Product image</label>
-      <div className="flex items-center gap-3">
-        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]">
-          {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-[10px] text-[var(--color-muted-foreground)]">No image</div>}
-        </div>
-        <div className="flex flex-1 flex-col gap-2">
-          <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0] || null)} />
-          <button type="button" onClick={() => ref.current?.click()} disabled={uploading}
-            className="flex items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-semibold hover:bg-[var(--color-muted)] disabled:opacity-50">
-            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            {uploading ? 'Uploading…' : value ? 'Replace image' : 'Upload image'}
-          </button>
-          {value && <button type="button" onClick={() => onChange('')} className="text-xs font-semibold text-red-500 hover:underline text-left">Remove image</button>}
-        </div>
-      </div>
-      <input value={value.startsWith('data:') ? '' : value} onChange={(e) => onChange(e.target.value)}
-        placeholder="…or paste an image URL" className={`${input} mt-2`} />
-      {err && <p className="text-xs text-red-500 mt-1">{err}</p>}
     </div>
   );
 }

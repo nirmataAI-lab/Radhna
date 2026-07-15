@@ -28,7 +28,6 @@ describe('UsersController', () => {
       ],
     }).compile();
 
-
     controller = module.get<UsersController>(UsersController);
   });
 
@@ -36,4 +35,3 @@ describe('UsersController', () => {
     expect(controller).toBeDefined();
   });
 });
-

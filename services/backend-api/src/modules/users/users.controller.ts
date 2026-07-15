@@ -1,6 +1,16 @@
 import {
-  Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Req,
-  BadRequestException, ForbiddenException, NotFoundException,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import * as bcrypt from 'bcrypt';
@@ -46,8 +56,14 @@ export class UsersController {
     return this.prisma.user.findMany({
       where: { role: { in: STAFF_ROLES } },
       select: {
-        id: true, name: true, email: true, phone: true,
-        role: true, status: true, createdAt: true, updatedAt: true,
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -63,9 +79,15 @@ export class UsersController {
       throw new BadRequestException('Role must be SUPER_ADMIN or CHIEF');
     }
     const existing = await this.prisma.user.findFirst({
-      where: { OR: [{ email: dto.email }, ...(dto.phone ? [{ phone: dto.phone }] : [])] },
+      where: {
+        OR: [
+          { email: dto.email },
+          ...(dto.phone ? [{ phone: dto.phone }] : []),
+        ],
+      },
     });
-    if (existing) throw new BadRequestException('Email or phone already in use');
+    if (existing)
+      throw new BadRequestException('Email or phone already in use');
 
     const user = await this.usersService.createUser(dto);
     await this.auditLog.log({
@@ -75,6 +97,7 @@ export class UsersController {
       entityId: user.id,
       reason: `Created ${dto.role} ${dto.email}`,
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash: _ph, ...safe } = user as any;
     return safe;
   }
@@ -84,11 +107,17 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SUPER_ADMIN)
   @ApiOperation({ summary: 'Update a staff member' })
-  async updateStaff(@Param('id') id: string, @Body() dto: UpdateStaffDto, @Req() req: Request) {
+  async updateStaff(
+    @Param('id') id: string,
+    @Body() dto: UpdateStaffDto,
+    @Req() req: Request,
+  ) {
     const target = await this.prisma.user.findUnique({ where: { id } });
     if (!target) throw new NotFoundException('Staff member not found');
     if (!STAFF_ROLES.includes(target.role)) {
-      throw new BadRequestException('Only SUPER_ADMIN or CHIEF users can be edited here');
+      throw new BadRequestException(
+        'Only SUPER_ADMIN or CHIEF users can be edited here',
+      );
     }
     const actorId = (req.user as any).id;
     if (target.id === actorId && dto.role && dto.role !== target.role) {
@@ -112,8 +141,14 @@ export class UsersController {
       where: { id },
       data,
       select: {
-        id: true, name: true, email: true, phone: true,
-        role: true, status: true, createdAt: true, updatedAt: true,
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
     await this.auditLog.log({
@@ -138,7 +173,8 @@ export class UsersController {
       throw new BadRequestException('Only staff can be deleted here');
     }
     const actorId = (req.user as any).id;
-    if (target.id === actorId) throw new ForbiddenException('You cannot delete your own account');
+    if (target.id === actorId)
+      throw new ForbiddenException('You cannot delete your own account');
 
     if (target.role === Role.SUPER_ADMIN) {
       const remainingAdmins = await this.prisma.user.count({

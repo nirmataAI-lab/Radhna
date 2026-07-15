@@ -5,8 +5,8 @@ import {
 import {
   fetchStaff, createStaff, updateStaff, deleteStaff,
   type StaffMember, type StaffRole,
-} from './api';
-import { useAuthStore } from './authStore';
+} from '../api';
+import { useAuthStore } from '../authStore';
 
 const ROLE_STYLES: Record<StaffRole, string> = {
   SUPER_ADMIN: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-200',
@@ -14,7 +14,7 @@ const ROLE_STYLES: Record<StaffRole, string> = {
 };
 
 export function StaffTab() {
-  const currentUser = useAuthStore((s) => s.user);
+  const currentUser = useAuthStore((s: any) => s.user);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

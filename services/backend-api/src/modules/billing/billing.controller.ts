@@ -19,12 +19,17 @@ import {
 } from '@nestjs/swagger';
 import { BillingService } from './billing.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import type { Request } from 'express';
 
 @ApiTags('billing')
 @Controller('billing')
 export class BillingController {
-  constructor(private readonly billingService: BillingService) {}
+  constructor(
+    private readonly billingService: BillingService,
+    @InjectQueue('webhooks') private readonly webhookQueue: Queue,
+  ) {}
 
   @Post(':orderId/create-order')
   @HttpCode(HttpStatus.OK)
@@ -71,10 +76,17 @@ export class BillingController {
     if (!signature) {
       throw new BadRequestException('Missing webhook signature');
     }
-    return this.billingService.handleWebhook(
-      (req as any).rawBody || JSON.stringify(req.body),
-      signature,
+    
+    const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+    
+    // Push the event to the queue for reliable background processing
+    await this.webhookQueue.add(
+      'razorpay.event',
+      { rawBody, signature },
+      { attempts: 5, backoff: { type: 'exponential', delay: 2000 } }
     );
+    
+    return { status: 'ok' };
   }
 
   @Get(':orderId/payments')
