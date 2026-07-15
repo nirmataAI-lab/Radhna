@@ -619,7 +619,9 @@ function KitchenDashboard() {
           </div>
         </header>
 
-        {activeTab === 'active' ? (
+        {activeTab === 'stock' ? (
+          <PrepStockTab />
+        ) : activeTab === 'active' ? (
           <>
             {/* Active orders grid */}
             <div className={`grid gap-6 ${isFullscreen ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}`}>
