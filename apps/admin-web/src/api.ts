@@ -50,7 +50,6 @@ export interface FoodItem {
 
 export interface Order {
   id: string;
-  orderType: string;
   status: string;
   total: string;
   subtotal: string;
@@ -61,7 +60,7 @@ export interface Order {
   updatedAt: string;
   customerId?: string | null;
   cancelReason?: string | null;
-  table?: { tableNumber: string } | null;
+  customer?: { id: string; email?: string; name?: string } | null;
   orderItems?: {
     id: string;
     quantity: number;
@@ -71,13 +70,6 @@ export interface Order {
   }[];
 }
 
-export interface Table {
-  id: string;
-  tableNumber: string;
-  capacity: number;
-  qrCode?: string | null;
-  _count?: { orders: number };
-}
 
 // ─── Config ─────────────────────────────────────────
 
