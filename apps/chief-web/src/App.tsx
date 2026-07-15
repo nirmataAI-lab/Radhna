@@ -134,15 +134,19 @@ function getRecallReason(order: Pick<Order, 'cancelReason' | 'status'>): string 
 
 // ─── KDS Order Card ─────────────────────────────────
 
-function OrderCard({ order, onStatusUpdate, statusLoading, isChecked, onToggleItem, isFocused, index }: {
+function OrderCard({ order, onStatusUpdate, onRecall, statusLoading, isChecked, onToggleItem, isFocused, index }: {
   order: Order;
   onStatusUpdate: (id: string, status: OrderStatus) => void;
+  onRecall: (order: Order) => void;
   statusLoading: string | null;
   isChecked: (itemId: string) => boolean;
   onToggleItem: (itemId: string) => void;
   isFocused: boolean;
   index: number;
 }) {
+  const recallReason = getRecallReason(order);
+  const isRecalled = !!recallReason;
+
   const timeSince = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000);
   const isUrgent = timeSince > 15 && order.status !== 'READY' && order.status !== 'COMPLETED';
   const isNew = timeSince < 2 && order.status === 'PLACED';
