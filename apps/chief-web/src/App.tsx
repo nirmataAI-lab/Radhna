@@ -496,10 +496,15 @@ function KitchenDashboard() {
       if (key === 'r') { e.preventDefault(); loadOrders(); return; }
       if (key === 't') {
         e.preventDefault();
-        setActiveTab((t) => (t === 'active' ? 'completed' : 'active'));
+        setActiveTab((t) => {
+          const order: Array<'active' | 'recall' | 'completed'> = ['active', 'recall', 'completed'];
+          const i = order.indexOf(t as any);
+          return order[(i + 1) % order.length];
+        });
         setFocusIndex(null);
         return;
       }
+
 
       // Number keys 1-9 → focus by position
       if (/^[1-9]$/.test(e.key)) {
