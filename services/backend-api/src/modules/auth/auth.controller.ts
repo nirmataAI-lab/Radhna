@@ -46,4 +46,19 @@ export class AuthController {
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 30, ttl: 60_000 } })
+  @Post('refresh')
+  @ApiOperation({
+    summary: 'Refresh access token',
+    description:
+      'Exchange a valid refresh token for a new access + refresh token pair.',
+  })
+  async refresh(@Body() body: { refresh_token?: string }) {
+    if (!body?.refresh_token) {
+      throw new UnauthorizedException('refresh_token is required');
+    }
+    return this.authService.refresh(body.refresh_token);
+  }
 }
