@@ -1,11 +1,10 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './authStore';
 import { LoginPage } from './pages/LoginPage';
 import { KitchenDashboardPage } from './pages/KitchenDashboardPage';
 
 export default function App() {
   const token = useAuthStore((state) => state.token);
-  const location = useLocation();
   if (!token) return (
     <LoginPage />
   );
