@@ -136,9 +136,9 @@ export class MenuService {
     return this.prisma.foodItem.create({
       data: {
         ...data,
-        productionStock: stock
-          ? { create: { availableQty: stock } }
-          : undefined,
+        productionStock: {
+          create: { availableQty: stock ?? 0 }
+        },
       },
       include: { category: true, productionStock: true },
     });

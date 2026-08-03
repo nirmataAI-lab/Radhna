@@ -5,7 +5,6 @@ import {
   fetchAllFoodItems, createFoodItem, updateFoodItem, deleteFoodItem,
   type Category, type FoodItem,
 } from '../menuApi';
-import { fileToCompressedDataUrl } from '../lib/imageUpload';
 
 
 export function MenuManageTab() {
@@ -143,11 +142,6 @@ export function MenuManageTab() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {visible.map((item) => (
                 <div key={item.id} className={`premium-card p-4 ${!item.isEnabled ? 'opacity-60' : ''}`}>
-                  {item.imageUrl && (
-                    <div className="mb-3 -mx-4 -mt-4 aspect-video overflow-hidden rounded-t-xl bg-[var(--color-muted)]">
-                      <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
-                    </div>
-                  )}
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <h4 className="truncate font-semibold">{item.name}</h4>
@@ -258,7 +252,6 @@ function FoodItemModal({ item, categories, onClose, onSaved }: {
   const [price, setPrice] = useState(item?.price ? String(item.price) : '');
   const [description, setDescription] = useState(item?.description || '');
   const [categoryId, setCategoryId] = useState(item?.categoryId || categories[0]?.id || '');
-  const [imageUrl, setImageUrl] = useState(item?.imageUrl || '');
   const [stock, setStock] = useState(String(item?.productionStock?.availableQty ?? 0));
   const [isVeg, setIsVeg] = useState(item?.isVeg ?? true);
   const [isPopular, setIsPopular] = useState(item?.isPopular ?? false);
@@ -277,7 +270,6 @@ function FoodItemModal({ item, categories, onClose, onSaved }: {
         price: parseFloat(price),
         categoryId,
         description: description || undefined,
-        imageUrl: imageUrl || undefined,
         isVeg, isPopular, isTodaysSpecial: isSpecial, isEnabled,
         stock: parseInt(stock) || 0,
       };
@@ -299,9 +291,6 @@ function FoodItemModal({ item, categories, onClose, onSaved }: {
           </select>
         </Field>
         <div className="col-span-2"><Field label="Description"><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputClass} /></Field></div>
-        <div className="col-span-2">
-          <ImageUploadField value={imageUrl} onChange={setImageUrl} />
-        </div>
         <Field label="Today's stock"><input value={stock} onChange={(e) => setStock(e.target.value)} type="number" className={inputClass} /></Field>
         <div className="flex flex-col justify-end gap-2 pb-1 text-sm">
           <label className="flex items-center gap-2"><input type="checkbox" checked={isVeg} onChange={(e) => setIsVeg(e.target.checked)} /> Veg</label>
@@ -359,76 +348,4 @@ function ModalActions({ onCancel, onSave, saving, disabled, label }: { onCancel:
   );
 }
 
-// ─── Image upload field ─────────────────────────────
 
-function ImageUploadField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [uploading, setUploading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleFile = async (file: File | null) => {
-    if (!file) return;
-    setErr(null);
-    setUploading(true);
-    try {
-      const dataUrl = await fileToCompressedDataUrl(file);
-      onChange(dataUrl);
-    } catch (e: any) {
-      setErr(e.message || 'Upload failed');
-    } finally {
-      setUploading(false);
-      if (inputRef.current) inputRef.current.value = '';
-    }
-  };
-
-  return (
-    <Field label="Product image">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]">
-            {value ? (
-              <img src={value} alt="preview" className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs text-[var(--color-muted-foreground)]">No image</div>
-            )}
-          </div>
-          <div className="flex flex-1 flex-col gap-2">
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFile(e.target.files?.[0] || null)}
-              className="hidden"
-              id="menu-item-image-upload"
-            />
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              disabled={uploading}
-              className="flex items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-semibold hover:bg-[var(--color-muted)] disabled:opacity-50"
-            >
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              {uploading ? 'Uploading…' : value ? 'Replace image' : 'Upload image'}
-            </button>
-            {value && (
-              <button
-                type="button"
-                onClick={() => onChange('')}
-                className="text-xs font-semibold text-[var(--color-destructive)] hover:underline text-left"
-              >
-                Remove image
-              </button>
-            )}
-          </div>
-        </div>
-        <input
-          value={value.startsWith('data:') ? '' : value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="…or paste an image URL"
-          className={inputClass}
-        />
-        {err && <p className="text-xs text-[var(--color-destructive)]">{err}</p>}
-      </div>
-    </Field>
-  );
-}

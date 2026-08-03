@@ -5,13 +5,11 @@ import { Download } from "lucide-react";
 
 export function InstallPWA() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstall, setShowInstall] = useState(false);
 
   useEffect(() => {
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstall(true);
     };
 
     window.addEventListener("beforeinstallprompt", handler);
@@ -19,16 +17,14 @@ export function InstallPWA() {
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      alert("To install the app, tap the Share icon and select 'Add to Home Screen', or use your browser's install menu.");
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") {
-      setShowInstall(false);
-    }
     setDeferredPrompt(null);
   };
-
-  if (!showInstall) return null;
 
   return (
     <div className="fixed bottom-[80px] left-4 right-4 z-50 bg-card p-4 rounded-xl shadow-xl border flex items-center justify-between">

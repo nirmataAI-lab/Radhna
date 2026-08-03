@@ -28,7 +28,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
           ? res
           : (res as any).message || exception.message;
     } else if (exception instanceof Error) {
-      message = exception.message;
+      if ((exception as any).code === 'P2002') {
+        status = HttpStatus.CONFLICT;
+        message = 'This record already exists. Please use a different value.';
+      } else {
+        message = exception.message;
+      }
     }
 
     this.logger.error(
