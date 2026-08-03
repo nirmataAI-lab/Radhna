@@ -80,10 +80,26 @@ import { RequestLoggerMiddleware } from './common/logger/request-logger.middlewa
     ]),
 
     // ─── Message Queue ────────────────────────────
-    BullModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: Number(process.env.REDIS_PORT) || 6379,
+    BullModule.forRootAsync({
+      useFactory: () => {
+        if (process.env.REDIS_URL) {
+          const url = new URL(process.env.REDIS_URL);
+          return {
+            connection: {
+              host: url.hostname,
+              port: Number(url.port),
+              username: url.username || undefined,
+              password: url.password || undefined,
+              tls: url.protocol === 'rediss:' ? {} : undefined,
+            },
+          };
+        }
+        return {
+          connection: {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: Number(process.env.REDIS_PORT) || 6379,
+          },
+        };
       },
     }),
 
