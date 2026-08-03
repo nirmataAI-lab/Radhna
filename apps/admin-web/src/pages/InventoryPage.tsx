@@ -46,7 +46,7 @@ export function InventoryPage() {
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-[var(--color-muted-foreground)]" />
             <Input 
               value={search} 
-              onChange={(e) => setSearch(e.target.value)} 
+              onChange={(e: any) => setSearch(e.target.value)} 
               placeholder="Search…"
               className="pl-9 h-9" 
             />
@@ -206,23 +206,23 @@ function InventoryFormModal({ open, item, onClose, onSaved }: { open: boolean; i
       <div className="grid grid-cols-2 gap-4 mt-4">
         <div className="col-span-2">
           <label className="text-xs font-medium mb-1.5 block">Name</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} />
+          <Input value={name} onChange={(e: any) => setName(e.target.value)} />
         </div>
         <div>
           <label className="text-xs font-medium mb-1.5 block">Unit</label>
-          <Input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="kg / l / pcs" />
+          <Input value={unit} onChange={(e: any) => setUnit(e.target.value)} placeholder="kg / l / pcs" />
         </div>
         <div>
           <label className="text-xs font-medium mb-1.5 block">Quantity</label>
-          <Input value={quantity} onChange={(e) => setQuantity(e.target.value)} type="number" step="0.01" />
+          <Input value={quantity} onChange={(e: any) => setQuantity(e.target.value)} type="number" step="0.01" />
         </div>
         <div>
           <label className="text-xs font-medium mb-1.5 block">Low-stock threshold</label>
-          <Input value={threshold} onChange={(e) => setThreshold(e.target.value)} type="number" step="0.01" />
+          <Input value={threshold} onChange={(e: any) => setThreshold(e.target.value)} type="number" step="0.01" />
         </div>
         <div>
           <label className="text-xs font-medium mb-1.5 block">Supplier ref</label>
-          <Input value={supplier} onChange={(e) => setSupplier(e.target.value)} />
+          <Input value={supplier} onChange={(e: any) => setSupplier(e.target.value)} />
         </div>
         <div className="col-span-2 flex gap-2 mt-4">
           <Button variant="outline" className="flex-1" onClick={onClose}>Cancel</Button>

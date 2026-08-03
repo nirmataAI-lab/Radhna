@@ -32,7 +32,7 @@ export function AdminImageUpload({ value, onChange }: { value: string; onChange:
             type="file" 
             accept="image/*" 
             className="hidden" 
-            onChange={(e) => handleFile(e.target.files?.[0] || null)} 
+            onChange={(e: any) => handleFile(e.target.files?.[0] || null)} 
           />
           <div className="flex items-center gap-2">
             <Button 
@@ -61,7 +61,7 @@ export function AdminImageUpload({ value, onChange }: { value: string; onChange:
       </div>
       <Input 
         value={value.startsWith('data:') ? '' : value} 
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e: any) => onChange(e.target.value)}
         placeholder="…or paste an image URL" 
         className="mt-1"
       />

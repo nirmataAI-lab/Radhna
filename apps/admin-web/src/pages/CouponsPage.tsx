@@ -158,7 +158,7 @@ function CouponFormModal({ open, onClose, onSaved }: { open: boolean; onClose: (
           <label className="text-xs font-medium mb-1.5 block">Coupon Code *</label>
           <Input 
             value={code} 
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            onChange={(e: any) => setCode(e.target.value.toUpperCase())}
             placeholder="e.g. SAVE20" 
             className="uppercase tracking-widest font-mono"
           />
@@ -168,7 +168,7 @@ function CouponFormModal({ open, onClose, onSaved }: { open: boolean; onClose: (
             <label className="text-xs font-medium mb-1.5 block">Type *</label>
             <select 
               value={discountType} 
-              onChange={(e) => setDiscountType(e.target.value as any)}
+              onChange={(e: any) => setDiscountType(e.target.value as any)}
               className="flex h-10 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
             >
               <option value="PERCENTAGE">Percentage (%)</option>
@@ -177,22 +177,22 @@ function CouponFormModal({ open, onClose, onSaved }: { open: boolean; onClose: (
           </div>
           <div>
             <label className="text-xs font-medium mb-1.5 block">Value *</label>
-            <Input value={value} onChange={(e) => setValue(e.target.value)} type="number" step="0.01" />
+            <Input value={value} onChange={(e: any) => setValue(e.target.value)} type="number" step="0.01" />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-medium mb-1.5 block">Valid From *</label>
-            <Input value={validFrom} onChange={(e) => setValidFrom(e.target.value)} type="date" />
+            <Input value={validFrom} onChange={(e: any) => setValidFrom(e.target.value)} type="date" />
           </div>
           <div>
             <label className="text-xs font-medium mb-1.5 block">Valid To *</label>
-            <Input value={validTo} onChange={(e) => setValidTo(e.target.value)} type="date" />
+            <Input value={validTo} onChange={(e: any) => setValidTo(e.target.value)} type="date" />
           </div>
         </div>
         <div>
           <label className="text-xs font-medium mb-1.5 block">Usage Limit (leave empty for unlimited)</label>
-          <Input value={usageLimit} onChange={(e) => setUsageLimit(e.target.value)} type="number" placeholder="Unlimited" />
+          <Input value={usageLimit} onChange={(e: any) => setUsageLimit(e.target.value)} type="number" placeholder="Unlimited" />
         </div>
         <div className="flex gap-2 mt-4">
           <Button variant="outline" className="flex-1" onClick={onClose}>Cancel</Button>

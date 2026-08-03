@@ -212,11 +212,11 @@ function CategoryFormModal({ open, category, onClose, onSaved }: { open: boolean
       <div className="flex flex-col gap-4 mt-2">
         <div>
           <label className="text-xs font-medium mb-1.5 block">Category Name</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Starters" />
+          <Input value={name} onChange={(e: any) => setName(e.target.value)} placeholder="e.g. Starters" />
         </div>
         <div>
           <label className="text-xs font-medium mb-1.5 block">Display Order</label>
-          <Input value={order} onChange={(e) => setOrder(e.target.value)} placeholder="0" type="number" />
+          <Input value={order} onChange={(e: any) => setOrder(e.target.value)} placeholder="0" type="number" />
         </div>
         <div className="flex gap-2 mt-4">
           <Button variant="outline" className="flex-1" onClick={onClose}>Cancel</Button>
@@ -276,17 +276,17 @@ function FoodItemFormModal({ open, item, categories, onClose, onSaved }: {
       <div className="grid grid-cols-2 gap-4 mt-2 max-h-[70vh] overflow-y-auto px-1">
         <div className="col-span-2">
           <label className="text-xs font-medium mb-1.5 block">Name *</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} />
+          <Input value={name} onChange={(e: any) => setName(e.target.value)} />
         </div>
         <div>
           <label className="text-xs font-medium mb-1.5 block">Price *</label>
-          <Input value={price} onChange={(e) => setPrice(e.target.value)} type="number" step="0.01" />
+          <Input value={price} onChange={(e: any) => setPrice(e.target.value)} type="number" step="0.01" />
         </div>
         <div>
           <label className="text-xs font-medium mb-1.5 block">Category *</label>
           <select 
             value={categoryId} 
-            onChange={(e) => setCategoryId(e.target.value)} 
+            onChange={(e: any) => setCategoryId(e.target.value)} 
             className="flex h-10 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
           >
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -296,7 +296,7 @@ function FoodItemFormModal({ open, item, categories, onClose, onSaved }: {
           <label className="text-xs font-medium mb-1.5 block">Description</label>
           <textarea 
             value={description} 
-            onChange={(e) => setDescription(e.target.value)} 
+            onChange={(e: any) => setDescription(e.target.value)} 
             rows={2} 
             className="flex w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]" 
           />
@@ -307,14 +307,14 @@ function FoodItemFormModal({ open, item, categories, onClose, onSaved }: {
         </div>
         <div className="col-span-2">
           <label className="text-xs font-medium mb-1.5 block">Initial Stock</label>
-          <Input value={stock} onChange={(e) => setStock(e.target.value)} type="number" />
+          <Input value={stock} onChange={(e: any) => setStock(e.target.value)} type="number" />
         </div>
         <div className="col-span-2 flex flex-col gap-2.5 p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]/30">
-          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isVeg} onChange={(e) => setIsVeg(e.target.checked)} className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" /> Veg / Vegetarian</label>
-          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isPopular} onChange={(e) => setIsPopular(e.target.checked)} className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" /> Popular Item</label>
-          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isSpecial} onChange={(e) => setIsSpecial(e.target.checked)} className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" /> Today's Special</label>
-          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" /> Available to customers</label>
-          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isOutOfStock} onChange={(e) => setIsOutOfStock(e.target.checked)} className="rounded border-gray-300 text-red-600 focus:ring-red-600" /> Out of Stock</label>
+          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isVeg} onChange={(e: any) => setIsVeg(e.target.checked)} className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" /> Veg / Vegetarian</label>
+          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isPopular} onChange={(e: any) => setIsPopular(e.target.checked)} className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" /> Popular Item</label>
+          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isSpecial} onChange={(e: any) => setIsSpecial(e.target.checked)} className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" /> Today's Special</label>
+          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isEnabled} onChange={(e: any) => setIsEnabled(e.target.checked)} className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" /> Available to customers</label>
+          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isOutOfStock} onChange={(e: any) => setIsOutOfStock(e.target.checked)} className="rounded border-gray-300 text-red-600 focus:ring-red-600" /> Out of Stock</label>
         </div>
       </div>
       <div className="flex gap-2 mt-6">

@@ -81,14 +81,14 @@ export function CommandPalette({
     >
       <div
         className="w-full max-w-xl rounded-2xl bg-[var(--color-card)] border border-[var(--color-border)] shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: any) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)]">
           <Search className="w-4 h-4 text-[var(--color-muted-foreground)]" />
           <input
             autoFocus
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e: any) => setQ(e.target.value)}
             placeholder="Type a command or search…"
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--color-muted-foreground)]"
           />

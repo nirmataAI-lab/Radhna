@@ -34,7 +34,7 @@ export function AnalyticsPage() {
         <div className="flex items-center gap-3">
           <select 
             value={days} 
-            onChange={(e) => setDays(parseInt(e.target.value))}
+            onChange={(e: any) => setDays(parseInt(e.target.value))}
             className="h-9 px-3 py-1 text-sm rounded-md border border-[var(--color-border)] bg-[var(--color-background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
           >
             <option value={7}>Last 7 days</option>

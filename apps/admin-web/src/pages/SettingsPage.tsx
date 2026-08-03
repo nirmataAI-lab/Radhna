@@ -90,7 +90,7 @@ export function SettingsPage() {
             <input
               type="text"
               value={restaurantName}
-              onChange={(e) => setRestaurantName(e.target.value)}
+              onChange={(e: any) => setRestaurantName(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-[var(--color-background)] border border-[var(--color-border)] rounded-xl text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
@@ -103,7 +103,7 @@ export function SettingsPage() {
               <input
                 type="text"
                 value={currencySymbol}
-                onChange={(e) => setCurrencySymbol(e.target.value)}
+                onChange={(e: any) => setCurrencySymbol(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-[var(--color-background)] border border-[var(--color-border)] rounded-xl text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)] pl-9"
               />
               <DollarSign className="w-4 h-4 text-[var(--color-muted-foreground)] absolute left-3 top-3" />
@@ -119,7 +119,7 @@ export function SettingsPage() {
                 type="number"
                 step="0.1"
                 value={taxRate}
-                onChange={(e) => setTaxRate(e.target.value)}
+                onChange={(e: any) => setTaxRate(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-[var(--color-background)] border border-[var(--color-border)] rounded-xl text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)] pl-9"
               />
               <Percent className="w-4 h-4 text-[var(--color-muted-foreground)] absolute left-3 top-3" />
@@ -134,7 +134,7 @@ export function SettingsPage() {
             <input
               type="checkbox"
               checked={autoAcceptOrders}
-              onChange={(e) => setAutoAcceptOrders(e.target.checked)}
+              onChange={(e: any) => setAutoAcceptOrders(e.target.checked)}
               className="w-5 h-5 accent-[var(--color-primary)] cursor-pointer"
             />
           </div>
@@ -170,7 +170,7 @@ export function SettingsPage() {
               required
               placeholder="e.g. Special Weekend Offer — 20% Off All Desserts!"
               value={broadcastTitle}
-              onChange={(e) => setBroadcastTitle(e.target.value)}
+              onChange={(e: any) => setBroadcastTitle(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-[var(--color-background)] border border-[var(--color-border)] rounded-xl text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
@@ -184,7 +184,7 @@ export function SettingsPage() {
               required
               placeholder="Order online today and use code WEEKEND20 at checkout."
               value={broadcastMessage}
-              onChange={(e) => setBroadcastMessage(e.target.value)}
+              onChange={(e: any) => setBroadcastMessage(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-[var(--color-background)] border border-[var(--color-border)] rounded-xl text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>

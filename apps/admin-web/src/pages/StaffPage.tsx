@@ -200,7 +200,7 @@ function StaffFormModal({ initial, onClose, onSaved }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="premium-card w-full max-w-md p-6 relative" onClick={(e) => e.stopPropagation()}>
+      <div className="premium-card w-full max-w-md p-6 relative" onClick={(e: any) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded hover:bg-[var(--color-muted)]">
           <X className="w-4 h-4" />
         </button>
@@ -211,18 +211,18 @@ function StaffFormModal({ initial, onClose, onSaved }: {
         <form onSubmit={submit} className="space-y-3">
           <div>
             <label className="text-xs font-semibold text-[var(--color-muted-foreground)]">Full name</label>
-            <input required value={name} onChange={(e) => setName(e.target.value)}
+            <input required value={name} onChange={(e: any) => setName(e.target.value)}
               className="mt-1 w-full text-sm px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)]" />
           </div>
           <div>
             <label className="text-xs font-semibold text-[var(--color-muted-foreground)]">Email {isEdit && <span className="opacity-60">(read-only)</span>}</label>
             <input type="email" required={!isEdit} disabled={isEdit} value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: any) => setEmail(e.target.value)}
               className="mt-1 w-full text-sm px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] disabled:opacity-60" />
           </div>
           <div>
             <label className="text-xs font-semibold text-[var(--color-muted-foreground)]">Phone (optional)</label>
-            <input value={phone} onChange={(e) => setPhone(e.target.value)}
+            <input value={phone} onChange={(e: any) => setPhone(e.target.value)}
               className="mt-1 w-full text-sm px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)]" />
           </div>
           <div>
@@ -230,12 +230,12 @@ function StaffFormModal({ initial, onClose, onSaved }: {
               {isEdit ? 'New password (leave blank to keep current)' : 'Password'}
             </label>
             <input type="password" required={!isEdit} minLength={6} value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: any) => setPassword(e.target.value)}
               className="mt-1 w-full text-sm px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)]" />
           </div>
           <div>
             <label className="text-xs font-semibold text-[var(--color-muted-foreground)]">Role</label>
-            <select value={role} onChange={(e) => setRole(e.target.value as StaffRole)}
+            <select value={role} onChange={(e: any) => setRole(e.target.value as StaffRole)}
               className="mt-1 w-full text-sm px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)]">
               <option value="CHIEF">Chief (Kitchen)</option>
               <option value="SUPER_ADMIN">Super Admin</option>

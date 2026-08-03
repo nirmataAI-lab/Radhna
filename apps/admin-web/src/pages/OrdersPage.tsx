@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { RefreshCcw, Download, ChefHat, Bell, ShieldCheck, X, CheckSquare, Square, ListOrdered } from 'lucide-react';
+import { RefreshCcw, Download, ChefHat, X, CheckSquare, Square, ListOrdered } from 'lucide-react';
 import { fetchAllOrders, updateOrderStatus, updateOrderPaymentStatus } from '../api';
 import type { Order } from '../api';
 import { exportRowsAsCSV } from '../lib/csv';
@@ -60,15 +60,7 @@ export function OrdersPage() {
     });
   };
 
-  const bulkUpdate = async (status: 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED') => {
-    if (selected.size === 0) return;
-    if (status === 'CANCELLED' && !window.confirm(`Cancel ${selected.size} order(s)?`)) return;
-    setBulkBusy(true);
-    try {
-      await Promise.all([...selected].map(id => updateOrderStatus(id, status).catch(() => null)));
-      await load();
-    } finally { setBulkBusy(false); }
-  };
+
 
   const bulkUpdatePayment = async (status: 'PAID') => {
     if (selected.size === 0) return;
@@ -89,7 +81,7 @@ export function OrdersPage() {
         <div className="flex gap-2">
           <select 
             value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e: any) => setStatusFilter(e.target.value)}
             className="h-9 px-3 py-1 text-sm rounded-md border border-[var(--color-border)] bg-[var(--color-background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
           >
             <option value="">All Statuses</option>
