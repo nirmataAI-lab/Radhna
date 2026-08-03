@@ -19,7 +19,7 @@ export class AuthService {
   ) {}
 
   private get refreshSecret(): string {
-    const s = process.env.JWT_REFRESH_SECRET;
+    const s = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
     if (!s) throw new Error('JWT_REFRESH_SECRET is not configured');
     return s;
   }
