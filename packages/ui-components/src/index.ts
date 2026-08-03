@@ -7,3 +7,4 @@ export * from './Badge.js';
 export * from './Skeleton.js';
 export * from './Table.js';
 export * from './Dialog.js';
+export * from './InstallPWA.js';

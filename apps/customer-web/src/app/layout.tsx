@@ -5,7 +5,22 @@ import { CartDrawer } from "@/components/ui/CartDrawer";
 export const metadata: Metadata = {
   title: "Radhna Cuisine",
   description: "Browse the menu, place orders, and track your order in real time.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    title: "Radhna",
+    statusBarStyle: "black-translucent",
+  },
 };
+
+export const viewport = {
+  themeColor: "#ff4500",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+};
+
+import { InstallPWA } from "@/components/InstallPWA";
 
 export default function RootLayout({
   children,
@@ -16,6 +31,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
         {children}
+        <InstallPWA />
         <CartDrawer />
       </body>
     </html>

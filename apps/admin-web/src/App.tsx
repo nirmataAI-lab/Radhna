@@ -10,7 +10,7 @@ import { useAuthStore } from './authStore';
 import { CommandPalette } from './components/CommandPalette';
 import { useCommandPaletteHotkey } from './hooks/useCommandPaletteHotkey';
 import { SUPPORTED_LANGS } from './lib/i18n';
-import { LanguageSwitcher } from 'ui-components';
+import { LanguageSwitcher, InstallPWA } from 'ui-components';
 import { useTranslation } from 'react-i18next';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
@@ -381,6 +381,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex bg-[var(--color-background)]">
+      <InstallPWA />
       <Sidebar
         tab={tab} setTab={setTab} dark={dark} toggleTheme={toggleTheme} logout={logout}
         newOrderCount={newOrders.length} onNewOrdersClick={() => { setTab('orders'); dismissNewOrders(); setSidebarOpen(false); }}

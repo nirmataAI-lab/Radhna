@@ -63,6 +63,7 @@ export function KitchenDashboardPage() {
   };
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const logout = useAuthStore((state) => state.logout);
@@ -257,8 +258,14 @@ export function KitchenDashboardPage() {
 
   return (
     <div ref={containerRef} className={`min-h-screen flex bg-[var(--color-background)] ${isFullscreen ? 'kds-fullscreen' : ''}`}>
+      {!isFullscreen && sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       {!isFullscreen && (
-        <aside className="flex w-64 flex-col border-r border-[var(--color-border)] bg-[var(--color-card)] p-6">
+        <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[var(--color-card)] border-r border-[var(--color-border)] p-6 flex flex-col transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="mb-8 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl shadow-[var(--shadow-glow)]" style={{ background: 'var(--gradient-primary)' }}>
               <ChefHat className="h-5 w-5 text-white" />
@@ -368,9 +375,15 @@ export function KitchenDashboardPage() {
         </aside>
       )}
 
-      <main className={`max-h-screen flex-1 overflow-y-auto ${isFullscreen ? 'p-6' : 'p-8'}`}>
+      <main className={`max-h-screen flex-1 overflow-y-auto ${isFullscreen ? 'p-6' : 'p-4 md:p-8'}`}>
         <header className={`mb-6 flex items-center justify-between border-b border-[var(--color-border)] pb-4 ${isFullscreen ? 'kds-header' : ''}`}>
-          <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            {!isFullscreen && (
+              <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-[var(--color-foreground)]">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </button>
+            )}
+            <div className="min-w-0">
             <h2 className={`font-display font-bold tracking-tight flex items-center gap-3 ${isFullscreen ? 'text-4xl' : 'text-3xl'}`}>
               {activeTab === 'active'
                 ? 'Kitchen Display'
@@ -401,34 +414,34 @@ export function KitchenDashboardPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={toggleFullscreen}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+              className={`flex items-center gap-1 md:gap-2 rounded-lg border px-2 md:px-3 py-2 text-sm font-medium transition ${
                 isFullscreen ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]'
               }`}
               title={isFullscreen ? 'Exit full screen' : 'Full screen mode'}
             >
               {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-              {isFullscreen ? 'Exit' : 'Full Screen'}
+              <span className="hidden md:inline">{isFullscreen ? 'Exit' : 'Full Screen'}</span>
             </button>
             {!isFullscreen && (
               <button
                 onClick={() => setAutoRefresh(!autoRefresh)}
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                className={`flex items-center gap-1 md:gap-2 rounded-lg border px-2 md:px-3 py-2 text-sm font-medium transition ${
                   autoRefresh ? 'border-[var(--color-success)]/40 text-[var(--color-success)]' : 'border-[var(--color-border)] text-[var(--color-muted-foreground)]'
                 }`}
               >
                 <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
-                Auto
+                <span className="hidden md:inline">Auto</span>
               </button>
             )}
             <button
               onClick={loadOrders}
-              className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-muted-foreground)] transition hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
+              className="hidden md:flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-muted-foreground)] transition hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
             >
               <RefreshCw className="h-4 w-4" /> Refresh
             </button>
             <button
               onClick={() => setShowHelp(true)}
-              className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-muted-foreground)] transition hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
+              className="hidden md:flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-muted-foreground)] transition hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"
               title="Keyboard shortcuts (press ?)"
             >
               <Keyboard className="h-4 w-4" />
