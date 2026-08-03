@@ -38,6 +38,7 @@ export interface FoodItem {
   imageUrl?: string | null;
   isVeg: boolean;
   isEnabled: boolean;
+  isOutOfStock?: boolean;
   isPopular: boolean;
   isTodaysSpecial: boolean;
   createdAt: string;

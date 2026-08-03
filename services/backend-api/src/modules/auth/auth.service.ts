@@ -104,4 +104,32 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('User not found');
     return { ...this.issueTokens(user), user: this.publicUser(user) };
   }
+
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      // Don't reveal user existence
+      return { message: 'If that email is registered, password reset instructions have been sent.' };
+    }
+    // Generate 6-digit reset token
+    const token = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    await this.usersService.setResetToken(user.id, token, expiry);
+    const response: Record<string, string> = {
+      message: 'If that email is registered, password reset instructions have been sent.',
+    };
+    // Only expose token in non-production for dev/test purposes
+    if (process.env.NODE_ENV !== 'production') {
+      response.resetToken = token;
+    }
+    return response;
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const success = await this.usersService.resetPassword(token, newPassword);
+    if (!success) {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
+    return { message: 'Password reset successfully' };
+  }
 }

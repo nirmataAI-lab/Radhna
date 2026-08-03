@@ -53,8 +53,8 @@ export class OrdersController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get logged-in customer order history' })
   getMyOrders(@Req() req: Request) {
-    const userId = (req as any).user?.userId;
-    return this.ordersService.findByCustomer(userId);
+    const user = (req as any).user;
+    return this.ordersService.findByCustomer(user?.userId, user?.email);
   }
 
   @Patch(':id/cancel-mine')
@@ -161,6 +161,20 @@ export class OrdersController {
     @Body('status', new ParseEnumPipe(OrderStatus)) status: OrderStatus,
   ) {
     return this.ordersService.updateStatus(id, status);
+  }
+
+  @Patch(':id/payment-status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...STAFF)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Update payment status' })
+  @ApiParam({ name: 'id', description: 'Order ID (UUID)' })
+  @ApiBody({ schema: { properties: { status: { type: 'string', enum: ['PENDING', 'PAID', 'FAILED', 'REFUNDED'] } } } })
+  updatePaymentStatus(
+    @Param('id') id: string,
+    @Body('status') status: any,
+  ) {
+    return this.ordersService.updatePaymentStatus(id, status);
   }
 
   @Patch(':id/cancel')

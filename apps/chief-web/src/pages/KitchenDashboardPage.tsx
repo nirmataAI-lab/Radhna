@@ -12,7 +12,8 @@ import { SUPPORTED_LANGS } from '../lib/i18n';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from 'ui-components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { OrderCard, getRecallReason, type Order } from '../components/OrderCard';
+import { OrderCard, type Order } from '../components/OrderCard';
+import { getRecallReason } from '../lib/orderRecall';
 
 function playNotificationSound() {
   try {
@@ -40,8 +41,11 @@ export function KitchenDashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const activeTab = location.pathname === '/' ? 'active' : location.pathname.substring(1) as 'active' | 'recall' | 'completed' | 'stock' | 'menu';
-  const setActiveTab = (tab: string) => navigate(`/${tab === 'active' ? '' : tab}`);
+  const activeTab = location.pathname === '/' ? 'active' : location.pathname.split('/')[1] as 'active' | 'recall' | 'completed' | 'stock' | 'menu';
+  const setActiveTab = useCallback(
+    (tab: string) => navigate(`/${tab === 'active' ? '' : tab}`),
+    [navigate],
+  );
   
   const [orders, setOrders] = useState<Order[]>([]);
   const [completed, setCompleted] = useState<Order[]>([]);
@@ -49,6 +53,14 @@ export function KitchenDashboardPage() {
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const soundEnabledRef = useRef(true);
+  const setSoundEnabledBoth = (val: boolean | ((prev: boolean) => boolean)) => {
+    setSoundEnabled((prev) => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      soundEnabledRef.current = next;
+      return next;
+    });
+  };
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
@@ -132,7 +144,7 @@ export function KitchenDashboardPage() {
 
     socket.on('newOrder', (order: Order) => {
       setOrders((prev) => [order, ...prev]);
-      if (soundEnabled) playNotificationSound();
+      if (soundEnabledRef.current) playNotificationSound();
     });
 
     socket.on('orderStatusUpdate', (updatedOrder: Order) => {
@@ -150,7 +162,7 @@ export function KitchenDashboardPage() {
     });
 
     return () => { socket.disconnect(); };
-  }, [loadOrders, soundEnabled]);
+  }, [loadOrders]);
 
   const activeOrders = orders;
   const recalledOrders = useMemo(() => orders.filter((o) => getRecallReason(o) !== null), [orders]);
@@ -193,7 +205,7 @@ export function KitchenDashboardPage() {
 
       const key = e.key.toLowerCase();
       if (key === 'f') { e.preventDefault(); toggleFullscreen(); return; }
-      if (key === 's') { e.preventDefault(); setSoundEnabled((v) => !v); return; }
+      if (key === 's') { e.preventDefault(); setSoundEnabledBoth((v) => !v); return; }
       if (key === 'a') { e.preventDefault(); setAutoRefresh((v) => !v); return; }
       if (key === 'r') { e.preventDefault(); loadOrders(); return; }
       if (key === 't') {
@@ -235,7 +247,7 @@ export function KitchenDashboardPage() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showHelp, focusIndex, visibleOrders, advanceOrder, handleStatusUpdate, loadOrders, toggleFullscreen, activeTab]);
+  }, [showHelp, focusIndex, visibleOrders, advanceOrder, handleStatusUpdate, loadOrders, toggleFullscreen, activeTab, setActiveTab]);
 
   useEffect(() => {
     if (focusIndex !== null && focusIndex >= visibleOrders.length) {
@@ -338,7 +350,7 @@ export function KitchenDashboardPage() {
           <div className="mt-auto flex flex-col gap-1 border-t border-[var(--color-border)] pt-4">
             <div className="px-1 pb-1"><LanguageSwitcher supportedLangs={SUPPORTED_LANGS} /></div>
             <button
-              onClick={() => setSoundEnabled(!soundEnabled)}
+              onClick={() => setSoundEnabledBoth(!soundEnabled)}
               className={`flex items-center gap-2 rounded-lg p-3 text-sm font-medium transition ${
                 soundEnabled ? 'text-[var(--color-success)] hover:bg-[var(--color-success)]/10' : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
               }`}
@@ -496,7 +508,7 @@ export function KitchenDashboardPage() {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{order.customer?.name || 'Takeaway'}</span>
+                      <span className="text-lg">{order.customer?.name || 'Guest Order'}</span>
                       <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full uppercase">
                         {order.status}
                       </span>

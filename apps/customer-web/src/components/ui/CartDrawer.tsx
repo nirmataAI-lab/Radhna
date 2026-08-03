@@ -24,7 +24,6 @@ export function CartDrawer() {
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, updateInstructions, getTotalPrice, clearCart } = useCartStore();
 
   const [mounted, setMounted] = useState(false);
-  const [tableNumber, setTableNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
@@ -177,18 +176,12 @@ export function CartDrawer() {
   };
 
   const handleCheckout = async () => {
-    if (!tableNumber.trim()) {
-      setError('Please enter a table number (e.g. T1)');
-      return;
-    }
-
     setError(null);
     setIsSubmitting(true);
 
     try {
-      const customerInfo = user ? { id: user.id, email: user.email, phone: user.phone } : undefined;
+      const customerInfo = user ? { id: user.id, email: user.email, phone: user.phone || undefined } : undefined;
       const order = await submitOrder(
-        tableNumber,
         items,
         customerInfo,
         couponStatus === 'valid' ? couponCode : undefined,
@@ -207,7 +200,6 @@ export function CartDrawer() {
       setTimeout(() => {
         setSuccessOrderId(null);
         setPaymentSuccess(false);
-        setTableNumber('');
         setError(null);
         removeCoupon();
       }, 300);
@@ -216,7 +208,9 @@ export function CartDrawer() {
 
   const subtotal = getTotalPrice();
   const discount = couponData?.discountAmount || 0;
-  const total = subtotal - discount;
+  const taxableAmount = Math.max(0, subtotal - discount);
+  const tax = Math.round(taxableAmount * 0.05 * 100) / 100; // 5% GST
+  const total = taxableAmount + tax;
 
   return (
     <>
@@ -407,9 +401,9 @@ export function CartDrawer() {
         {/* Footer Checkout Area */}
         {!successOrderId && items.length > 0 && (
           <div className="p-4 border-t border-border bg-card shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-            <div className="space-y-1 mb-4">
+            <div className="space-y-1.5 mb-4">
               <div className="flex justify-between text-sm">
-                <span>Subtotal</span>
+                <span className="text-muted-foreground">Subtotal</span>
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
               {discount > 0 && (
@@ -418,28 +412,19 @@ export function CartDrawer() {
                   <span>-₹{discount.toFixed(2)}</span>
                 </div>
               )}
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>GST (5%)</span>
+                <span>+₹{tax.toFixed(2)}</span>
+              </div>
               <div className="flex justify-between items-center text-lg font-bold pt-2 border-t border-border">
                 <span>Total</span>
-                <span className="text-primary">₹{Math.max(0, total).toFixed(2)}</span>
+                <span className="text-primary">₹{total.toFixed(2)}</span>
               </div>
             </div>
 
-            <div className="mb-4">
-              <label htmlFor="tableNumber" className="block text-sm font-medium mb-1">
-                Table Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="tableNumber"
-                type="text"
-                placeholder="e.g. T1"
-                value={tableNumber}
-                onChange={(e) => setTableNumber(e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-              />
-              {error && (
-                <p className="text-red-500 text-xs mt-1">{error}</p>
-              )}
-            </div>
+            {error && (
+              <p className="mb-4 text-red-500 text-xs">{error}</p>
+            )}
 
             <button
               onClick={handleCheckout}
@@ -452,7 +437,7 @@ export function CartDrawer() {
                   Processing...
                 </>
               ) : (
-                `Place Order • ₹${Math.max(0, total).toFixed(2)}`
+                `Place Order • ₹${total.toFixed(2)}`
               )}
             </button>
           </div>

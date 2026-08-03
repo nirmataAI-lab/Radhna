@@ -1,5 +1,6 @@
 import { AlertTriangle, RefreshCw, CookingPot, X, CheckCheck, Undo2 } from 'lucide-react';
 import type { OrderStatus } from '../api';
+import { getRecallReason } from '../lib/orderRecall';
 
 export interface Order {
   id: string;
@@ -13,14 +14,6 @@ export interface Order {
     specialInstructions?: string;
     foodItem?: { name: string } | null;
   }[];
-}
-
-const RECALL_PREFIX = 'RECALL:';
-export function getRecallReason(order: Pick<Order, 'cancelReason' | 'status'>): string | null {
-  if (!order.cancelReason) return null;
-  if (order.status === 'CANCELLED') return null;
-  if (!order.cancelReason.startsWith(RECALL_PREFIX)) return null;
-  return order.cancelReason.slice(RECALL_PREFIX.length).trim() || 'Sent back to kitchen';
 }
 
 export function OrderCard({ order, onStatusUpdate, onRecall, statusLoading, isChecked, onToggleItem, isFocused, index }: {
@@ -73,7 +66,7 @@ export function OrderCard({ order, onStatusUpdate, onRecall, statusLoading, isCh
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="font-display text-2xl font-bold leading-tight tracking-tight">
-              {order.customer?.name || 'Takeaway'}
+              {order.customer?.name || 'Order'}
             </div>
             <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] opacity-90">
               {s.label} · #{order.id.slice(0, 6)}

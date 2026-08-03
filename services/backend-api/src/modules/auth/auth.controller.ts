@@ -8,9 +8,31 @@ import {
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+
+class ForgotPasswordDto {
+  @IsEmail({}, { message: 'A valid email address is required' })
+  email: string;
+}
+
+class ResetPasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+
+  @IsString()
+  @MinLength(6, { message: 'Password must be at least 6 characters' })
+  password: string;
+}
+
+class RefreshDto {
+  @IsString()
+  @IsNotEmpty()
+  refresh_token: string;
+}
 
 @ApiTags('auth')
 @Controller('auth')
@@ -55,10 +77,29 @@ export class AuthController {
     description:
       'Exchange a valid refresh token for a new access + refresh token pair.',
   })
-  async refresh(@Body() body: { refresh_token?: string }) {
-    if (!body?.refresh_token) {
-      throw new UnauthorizedException('refresh_token is required');
-    }
-    return this.authService.refresh(body.refresh_token);
+  async refresh(@Body() dto: RefreshDto) {
+    return this.authService.refresh(dto.refresh_token);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 60_000 } })
+  @Post('forgot-password')
+  @ApiOperation({
+    summary: 'Request password reset',
+    description: 'Generates password reset token for user email.',
+  })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { limit: 5, ttl: 60_000 } })
+  @Post('reset-password')
+  @ApiOperation({
+    summary: 'Reset password with token',
+    description: 'Resets password using token.',
+  })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.token, dto.password);
   }
 }

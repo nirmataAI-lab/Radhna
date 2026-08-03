@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { CartDrawer } from "@/components/ui/CartDrawer";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
 export const metadata: Metadata = {
-  title: "Premium Restaurant",
-  description: "Order your favorite food with ease.",
+  title: "Radhna Cuisine",
+  description: "Browse the menu, place orders, and track your order in real time.",
 };
 
 export default function RootLayout({
@@ -19,8 +13,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className="font-sans antialiased bg-background text-foreground">
         {children}
         <CartDrawer />
       </body>

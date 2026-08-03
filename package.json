@@ -10,7 +10,7 @@
     "install:all": "npm install",
     "db:generate": "cd database && npx prisma generate",
     "db:migrate": "cd database && npx prisma migrate dev --name init",
-    "db:seed": "cd database && ts-node seed/index.ts",
+    "db:seed": "cd database && bun seed/index.ts",
     "db:push": "cd database && npx prisma db push",
     "db:studio": "cd database && npx prisma studio",
     "db:setup": "npm run db:generate && npm run db:push && npm run db:seed",
@@ -27,7 +27,12 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:dev": "cd apps/admin-web && npm run build && cd ../.. && rm -rf dist && cp -r apps/admin-web/dist dist"
   },
-  "keywords": ["restaurant", "ordering", "kds", "management"],
+  "keywords": [
+    "restaurant",
+    "ordering",
+    "kds",
+    "management"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
@@ -43,6 +48,7 @@
     "pg": "^8.22.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^26.1.1",
     "@types/pg": "^8.20.0",

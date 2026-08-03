@@ -1,7 +1,9 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
+  Body,
   Param,
   Query,
   Req,
@@ -13,9 +15,27 @@ import {
   ApiOperation,
   ApiQuery,
 } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsOptional, IsEnum } from 'class-validator';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role, NotificationType } from '@prisma/client';
 import type { Request } from 'express';
+
+class BroadcastDto {
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @IsString()
+  @IsNotEmpty()
+  message: string;
+
+  @IsOptional()
+  @IsEnum(NotificationType)
+  type?: NotificationType;
+}
 
 @ApiTags('notifications')
 @ApiBearerAuth('JWT-auth')
@@ -44,5 +64,17 @@ export class NotificationsController {
   markAllRead(@Req() req: Request) {
     const userId = (req as any).user?.userId as string;
     return this.service.markAllRead(userId);
+  }
+
+  @Post('broadcast')
+  @UseGuards(RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Broadcast a notification to system/all users (Admin only)' })
+  broadcast(@Body() dto: BroadcastDto) {
+    return this.service.create({
+      title: dto.title,
+      message: dto.message,
+      type: dto.type,
+    });
   }
 }

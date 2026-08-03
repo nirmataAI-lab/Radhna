@@ -36,12 +36,70 @@ export class UsersController {
   ) {}
 
   @Post('seed-admin')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
   seedAdmin() {
     return this.usersService.createUser({
       email: 'admin@restaurant.com',
       password: 'password123',
       name: 'Restaurant Admin',
       role: 'SUPER_ADMIN',
+    });
+  }
+
+  // ─── Profile ───────────────────────────────────────
+
+  @Get('me')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get logged in user profile' })
+  async getProfile(@Req() req: Request) {
+    const userId = (req.user as any)?.userId || (req.user as any)?.id;
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  @Patch('me')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Update logged in user profile' })
+  async updateProfile(
+    @Req() req: Request,
+    @Body() dto: { name?: string; phone?: string; password?: string },
+  ) {
+    const userId = (req.user as any)?.userId || (req.user as any)?.id;
+    const data: any = {};
+    if (dto.name !== undefined) data.name = dto.name;
+    if (dto.phone !== undefined) data.phone = dto.phone;
+    if (dto.password) data.passwordHash = await bcrypt.hash(dto.password, 10);
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
@@ -90,8 +148,9 @@ export class UsersController {
       throw new BadRequestException('Email or phone already in use');
 
     const user = await this.usersService.createUser(dto);
+    const adminId = (req.user as any)?.userId || (req.user as any)?.id;
     await this.auditLog.log({
-      adminId: (req.user as any).id,
+      adminId,
       action: 'CREATE',
       entity: 'User',
       entityId: user.id,
@@ -119,7 +178,7 @@ export class UsersController {
         'Only SUPER_ADMIN or CHIEF users can be edited here',
       );
     }
-    const actorId = (req.user as any).id;
+    const actorId = (req.user as any)?.userId || (req.user as any)?.id;
     if (target.id === actorId && dto.role && dto.role !== target.role) {
       throw new ForbiddenException('You cannot change your own role');
     }
@@ -172,7 +231,7 @@ export class UsersController {
     if (!STAFF_ROLES.includes(target.role)) {
       throw new BadRequestException('Only staff can be deleted here');
     }
-    const actorId = (req.user as any).id;
+    const actorId = (req.user as any)?.userId || (req.user as any)?.id;
     if (target.id === actorId)
       throw new ForbiddenException('You cannot delete your own account');
 

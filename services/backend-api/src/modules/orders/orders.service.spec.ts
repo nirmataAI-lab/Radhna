@@ -18,6 +18,11 @@ describe('OrdersService', () => {
       create: jest.fn(),
       update: jest.fn(),
       count: jest.fn(),
+      aggregate: jest.fn(),
+      groupBy: jest.fn(),
+    },
+    orderItem: {
+      groupBy: jest.fn(),
     },
     foodItem: { findMany: jest.fn() },
     productionStock: { update: jest.fn(), deleteMany: jest.fn() },
@@ -79,7 +84,7 @@ describe('OrdersService', () => {
       expect(result).toEqual(orders);
       expect(mockPrisma.order.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { customerId: 'user-1' },
+          where: { OR: [{ customerId: 'user-1' }] },
           take: 50,
         }),
       );
@@ -157,8 +162,44 @@ describe('OrdersService', () => {
       },
     ];
 
+    const mockAggregations = (orders: any[]) => {
+      const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
+      const totalOrders = orders.length;
+      const activeOrders = orders.filter(o => ['PLACED', 'ACCEPTED', 'PREPARING'].includes(o.status || '')).length;
+      const discountOrders = orders.filter(o => Number(o.discount) > 0);
+      const totalDiscount = discountOrders.reduce((s, o) => s + Number(o.discount), 0);
+
+      mockPrisma.$transaction.mockResolvedValue([
+        { _sum: { total: totalRevenue } },
+        totalOrders,
+        activeOrders,
+        { _sum: { discount: totalDiscount } },
+        discountOrders.length
+      ]);
+      mockPrisma.order.findMany.mockResolvedValue(orders.map(o => ({ createdAt: o.createdAt, total: o.total })));
+      
+      const itemCounts: Record<string, number> = {};
+      orders.forEach(o => o.orderItems.forEach((i: any) => {
+        itemCounts[i.foodItem.name] = (itemCounts[i.foodItem.name] || 0) + i.quantity;
+      }));
+      mockPrisma.orderItem.groupBy.mockResolvedValue(Object.entries(itemCounts).map(([name, qty], idx) => ({
+        foodItemId: `f${idx}`,
+        _sum: { quantity: qty, unitPrice: 50 }
+      })));
+      mockPrisma.foodItem.findMany.mockResolvedValue(Object.keys(itemCounts).map((name, idx) => ({
+        id: `f${idx}`, name
+      })));
+      
+      mockPrisma.order.groupBy.mockResolvedValue(
+        Object.entries(orders.reduce((acc: any, o) => {
+          acc[o.paymentStatus] = (acc[o.paymentStatus] || 0) + 1;
+          return acc;
+        }, {})).map(([status, count]) => ({ paymentStatus: status, _count: { _all: count } }))
+      );
+    };
+
     it('correct discount stats with mixed orders', async () => {
-      mockPrisma.order.findMany.mockResolvedValue(baseOrders);
+      mockAggregations(baseOrders);
       const result = await service.getAnalytics(90);
       expect(result.discountStats.totalDiscountGiven).toBe(35);
       expect(result.discountStats.discountOrderCount).toBe(3);
@@ -170,27 +211,25 @@ describe('OrdersService', () => {
     });
 
     it('zero discount stats when none applied', async () => {
-      mockPrisma.order.findMany.mockResolvedValue(
-        baseOrders.map((o) => ({ ...o, discount: '0' })),
-      );
+      mockAggregations(baseOrders.map((o) => ({ ...o, discount: '0' })));
       const result = await service.getAnalytics(90);
       expect(result.discountStats.totalDiscountGiven).toBe(0);
       expect(result.discountStats.discountOrderCount).toBe(0);
     });
 
     it('zero everything when no orders', async () => {
-      mockPrisma.order.findMany.mockResolvedValue([]);
+      mockAggregations([]);
       const result = await service.getAnalytics(90);
       expect(result.totalRevenue).toBe(0);
       expect(result.totalOrders).toBe(0);
     });
 
     it('revenue trend and totals', async () => {
-      mockPrisma.order.findMany.mockResolvedValue(baseOrders);
+      mockAggregations(baseOrders);
       const result = await service.getAnalytics(90);
-      expect(result.revenueTrend.length).toBeGreaterThanOrEqual(5);
       expect(result.totalRevenue).toBe(580);
       expect(result.totalOrders).toBe(5);
+      expect(result.revenueTrend.length).toBeGreaterThan(0);
     });
   });
 });

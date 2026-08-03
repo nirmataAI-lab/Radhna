@@ -11,8 +11,6 @@ interface OrderSummary {
   status: string;
   total: number;
   createdAt: string;
-  orderType: string;
-  table?: { tableNumber: string } | null;
   orderItems?: { quantity: number; foodItem?: { name: string } | null }[];
 }
 
@@ -35,9 +33,8 @@ export default function OrdersPage() {
     if (!token) {
       return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    fetchMyOrders(token)
+    fetchMyOrders()
       .then(setOrders)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -113,11 +110,6 @@ export default function OrdersPage() {
                   <Clock className="w-3 h-3" />
                   {new Date(order.createdAt).toLocaleString()}
                 </div>
-
-                <p className="text-xs text-muted-foreground mb-1">
-                  {order.table?.tableNumber ? `Table ${order.table.tableNumber}` : order.orderType}
-                </p>
-
                 <p className="text-sm truncate mb-3">
                   {order.orderItems?.map((oi) => `${oi.quantity}x ${oi.foodItem?.name || 'Item'}`).join(', ')}
                 </p>

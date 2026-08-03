@@ -32,7 +32,7 @@ export default async function Home() {
             Taste the <span className="text-gradient animate-pulse-slow inline-block">Extraordinary</span>
           </h1>
           <p className="text-xl md:text-2xl text-[var(--muted-foreground)] mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
-            Elevate your dining experience with world-class chefs, premium ingredients, and lightning-fast delivery to your table.
+            Elevate your dining experience with world-class chefs, premium ingredients, and lightning-fast service.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">

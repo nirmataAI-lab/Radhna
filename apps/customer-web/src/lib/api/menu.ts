@@ -14,6 +14,7 @@ export interface FoodItem {
   isPopular: boolean;
   isTodaysSpecial?: boolean;
   isEnabled?: boolean;
+  isOutOfStock?: boolean;
   categoryId: string;
   category?: Category;
   productionStock?: { availableQty: number } | null;

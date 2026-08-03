@@ -26,7 +26,13 @@ export class OrdersService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
-    const { items, customerId, customerEmail, customerPhone, couponCode } =
+    const {
+      items,
+      customerId,
+      customerEmail,
+      customerPhone,
+      couponCode,
+    } =
       createOrderDto;
 
     if (!items || items.length === 0) {
@@ -34,33 +40,29 @@ export class OrdersService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      const foodItemIds = items.map((i) => i.foodItemId);
+      // Aggregate items to handle duplicate foodItemId entries
+      const aggregatedItems = items.reduce((acc, curr) => {
+        const existing = acc.find(i => i.foodItemId === curr.foodItemId);
+        if (existing) {
+          existing.quantity += curr.quantity;
+        } else {
+          acc.push({ ...curr });
+        }
+        return acc;
+      }, [] as typeof items);
 
-      // Use SELECT FOR UPDATE to lock stock rows and prevent race conditions
-      const foodItemsDB = await tx.$queryRaw<
-        Array<{
-          id: string;
-          name: string;
-          price: Prisma.Decimal;
-          isEnabled: boolean;
-          productionStockId: string | null;
-          productionStockAvailableQty: number | null;
-        }>
-      >`
-        SELECT 
-          fi.id,
-          fi.name,
-          fi.price,
-          fi."isEnabled",
-          ps.id as "productionStockId",
-          ps."availableQty" as "productionStockAvailableQty"
-        FROM "FoodItem" fi
-        LEFT JOIN "ProductionStock" ps ON ps."foodItemId" = fi.id
-        WHERE fi.id IN (${Prisma.join(foodItemIds)})
-        FOR UPDATE
-      `;
+      const foodItemIds = aggregatedItems.map((i) => i.foodItemId);
+
+      // Lock the rows first to prevent race conditions
+      await tx.$executeRaw`SELECT id FROM "FoodItem" WHERE id IN (${Prisma.join(foodItemIds)}) FOR UPDATE`;
+
+      const foodItemsDB = await tx.foodItem.findMany({
+        where: { id: { in: foodItemIds } },
+        include: { productionStock: true },
+      });
 
       if (foodItemsDB.length !== foodItemIds.length) {
+        console.error('Invalid food items request:', { requestedIds: foodItemIds, foundDB: foodItemsDB.map(f => f.id) });
         throw new BadRequestException('One or more food items are invalid');
       }
 
@@ -73,7 +75,7 @@ export class OrdersService {
       }> = [];
       const stockUpdates: Array<{ stockId: string; quantity: number }> = [];
 
-      for (const item of items) {
+      for (const item of aggregatedItems) {
         const dbItem = foodItemsDB.find((f) => f.id === item.foodItemId);
         if (!dbItem || !dbItem.isEnabled) {
           throw new BadRequestException(
@@ -82,16 +84,16 @@ export class OrdersService {
         }
 
         if (
-          dbItem.productionStockId &&
-          dbItem.productionStockAvailableQty !== null
+          dbItem.productionStock &&
+          dbItem.productionStock.availableQty !== null
         ) {
-          if (dbItem.productionStockAvailableQty < item.quantity) {
+          if (dbItem.productionStock.availableQty < item.quantity) {
             throw new BadRequestException(
-              `Not enough stock for ${dbItem.name}. Only ${dbItem.productionStockAvailableQty} left.`,
+              `Not enough stock for ${dbItem.name}. Only ${dbItem.productionStock.availableQty} left.`,
             );
           }
           stockUpdates.push({
-            stockId: dbItem.productionStockId,
+            stockId: dbItem.productionStock.id,
             quantity: item.quantity,
           });
         }
@@ -211,9 +213,15 @@ export class OrdersService {
     return paginate(data, total, page, limit);
   }
 
-  async findByCustomer(customerId: string) {
+  async findByCustomer(customerId: string, customerEmail?: string) {
+    if (!customerId && !customerEmail) return [];
+
+    const conditions: any[] = [];
+    if (customerId) conditions.push({ customerId });
+    if (customerEmail) conditions.push({ customer: { email: customerEmail } });
+
     return this.prisma.order.findMany({
-      where: { customerId },
+      where: { OR: conditions },
       include: {
         orderItems: { include: { foodItem: true } },
       },
@@ -247,10 +255,13 @@ export class OrdersService {
 
   /** Recent orders (for admin new-order polling) */
   async findRecent(since: string) {
-    const sinceDate = new Date(since);
+    const parsed = new Date(since);
+    // Fall back to epoch if the date string is invalid
+    const sinceDate = isNaN(parsed.getTime()) ? new Date(0) : parsed;
     return this.prisma.order.findMany({
       where: { createdAt: { gte: sinceDate } },
       include: {
+        customer: { select: { id: true, email: true, name: true } },
         orderItems: { include: { foodItem: { select: { name: true } } } },
       },
       orderBy: { createdAt: 'desc' },
@@ -294,6 +305,19 @@ export class OrdersService {
         customer: { select: { id: true, email: true, name: true } },
       },
     });
+  }
+
+  async updatePaymentStatus(id: string, paymentStatus: PaymentStatus) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) throw new NotFoundException('Order not found');
+
+    const updated = await this.prisma.order.update({
+      where: { id },
+      data: { paymentStatus },
+    });
+
+    this.ordersGateway.broadcastOrderStatusUpdate(updated);
+    return updated;
   }
 
   async updateStatus(id: string, status: OrderStatus, reason?: string) {
@@ -449,7 +473,15 @@ export class OrdersService {
    * and only while the order is still in PLACED status.
    */
   async cancelByCustomer(id: string, userId: string, reason?: string) {
-    const order = await this.prisma.order.findUnique({ where: { id } });
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        orderItems: { include: { foodItem: true } },
+        customer: {
+          select: { id: true, email: true, phone: true, name: true },
+        },
+      },
+    });
     if (!order) throw new NotFoundException(`Order ${id} not found`);
     if (order.customerId !== userId) {
       throw new ForbiddenException('You can only cancel your own orders');
@@ -459,11 +491,53 @@ export class OrdersService {
         'Order can no longer be cancelled — the kitchen has already picked it up.',
       );
     }
-    return this.updateStatus(
-      id,
+
+    // Process the cancellation using a transaction like updateStatus does
+    const updatedOrder = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.order.update({
+        where: { id },
+        data: {
+          status: OrderStatus.CANCELLED,
+          cancelReason: reason || 'Cancelled by customer',
+        },
+        include: { orderItems: { include: { foodItem: true } } },
+      });
+
+      // Restore stock for PLACED orders
+      for (const item of order.orderItems) {
+        const stock = await tx.productionStock.findUnique({
+          where: { foodItemId: item.foodItemId },
+        });
+        if (stock) {
+          await tx.productionStock.update({
+            where: { id: stock.id },
+            data: { availableQty: { increment: item.quantity } },
+          });
+        }
+      }
+      return updated;
+    });
+
+    this.ordersGateway.broadcastOrderStatusUpdate(updatedOrder);
+
+    // Persist in-app notification for the customer
+    void this.notificationsService
+      .create({
+        userId,
+        title: 'Order cancelled',
+        message: `Order #${order.id.slice(0, 8)} has been cancelled.`,
+      })
+      .catch(() => {});
+
+    // Fire-and-forget email / SMS
+    void this.sendOrderNotifications(
+      { ...updatedOrder, customer: order.customer },
       OrderStatus.CANCELLED,
-      reason || 'Cancelled by customer',
+      order.customer?.email ?? undefined,
+      order.customer?.phone ?? undefined,
     );
+
+    return updatedOrder;
   }
 
   async getAnalytics(days: number = 30) {
@@ -471,74 +545,96 @@ export class OrdersService {
     since.setDate(since.getDate() - days);
     since.setHours(0, 0, 0, 0);
 
-    const orders = await this.prisma.order.findMany({
-      where: {
-        createdAt: { gte: since },
-        status: { not: OrderStatus.CANCELLED },
-      },
-      include: { orderItems: { include: { foodItem: true } } },
+    const baseWhere: Prisma.OrderWhereInput = {
+      createdAt: { gte: since },
+      status: { not: OrderStatus.CANCELLED },
+    };
+
+    // ── Summary stats (single aggregate query) ──────────────────────────────
+    const [agg, totalOrders, activeOrders, discountAgg, discountCount] =
+      await this.prisma.$transaction([
+        this.prisma.order.aggregate({
+          where: baseWhere,
+          _sum: { total: true },
+        }),
+        this.prisma.order.count({ where: baseWhere }),
+        this.prisma.order.count({
+          where: {
+            status: {
+              in: [OrderStatus.PLACED, OrderStatus.ACCEPTED, OrderStatus.PREPARING],
+            },
+          },
+        }),
+        this.prisma.order.aggregate({
+          where: { ...baseWhere, discount: { gt: 0 } },
+          _sum: { discount: true },
+        }),
+        this.prisma.order.count({
+          where: { ...baseWhere, discount: { gt: 0 } },
+        }),
+      ]);
+
+    const totalRevenue = Number(agg._sum.total ?? 0);
+    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const totalDiscountGiven = Number(discountAgg._sum.discount ?? 0);
+    const discountOrderCount = discountCount;
+
+    // ── Revenue by day (DB groupBy) ─────────────────────────────────────────
+    // Prisma doesn't support groupBy on date parts natively, so we use a lean
+    // query of only (createdAt, total) — far less RAM than full include.
+    const lightOrders = await this.prisma.order.findMany({
+      where: baseWhere,
+      select: { createdAt: true, total: true },
       orderBy: { createdAt: 'asc' },
     });
 
     const revenueByDay: Record<string, number> = {};
-    for (const order of orders) {
-      const day = order.createdAt.toISOString().split('T')[0];
-      revenueByDay[day] = (revenueByDay[day] || 0) + Number(order.total);
-    }
-    const revenueTrend = Object.entries(revenueByDay)
-      .map(([date, revenue]) => ({
-        date,
-        revenue: Math.round(revenue * 100) / 100,
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    const itemCounts: Record<
-      string,
-      { name: string; count: number; revenue: number }
-    > = {};
-    for (const order of orders) {
-      for (const oi of order.orderItems) {
-        const itemName = oi.foodItem?.name || 'Unknown';
-        if (!itemCounts[itemName])
-          itemCounts[itemName] = { name: itemName, count: 0, revenue: 0 };
-        itemCounts[itemName].count += oi.quantity;
-        itemCounts[itemName].revenue += Number(oi.unitPrice) * oi.quantity;
-      }
-    }
-    const popularItems = Object.values(itemCounts)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-
     const hourCounts: Record<number, number> = {};
-    for (const order of orders) {
-      const hour = order.createdAt.getHours();
+    for (const o of lightOrders) {
+      const day = o.createdAt.toISOString().split('T')[0];
+      revenueByDay[day] = (revenueByDay[day] || 0) + Number(o.total);
+      const hour = o.createdAt.getHours();
       hourCounts[hour] = (hourCounts[hour] || 0) + 1;
     }
+    const revenueTrend = Object.entries(revenueByDay)
+      .map(([date, revenue]) => ({ date, revenue: Math.round(revenue * 100) / 100 }))
+      .sort((a, b) => a.date.localeCompare(b.date));
     const peakHours = Array.from({ length: 24 }, (_, i) => ({
       hour: i,
       label: `${i.toString().padStart(2, '0')}:00`,
       orders: hourCounts[i] || 0,
     }));
 
-    const paymentStatusCounts: Record<string, number> = {};
-    for (const order of orders) {
-      const status = order.paymentStatus || 'PENDING';
-      paymentStatusCounts[status] = (paymentStatusCounts[status] || 0) + 1;
-    }
-    const paymentBreakdown = Object.entries(paymentStatusCounts).map(
-      ([status, count]) => ({ status, count }),
-    );
+    // ── Popular items (DB groupBy on order items) ────────────────────────────
+    const itemGroups = await this.prisma.orderItem.groupBy({
+      by: ['foodItemId'],
+      where: { order: baseWhere },
+      _sum: { quantity: true, unitPrice: true },
+      orderBy: { _sum: { quantity: 'desc' } },
+      take: 10,
+    });
+    const itemIds = itemGroups.map((g) => g.foodItemId);
+    const foodItems = await this.prisma.foodItem.findMany({
+      where: { id: { in: itemIds } },
+      select: { id: true, name: true },
+    });
+    const nameMap = Object.fromEntries(foodItems.map((f) => [f.id, f.name]));
+    const popularItems = itemGroups.map((g) => ({
+      name: nameMap[g.foodItemId] || 'Unknown',
+      count: Number(g._sum.quantity ?? 0),
+      revenue: Math.round(Number(g._sum.unitPrice ?? 0) * Number(g._sum.quantity ?? 0) * 100) / 100,
+    }));
 
-    const ordersWithDiscount = orders.filter((o) => Number(o.discount) > 0);
-    const totalDiscountGiven = ordersWithDiscount.reduce(
-      (s, o) => s + Number(o.discount),
-      0,
-    );
-    const discountOrderCount = ordersWithDiscount.length;
-
-    const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
-    const totalOrders = orders.length;
-    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    // ── Payment status breakdown ─────────────────────────────────────────────
+    const paymentGroups = await this.prisma.order.groupBy({
+      by: ['paymentStatus'],
+      where: baseWhere,
+      _count: { _all: true },
+    });
+    const paymentBreakdown = paymentGroups.map((g) => ({
+      status: g.paymentStatus,
+      count: g._count._all,
+    }));
 
     return {
       totalRevenue: Math.round(totalRevenue * 100) / 100,
@@ -563,6 +659,7 @@ export class OrdersService {
       },
     };
   }
+
 
   // ─── Helpers ─────────────────────────────────────────
 

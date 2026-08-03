@@ -21,6 +21,7 @@ import { BillingService } from './billing.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { VerifyPaymentDto } from './dto/verify-payment.dto';
 import type { Request } from 'express';
 
 @ApiTags('billing')
@@ -51,13 +52,7 @@ export class BillingController {
       'Verifies Razorpay payment signature after successful checkout.',
   })
   async verifyPayment(
-    @Body()
-    dto: {
-      razorpayOrderId: string;
-      razorpayPaymentId: string;
-      razorpaySignature: string;
-      orderId: string;
-    },
+    @Body() dto: VerifyPaymentDto,
   ) {
     return this.billingService.verifyPayment(dto);
   }

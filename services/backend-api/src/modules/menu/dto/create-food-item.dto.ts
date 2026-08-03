@@ -36,6 +36,10 @@ export class CreateFoodItemDto {
 
   @IsOptional()
   @IsBoolean()
+  isOutOfStock?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
   isPopular?: boolean;
 
   @IsOptional()
@@ -75,6 +79,10 @@ export class UpdateFoodItemDto {
   @IsOptional()
   @IsBoolean()
   isEnabled?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isOutOfStock?: boolean;
 
   @IsOptional()
   @IsBoolean()

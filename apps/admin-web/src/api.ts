@@ -124,6 +124,15 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
   return handleResponse(res);
 }
 
+export async function updateOrderPaymentStatus(orderId: string, status: string): Promise<Order> {
+  const res = await fetch(`${API_URL}/orders/${orderId}/payment-status`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({ status }),
+  });
+  return handleResponse(res);
+}
+
 export async function cancelOrder(orderId: string, reason?: string): Promise<Order> {
   const res = await fetch(`${API_URL}/orders/${orderId}/cancel`, {
     method: 'PATCH',

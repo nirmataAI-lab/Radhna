@@ -1,5 +1,4 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
@@ -7,20 +6,16 @@
     "jsx": "react-jsx",
     "declaration": true,
     "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "declarationMap": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-
-    // Recommended Options
-    "strict": true,
-    "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
-    "skipLibCheck": true,
+    "moduleDetection": "force"
   }
 }

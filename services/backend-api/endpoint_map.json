@@ -1,0 +1,1826 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Authenticate with email and password. Returns JWT token and user profile.",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "description": "Create a new customer account. Returns JWT token and user profile.",
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Register",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "description": "Exchange a valid refresh token for a new access + refresh token pair.",
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Refresh access token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "description": "Generates password reset token for user email.",
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Request password reset",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "description": "Resets password using token.",
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Reset password with token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/users/seed-admin": {
+      "post": {
+        "operationId": "UsersController_seedAdmin",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/me": {
+      "get": {
+        "operationId": "UsersController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get logged in user profile",
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_updateProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update logged in user profile",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/staff": {
+      "get": {
+        "operationId": "UsersController_listStaff",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "List staff (SUPER_ADMIN + CHIEF)",
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "operationId": "UsersController_createStaff",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStaffDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Create a staff member",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/staff/{id}": {
+      "patch": {
+        "operationId": "UsersController_updateStaff",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStaffDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update a staff member",
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_deleteStaff",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Delete a staff member",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/audit-log": {
+      "get": {
+        "operationId": "AuditLogController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "List audit logs",
+        "tags": [
+          "audit-log"
+        ]
+      }
+    },
+    "/menu/categories": {
+      "get": {
+        "description": "Returns all categories ordered by display order. Public endpoint.",
+        "operationId": "MenuController_getCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get active categories",
+        "tags": [
+          "menu"
+        ]
+      },
+      "post": {
+        "operationId": "MenuController_createCategory",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Create category",
+        "tags": [
+          "menu"
+        ]
+      }
+    },
+    "/menu/items": {
+      "get": {
+        "description": "Returns enabled food items. Optionally filter by category. Public endpoint.",
+        "operationId": "MenuController_getFoodItems",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by category ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get available food items",
+        "tags": [
+          "menu"
+        ]
+      },
+      "post": {
+        "operationId": "MenuController_createFoodItem",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFoodItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Create food item",
+        "tags": [
+          "menu"
+        ]
+      }
+    },
+    "/menu/specials": {
+      "get": {
+        "description": "Returns all items marked as today's special. Public endpoint.",
+        "operationId": "MenuController_getTodaysSpecials",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get today's specials",
+        "tags": [
+          "menu"
+        ]
+      }
+    },
+    "/menu/categories/all": {
+      "get": {
+        "description": "Returns all categories including disabled ones.",
+        "operationId": "MenuController_getAllCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get all categories (admin)",
+        "tags": [
+          "menu"
+        ]
+      }
+    },
+    "/menu/categories/{id}": {
+      "get": {
+        "operationId": "MenuController_getCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category ID (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get category by ID",
+        "tags": [
+          "menu"
+        ]
+      },
+      "patch": {
+        "operationId": "MenuController_updateCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update category",
+        "tags": [
+          "menu"
+        ]
+      },
+      "delete": {
+        "description": "Fails if category has food items.",
+        "operationId": "MenuController_deleteCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Delete category",
+        "tags": [
+          "menu"
+        ]
+      }
+    },
+    "/menu/items/all": {
+      "get": {
+        "description": "Returns all items including disabled ones.",
+        "operationId": "MenuController_getAllFoodItems",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get all food items (admin)",
+        "tags": [
+          "menu"
+        ]
+      }
+    },
+    "/menu/items/{id}": {
+      "get": {
+        "operationId": "MenuController_getFoodItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get food item by ID",
+        "tags": [
+          "menu"
+        ]
+      },
+      "patch": {
+        "operationId": "MenuController_updateFoodItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFoodItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update food item",
+        "tags": [
+          "menu"
+        ]
+      },
+      "delete": {
+        "operationId": "MenuController_deleteFoodItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Delete food item",
+        "tags": [
+          "menu"
+        ]
+      }
+    },
+    "/menu/stock": {
+      "get": {
+        "description": "Returns every enabled food item with current availableQty. Used by the Chief prep-stock screen and Admin dashboards.",
+        "operationId": "MenuController_listStock",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "List production stock for all enabled items",
+        "tags": [
+          "menu"
+        ]
+      }
+    },
+    "/menu/items/{id}/stock": {
+      "patch": {
+        "description": "Chief sets morning batch quantity (e.g. 50 burgers). Auto-decrements on order placement and restores on cancellation.",
+        "operationId": "MenuController_setStock",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Set daily production stock for an item",
+        "tags": [
+          "menu"
+        ]
+      }
+    },
+    "/orders": {
+      "post": {
+        "operationId": "OrdersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Place a new order (takeaway)",
+        "tags": [
+          "orders"
+        ]
+      },
+      "get": {
+        "operationId": "OrdersController_findAll",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "List orders",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/track/{id}": {
+      "get": {
+        "operationId": "OrdersController_trackOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order ID (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Track an order by ID (public)",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/my-orders": {
+      "get": {
+        "operationId": "OrdersController_getMyOrders",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get logged-in customer order history",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/{id}/cancel-mine": {
+      "patch": {
+        "operationId": "OrdersController_cancelMine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Cancel my own order (only while status = PLACED)",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/analytics": {
+      "get": {
+        "operationId": "OrdersController_getAnalytics",
+        "parameters": [
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Business analytics",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/recent": {
+      "get": {
+        "operationId": "OrdersController_getRecentOrders",
+        "parameters": [
+          {
+            "name": "since",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Recent orders since timestamp (poll)",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/overview": {
+      "get": {
+        "operationId": "OrdersController_getOverview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Today's overview stats",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/{id}": {
+      "get": {
+        "operationId": "OrdersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order ID (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get order by ID",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/{id}/status": {
+      "patch": {
+        "operationId": "OrdersController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order ID (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "PLACED",
+                      "ACCEPTED",
+                      "PREPARING",
+                      "READY",
+                      "COMPLETED",
+                      "CANCELLED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update order status",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/{id}/cancel": {
+      "patch": {
+        "operationId": "OrdersController_cancelOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order ID (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Cancel an order (staff)",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/{id}/recall": {
+      "patch": {
+        "operationId": "OrdersController_recallOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order ID (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Recall a READY or COMPLETED order back to the kitchen",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/coupons/validate": {
+      "post": {
+        "description": "Validates a coupon and returns the discount amount. Public endpoint used during checkout.",
+        "operationId": "CouponsController_validate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateCouponDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Validate a coupon code",
+        "tags": [
+          "coupons"
+        ]
+      }
+    },
+    "/coupons": {
+      "get": {
+        "description": "Returns all coupons (admin).",
+        "operationId": "CouponsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "List all coupons",
+        "tags": [
+          "coupons"
+        ]
+      },
+      "post": {
+        "description": "Creates a new coupon code (admin).",
+        "operationId": "CouponsController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Create a coupon",
+        "tags": [
+          "coupons"
+        ]
+      }
+    },
+    "/coupons/{id}": {
+      "delete": {
+        "description": "Deletes a coupon by ID (admin).",
+        "operationId": "CouponsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Delete a coupon",
+        "tags": [
+          "coupons"
+        ]
+      }
+    },
+    "/inventory": {
+      "get": {
+        "operationId": "InventoryController_findAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by name or supplier reference",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page (max 100)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "List all inventory items",
+        "tags": [
+          "inventory"
+        ]
+      },
+      "post": {
+        "operationId": "InventoryController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInventoryItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Create inventory item",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/inventory/alerts": {
+      "get": {
+        "operationId": "InventoryController_getAlerts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get low stock and out of stock alerts",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/inventory/{id}": {
+      "get": {
+        "operationId": "InventoryController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get inventory item by ID",
+        "tags": [
+          "inventory"
+        ]
+      },
+      "patch": {
+        "operationId": "InventoryController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInventoryItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update inventory item",
+        "tags": [
+          "inventory"
+        ]
+      },
+      "delete": {
+        "operationId": "InventoryController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Delete inventory item",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/billing/{orderId}/create-order": {
+      "post": {
+        "description": "Initiates payment for an order. Returns Razorpay order details for client-side checkout.",
+        "operationId": "BillingController_createPaymentOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "path",
+            "description": "Order ID (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Create Razorpay order",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/billing/verify": {
+      "post": {
+        "description": "Verifies Razorpay payment signature after successful checkout.",
+        "operationId": "BillingController_verifyPayment",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Verify payment",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/billing/webhook": {
+      "post": {
+        "description": "Receives payment events from Razorpay server-to-server. Verifies HMAC signature.",
+        "operationId": "BillingController_handleWebhook",
+        "parameters": [
+          {
+            "name": "x-razorpay-signature",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Razorpay webhook",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/billing/{orderId}/payments": {
+      "get": {
+        "description": "Returns all payments for a given order.",
+        "operationId": "BillingController_getPayments",
+        "parameters": [
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get payment history",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/notifications/my": {
+      "get": {
+        "operationId": "NotificationsController_list",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "List my notifications (most recent first)",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/notifications/{id}/read": {
+      "patch": {
+        "operationId": "NotificationsController_markRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Mark a notification as read",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/notifications/read-all": {
+      "patch": {
+        "operationId": "NotificationsController_markAllRead",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Mark all my notifications as read",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/notifications/broadcast": {
+      "post": {
+        "operationId": "NotificationsController_broadcast",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BroadcastDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Broadcast a notification to system/all users (Admin only)",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/reviews": {
+      "post": {
+        "description": "Rate and review a food item (customer auth required). One review per item per customer.",
+        "operationId": "ReviewsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Submit a review",
+        "tags": [
+          "reviews"
+        ]
+      }
+    },
+    "/reviews/item/{foodItemId}": {
+      "get": {
+        "description": "Returns all reviews with average rating for a food item. Public endpoint.",
+        "operationId": "ReviewsController_findByItem",
+        "parameters": [
+          {
+            "name": "foodItemId",
+            "required": true,
+            "in": "path",
+            "description": "Food item ID (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get item reviews",
+        "tags": [
+          "reviews"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "",
+    "description": "",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "LoginDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RefreshDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateStaffDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateStaffDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateCategoryDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateFoodItemDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateFoodItemDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateOrderDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ValidateCouponDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateInventoryItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Raw material name"
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit of measurement (kg, l, pcs)"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Current quantity in stock"
+          },
+          "lowStockThreshold": {
+            "type": "number",
+            "description": "Threshold for low stock alerts"
+          },
+          "supplierReference": {
+            "type": "string",
+            "description": "Supplier reference number"
+          }
+        },
+        "required": [
+          "name",
+          "unit",
+          "quantity",
+          "lowStockThreshold"
+        ]
+      },
+      "UpdateInventoryItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Raw material name"
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit of measurement (kg, l, pcs)"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Current quantity in stock"
+          },
+          "lowStockThreshold": {
+            "type": "number",
+            "description": "Threshold for low stock alerts"
+          },
+          "supplierReference": {
+            "type": "string",
+            "description": "Supplier reference number"
+          }
+        }
+      },
+      "BroadcastDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateReviewDto": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  }
+}

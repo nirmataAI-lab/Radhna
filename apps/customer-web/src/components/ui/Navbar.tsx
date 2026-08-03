@@ -66,6 +66,11 @@ export function Navbar() {
                       <p className="font-semibold text-sm truncate">{user?.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                     </div>
+                    <Link href="/profile"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-muted transition-colors">
+                      <User className="w-4 h-4" /> My Profile
+                    </Link>
                     <Link href="/orders"
                       onClick={() => setShowUserMenu(false)}
                       className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-muted transition-colors">

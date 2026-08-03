@@ -46,15 +46,17 @@ enum NotificationType {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  name           String
-  email          String?  @unique
-  phone          String?  @unique
-  passwordHash   String?
-  role           Role     @default(CUSTOMER)
-  status         String   @default("ACTIVE") // ACTIVE, SUSPENDED
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                   String    @id @default(uuid())
+  name                 String
+  email                String?   @unique
+  phone                String?   @unique
+  passwordHash         String?
+  resetToken           String?
+  resetTokenExpiry     DateTime?
+  role                 Role      @default(CUSTOMER)
+  status               String    @default("ACTIVE") // ACTIVE, SUSPENDED
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   orders        Order[]        @relation("CustomerOrders")
   reviews       Review[]
@@ -83,17 +85,21 @@ model FoodItem {
   imageUrl        String?
   isVeg           Boolean  @default(true)
   isEnabled       Boolean  @default(true)
+  isOutOfStock    Boolean  @default(false)
   isPopular       Boolean  @default(false)
   isTodaysSpecial Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  category        Category         @relation(fields: [categoryId], references: [id])
+  category        Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   productionStock ProductionStock?
   orderItems      OrderItem[]
   reviews         Review[]
   favoritedBy     Favorite[]
   recipeItems     RecipeItem[]
+
+  @@index([categoryId])
+  @@index([isEnabled])
 }
 
 model ProductionStock {
@@ -103,7 +109,7 @@ model ProductionStock {
   updatedBy    String?
   updatedAt    DateTime @updatedAt
 
-  foodItem FoodItem @relation(fields: [foodItemId], references: [id])
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
 }
 
 model InventoryRawMaterial {
@@ -124,10 +130,12 @@ model RecipeItem {
   materialId   String
   quantityUsed Decimal              @db.Decimal(10, 2)
   
-  foodItem     FoodItem             @relation(fields: [foodItemId], references: [id])
-  material     InventoryRawMaterial @relation(fields: [materialId], references: [id])
+  foodItem     FoodItem             @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+  material     InventoryRawMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
 
   @@unique([foodItemId, materialId])
+  @@index([foodItemId])
+  @@index([materialId])
 }
 
 model Order {
@@ -143,7 +151,7 @@ model Order {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  customer   User?       @relation("CustomerOrders", fields: [customerId], references: [id])
+  customer   User?       @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: SetNull)
   orderItems OrderItem[]
   payments   Payment[]
 
@@ -160,8 +168,11 @@ model OrderItem {
   unitPrice           Decimal @db.Decimal(10, 2)
   specialInstructions String?
 
-  order    Order    @relation(fields: [orderId], references: [id])
-  foodItem FoodItem @relation(fields: [foodItemId], references: [id])
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([foodItemId])
 }
 
 model Payment {
@@ -175,7 +186,10 @@ model Payment {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  order Order @relation(fields: [orderId], references: [id])
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
 }
 
 model Coupon {
@@ -188,6 +202,8 @@ model Coupon {
   usageLimit   Int?
   usageCount   Int          @default(0)
   createdAt    DateTime     @default(now())
+
+  @@index([code])
 }
 
 model Review {
@@ -200,10 +216,12 @@ model Review {
   isFlagged  Boolean  @default(false)
   createdAt  DateTime @default(now())
 
-  customer User     @relation(fields: [customerId], references: [id])
-  foodItem FoodItem @relation(fields: [foodItemId], references: [id])
+  customer User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
 
   @@unique([customerId, foodItemId])
+  @@index([foodItemId])
+  @@index([customerId])
 }
 
 model Favorite {
@@ -212,10 +230,11 @@ model Favorite {
   foodItemId String
   createdAt  DateTime @default(now())
 
-  customer User     @relation(fields: [customerId], references: [id])
-  foodItem FoodItem @relation(fields: [foodItemId], references: [id])
+  customer User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
 
   @@unique([customerId, foodItemId])
+  @@index([customerId])
 }
 
 model Notification {
@@ -227,9 +246,10 @@ model Notification {
   isRead    Boolean          @default(false)
   createdAt DateTime         @default(now())
 
-  user User? @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+  @@index([isRead])
 }
 
 model AuditLog {
@@ -241,5 +261,8 @@ model AuditLog {
   reason    String?
   timestamp DateTime @default(now())
 
-  admin User @relation(fields: [adminId], references: [id])
+  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([timestamp])
 }

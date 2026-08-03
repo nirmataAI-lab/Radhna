@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Plus, Edit3, Trash2, Loader2, UtensilsCrossed, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit3, Trash2, Loader2, UtensilsCrossed, Eye, EyeOff, PackageX, PackageCheck } from 'lucide-react';
 import {
   fetchCategories, createCategory, updateCategory, deleteCategory,
   fetchAllFoodItems, createFoodItem, updateFoodItem, deleteFoodItem
@@ -35,6 +35,12 @@ export function MenuPage() {
   const handleToggleAvailability = async (item: FoodItem) => {
     setFoodItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, isEnabled: !i.isEnabled } : i)));
     try { await updateFoodItem(item.id, { isEnabled: !item.isEnabled }); }
+    catch (e: any) { alert(e.message); load(); }
+  };
+
+  const handleToggleOutOfStock = async (item: FoodItem) => {
+    setFoodItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, isOutOfStock: !i.isOutOfStock } : i)));
+    try { await updateFoodItem(item.id, { isOutOfStock: !item.isOutOfStock }); }
     catch (e: any) { alert(e.message); load(); }
   };
 
@@ -130,6 +136,7 @@ export function MenuPage() {
                       {item.isPopular && <Badge variant="warning" className="px-1.5 py-0 bg-orange-500">Popular</Badge>}
                       {item.isTodaysSpecial && <Badge variant="secondary" className="px-1.5 py-0 bg-purple-100 text-purple-700">Special</Badge>}
                       {!item.isEnabled && <Badge variant="outline" className="px-1.5 py-0 border-dashed">Unavailable</Badge>}
+                      {item.isOutOfStock && <Badge variant="destructive" className="px-1.5 py-0 bg-red-800">Out of Stock</Badge>}
                       {item.productionStock && <Badge variant="secondary" className="px-1.5 py-0 bg-blue-50 text-blue-700">Stock: {item.productionStock.availableQty}</Badge>}
                     </div>
                     <div className="flex gap-2 mt-auto">
@@ -141,6 +148,15 @@ export function MenuPage() {
                         title={item.isEnabled ? 'Mark unavailable' : 'Mark available'}
                       >
                         {item.isEnabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className={`px-3 ${item.isOutOfStock ? 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100' : ''}`}
+                        onClick={() => handleToggleOutOfStock(item)}
+                        title={item.isOutOfStock ? 'Mark in stock' : 'Mark out of stock'}
+                      >
+                        {item.isOutOfStock ? <PackageX className="w-4 h-4" /> : <PackageCheck className="w-4 h-4" />}
                       </Button>
                       <Button size="sm" variant="outline" className="flex-1" onClick={() => setEditItem(item)}>
                         <Edit3 className="w-3.5 h-3.5 mr-1.5" /> Edit
@@ -226,6 +242,7 @@ function FoodItemFormModal({ open, item, categories, onClose, onSaved }: {
   const [isPopular, setIsPopular] = useState(false);
   const [isSpecial, setIsSpecial] = useState(false);
   const [isEnabled, setIsEnabled] = useState(true);
+  const [isOutOfStock, setIsOutOfStock] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -240,6 +257,7 @@ function FoodItemFormModal({ open, item, categories, onClose, onSaved }: {
       setIsPopular(item?.isPopular ?? false);
       setIsSpecial(item?.isTodaysSpecial ?? false);
       setIsEnabled(item?.isEnabled ?? true);
+      setIsOutOfStock(item?.isOutOfStock ?? false);
     }
   }, [open, item, categories]);
 
@@ -247,7 +265,7 @@ function FoodItemFormModal({ open, item, categories, onClose, onSaved }: {
     if (!name.trim() || !price || !categoryId) return;
     setSaving(true);
     try {
-      const data = { name: name.trim(), price: parseFloat(price), categoryId, description: description || undefined, imageUrl: imageUrl || undefined, isVeg, isPopular, isTodaysSpecial: isSpecial, isEnabled, stock: parseInt(stock) || 0 };
+      const data = { name: name.trim(), price: parseFloat(price), categoryId, description: description || undefined, imageUrl: imageUrl || undefined, isVeg, isPopular, isTodaysSpecial: isSpecial, isEnabled, isOutOfStock, stock: parseInt(stock) || 0 };
       if (item) await updateFoodItem(item.id, data); else await createFoodItem(data);
       onSaved();
     } catch (e: any) { alert(e.message); } finally { setSaving(false); }
@@ -296,6 +314,7 @@ function FoodItemFormModal({ open, item, categories, onClose, onSaved }: {
           <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isPopular} onChange={(e) => setIsPopular(e.target.checked)} className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" /> Popular Item</label>
           <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isSpecial} onChange={(e) => setIsSpecial(e.target.checked)} className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" /> Today's Special</label>
           <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" /> Available to customers</label>
+          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer"><input type="checkbox" checked={isOutOfStock} onChange={(e) => setIsOutOfStock(e.target.checked)} className="rounded border-gray-300 text-red-600 focus:ring-red-600" /> Out of Stock</label>
         </div>
       </div>
       <div className="flex gap-2 mt-6">

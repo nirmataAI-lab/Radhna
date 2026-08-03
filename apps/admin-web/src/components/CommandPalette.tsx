@@ -130,17 +130,3 @@ export function CommandPalette({
     </div>
   );
 }
-
-export function useCommandPaletteHotkey(open: boolean, setOpen: (v: boolean) => void) {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const isK = e.key === 'k' || e.key === 'K';
-      if (isK && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen(!open);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [open, setOpen]);
-}

@@ -14,13 +14,11 @@ import {
 interface TrackedOrder {
   id: string;
   status: string;
-  orderType: string;
   subtotal?: string;
   discount?: string;
   total: string;
   createdAt: string;
   updatedAt: string;
-  table?: { tableNumber: string } | null;
   orderItems?: { quantity: number; foodItem?: { id: string; name: string } }[];
 }
 
@@ -204,10 +202,7 @@ export default function OrderTrackingPage() {
             <div className="text-center mb-10 animate-slide-up">
               <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">Order Status</h1>
               <p className="text-muted-foreground">
-                {order.table?.tableNumber
-                  ? `Table ${order.table.tableNumber}`
-                  : order.orderType}{' '}
-                · {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
               <p className="text-xs font-mono text-muted-foreground mt-1">#{order.id.slice(0, 8)}</p>
             </div>

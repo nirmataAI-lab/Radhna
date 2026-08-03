@@ -3,7 +3,6 @@ import { CartItem } from '../store/cartStore';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export interface OrderSubmission {
-  tableNumber?: string;
   customerId?: string;
   customerEmail?: string;
   customerPhone?: string;
@@ -16,13 +15,11 @@ export interface OrderSubmission {
 }
 
 export async function submitOrder(
-  tableNumber: string | undefined,
   cartItems: CartItem[],
   customerInfo?: { id?: string; email?: string; phone?: string },
   couponCode?: string,
 ) {
   const orderPayload: OrderSubmission = {
-    tableNumber: tableNumber || undefined,
     customerId: customerInfo?.id || undefined,
     customerEmail: customerInfo?.email || undefined,
     customerPhone: customerInfo?.phone || undefined,

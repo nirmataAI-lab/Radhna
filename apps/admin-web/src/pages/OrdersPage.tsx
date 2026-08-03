@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { RefreshCcw, Download, ChefHat, Bell, ShieldCheck, X, CheckSquare, Square, ListOrdered } from 'lucide-react';
-import { fetchAllOrders, updateOrderStatus } from '../api';
+import { fetchAllOrders, updateOrderStatus, updateOrderPaymentStatus } from '../api';
 import type { Order } from '../api';
 import { exportRowsAsCSV } from '../lib/csv';
 import { 
@@ -20,22 +20,28 @@ const STATUS_COLORS: Record<string, "default" | "secondary" | "destructive" | "o
 export function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    try { setOrders(await fetchAllOrders(statusFilter || undefined)); setSelected(new Set()); }
-    catch (e) { console.error(e); }
+    setLoadError(null);
+    try {
+      const result = await fetchAllOrders(statusFilter || undefined);
+      // fetchAllOrders returns a paginated wrapper { data, meta } — unwrap it
+      const rows = Array.isArray(result) ? result : (result as any)?.data ?? [];
+      setOrders(rows);
+      setSelected(new Set());
+    }
+    catch (e: any) { setLoadError(e?.message || 'Failed to load orders'); }
     finally { setLoading(false); }
   }, [statusFilter]);
 
   useEffect(() => { load(); }, [load]);
 
-  const selectableIds = orders
-    .filter(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED')
-    .map(o => o.id);
+  const selectableIds = orders.filter(o => o.status !== 'CANCELLED').map(o => o.id);
   const allSelected = selectableIds.length > 0 && selectableIds.every(id => selected.has(id));
 
   const toggleAll = () => {
@@ -48,7 +54,8 @@ export function OrdersPage() {
   const toggleOne = (id: string) => {
     setSelected(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -59,6 +66,15 @@ export function OrdersPage() {
     setBulkBusy(true);
     try {
       await Promise.all([...selected].map(id => updateOrderStatus(id, status).catch(() => null)));
+      await load();
+    } finally { setBulkBusy(false); }
+  };
+
+  const bulkUpdatePayment = async (status: 'PAID') => {
+    if (selected.size === 0) return;
+    setBulkBusy(true);
+    try {
+      await Promise.all([...selected].map(id => updateOrderPaymentStatus(id, status).catch(() => null)));
       await load();
     } finally { setBulkBusy(false); }
   };
@@ -116,17 +132,8 @@ export function OrdersPage() {
               {selected.size} selected
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button disabled={bulkBusy} onClick={() => bulkUpdate('PREPARING')} size="sm" variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">
-                <ChefHat className="w-3.5 h-3.5 mr-1.5" /> Mark Preparing
-              </Button>
-              <Button disabled={bulkBusy} onClick={() => bulkUpdate('READY')} size="sm" variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-200">
-                <Bell className="w-3.5 h-3.5 mr-1.5" /> Mark Ready
-              </Button>
-              <Button disabled={bulkBusy} onClick={() => bulkUpdate('COMPLETED')} size="sm" variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-200">
-                <ShieldCheck className="w-3.5 h-3.5 mr-1.5" /> Complete
-              </Button>
-              <Button disabled={bulkBusy} onClick={() => bulkUpdate('CANCELLED')} size="sm" variant="danger" className="bg-red-100 text-red-700 hover:bg-red-200">
-                <X className="w-3.5 h-3.5 mr-1.5" /> Cancel
+              <Button disabled={bulkBusy} onClick={() => bulkUpdatePayment('PAID')} size="sm" variant="outline" className="border-emerald-500 text-emerald-600 hover:bg-emerald-500/10">
+                <CheckSquare className="w-3.5 h-3.5 mr-1.5" /> Mark Paid
               </Button>
               <Button disabled={bulkBusy} onClick={() => setSelected(new Set())} size="sm" variant="ghost">
                 Clear
@@ -134,6 +141,12 @@ export function OrdersPage() {
             </div>
           </div>
         </Card>
+      )}
+
+      {loadError && (
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg text-sm text-red-700 dark:text-red-300">
+          {loadError}
+        </div>
       )}
 
       <Card className="overflow-hidden">
@@ -164,7 +177,7 @@ export function OrdersPage() {
             </TableHeader>
             <TableBody>
               {orders.map((order) => {
-                const selectable = order.status !== 'COMPLETED' && order.status !== 'CANCELLED';
+                const selectable = order.status !== 'CANCELLED';
                 const isSel = selected.has(order.id);
                 return (
                 <TableRow key={order.id} data-state={isSel ? 'selected' : undefined}>
@@ -174,7 +187,9 @@ export function OrdersPage() {
                       {isSel ? <CheckSquare className="w-4 h-4 text-[var(--color-primary)]" /> : <Square className="w-4 h-4" />}
                     </button>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{order.id.slice(0, 8)}...</TableCell>
+                  <TableCell>
+                    <div className="font-mono text-xs">{order.id.slice(0, 8)}...</div>
+                  </TableCell>
                   <TableCell>{order.customer?.name || order.customer?.email || '—'}</TableCell>
                   <TableCell>{order.orderItems?.length || 0} items</TableCell>
                   <TableCell className="font-medium">₹{Number(order.total).toFixed(2)}</TableCell>

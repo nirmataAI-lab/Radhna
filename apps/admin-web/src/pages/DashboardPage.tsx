@@ -8,9 +8,11 @@ export function DashboardPage() {
   const [stats, setStats] = useState({ revenue: 0, totalOrders: 0, activeOrders: 0 });
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [statsData, items] = await Promise.all([
         fetchOverviewStats(),
@@ -18,7 +20,9 @@ export function DashboardPage() {
       ]);
       setStats(statsData);
       setFoodItems(items);
-    } catch (e) { console.error(e); }
+    } catch (e: any) {
+      setLoadError(e?.message || 'Failed to load dashboard data. Is the backend running?');
+    }
     finally { setLoading(false); }
   }, []);
 
@@ -49,16 +53,35 @@ export function DashboardPage() {
         </Button>
       </header>
 
+      {loadError && (
+        <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-sm">
+          <strong>Error:</strong> {loadError}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {cards.map((c) => (
-          <Card key={c.label}>
-            <CardContent className="pt-6">
-              <div className={`p-2 rounded-lg w-fit ${c.color} mb-4`}><c.icon className="w-5 h-5" /></div>
-              <p className="text-[var(--color-muted-foreground)] font-medium text-sm mb-1">{c.label}</p>
-              <p className="text-3xl font-bold">{c.value}</p>
-            </CardContent>
-          </Card>
-        ))}
+        {loading ? (
+          // Skeleton loaders for stat cards
+          [0, 1, 2].map((i) => (
+            <Card key={i}>
+              <CardContent className="pt-6">
+                <div className="w-9 h-9 rounded-lg bg-[var(--color-muted)] animate-pulse mb-4" />
+                <div className="h-3 w-24 bg-[var(--color-muted)] rounded animate-pulse mb-3" />
+                <div className="h-8 w-20 bg-[var(--color-muted)] rounded animate-pulse" />
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          cards.map((c) => (
+            <Card key={c.label}>
+              <CardContent className="pt-6">
+                <div className={`p-2 rounded-lg w-fit ${c.color} mb-4`}><c.icon className="w-5 h-5" /></div>
+                <p className="text-[var(--color-muted-foreground)] font-medium text-sm mb-1">{c.label}</p>
+                <p className="text-3xl font-bold">{c.value}</p>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       {(lowStockItems.length > 0 || outOfStockItems.length > 0) && (

@@ -28,7 +28,7 @@ export default function AuthPage() {
         ? await loginApi(email, password)
         : await registerApi({ name, email, password, phone: phone || undefined });
 
-      setAuth(data.access_token, data.user);
+      setAuth(data.access_token, data.refresh_token, data.user);
       router.push('/menu');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -95,7 +95,14 @@ export default function AuthPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium">Password</label>
+                {isLogin && (
+                  <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline font-medium">
+                    Forgot Password?
+                  </Link>
+                )}
+              </div>
               <div className="relative">
                 <input type={showPassword ? 'text' : 'password'} value={password}
                   onChange={(e) => setPassword(e.target.value)}

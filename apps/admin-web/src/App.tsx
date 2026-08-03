@@ -1,29 +1,30 @@
 import {
   LayoutDashboard, LogOut, TrendingUp, ChefHat, ListOrdered, UtensilsCrossed, Sun, Moon, 
   BarChart3, Tag, Bell, BellRing, Package, Star, ScrollText, Eye, EyeOff, ShieldCheck,
-  Sparkles, Zap, ArrowRight, Search, Users, X
+  Sparkles, Zap, ArrowRight, Search, Users, X, Sliders, Menu
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { loginApi } from './api';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuthStore } from './authStore';
-import { CommandPalette, useCommandPaletteHotkey } from './components/CommandPalette';
+import { CommandPalette } from './components/CommandPalette';
+import { useCommandPaletteHotkey } from './hooks/useCommandPaletteHotkey';
 import { SUPPORTED_LANGS } from './lib/i18n';
 import { LanguageSwitcher } from 'ui-components';
 import { useTranslation } from 'react-i18next';
 
-// Pages
-import { DashboardPage } from './pages/DashboardPage';
-import { AnalyticsPage } from './pages/AnalyticsPage';
-import { OrdersPage } from './pages/OrdersPage';
-import { MenuPage } from './pages/MenuPage';
-import { CouponsPage } from './pages/CouponsPage';
-import { InventoryPage } from './pages/InventoryPage';
-import { ReviewsPage } from './pages/ReviewsPage';
-import { AuditPage } from './pages/AuditPage';
-import { StaffTab as StaffPage } from './pages/StaffPage';
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then((module) => ({ default: module.AnalyticsPage })));
+const OrdersPage = lazy(() => import('./pages/OrdersPage').then((module) => ({ default: module.OrdersPage })));
+const MenuPage = lazy(() => import('./pages/MenuPage').then((module) => ({ default: module.MenuPage })));
+const CouponsPage = lazy(() => import('./pages/CouponsPage').then((module) => ({ default: module.CouponsPage })));
+const InventoryPage = lazy(() => import('./pages/InventoryPage').then((module) => ({ default: module.InventoryPage })));
+const ReviewsPage = lazy(() => import('./pages/ReviewsPage').then((module) => ({ default: module.ReviewsPage })));
+const AuditPage = lazy(() => import('./pages/AuditPage').then((module) => ({ default: module.AuditPage })));
+const StaffPage = lazy(() => import('./pages/StaffPage').then((module) => ({ default: module.StaffTab })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
 
-type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'coupons' | 'inventory' | 'reviews' | 'audit' | 'staff';
+type Tab = 'dashboard' | 'analytics' | 'orders' | 'menu' | 'coupons' | 'inventory' | 'reviews' | 'audit' | 'staff' | 'settings';
 
 function useTheme() {
   const [dark, setDark] = useState(() => {
@@ -64,7 +65,7 @@ function Login() {
 
   const fillDemo = () => {
     setEmail('admin@restaurant.com');
-    setPassword('password123');
+    setPassword('dev-password-123');
   };
 
   const features = [
@@ -171,10 +172,11 @@ function Login() {
   );
 }
 
-function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewOrdersClick }: {
+function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewOrdersClick, sidebarOpen, setSidebarOpen }: {
   tab: Tab; setTab: (t: Tab) => void;
   dark: boolean; toggleTheme: () => void; logout: () => void;
   newOrderCount: number; onNewOrdersClick: () => void;
+  sidebarOpen: boolean; setSidebarOpen: (o: boolean) => void;
 }) {
   const user = useAuthStore((s) => s.user);
   const { t } = useTranslation();
@@ -189,24 +191,43 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
     { tab: 'reviews', icon: Star, label: t('nav.reviews') },
     { tab: 'audit', icon: ScrollText, label: t('nav.audit') },
     { tab: 'staff', icon: Users, label: t('nav.staff') },
+    { tab: 'settings', icon: Sliders, label: 'Settings' },
   ];
 
   return (
-    <aside className="w-64 bg-[var(--color-card)] border-r border-[var(--color-border)] p-6 flex flex-col">
-      <div className="flex items-center gap-2 mb-8">
-        <LayoutDashboard className="w-6 h-6 text-[var(--color-primary)]" />
-        <h1 className="text-xl font-bold tracking-tight text-[var(--color-primary)]">{t('app.title')}</h1>
-      </div>
-      <nav className="flex flex-col gap-1 text-sm font-medium flex-1">
-        {items.map(({ tab: t, icon: Icon, label }) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`p-3 rounded-lg text-left transition-colors flex items-center gap-2 ${
-              tab === t ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
-            }`}>
-            <Icon className="w-4 h-4" /> {label}
+    <>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-[var(--color-card)] border-r border-[var(--color-border)] p-6 flex flex-col
+        transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-2">
+            <LayoutDashboard className="w-6 h-6 text-[var(--color-primary)]" />
+            <h1 className="text-xl font-bold tracking-tight text-[var(--color-primary)]">{t('app.title')}</h1>
+          </div>
+          <button className="lg:hidden p-2 -mr-2 text-[var(--color-muted-foreground)]" onClick={() => setSidebarOpen(false)}>
+            <X className="w-5 h-5" />
           </button>
-        ))}
-      </nav>
+        </div>
+        <nav className="flex flex-col gap-1 text-sm font-medium flex-1 overflow-y-auto">
+          {items.map(({ tab: t, icon: Icon, label }) => (
+            <button key={t} onClick={() => { setTab(t); setSidebarOpen(false); }}
+              className={`p-3 rounded-lg text-left transition-colors flex items-center gap-2 ${
+                tab === t ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
+              }`}>
+              <Icon className="w-4 h-4" /> {label}
+            </button>
+          ))}
+        </nav>
       <button
         onClick={onNewOrdersClick}
         className="flex items-center gap-2 px-3 py-2.5 mb-2 rounded-lg text-sm font-medium transition-colors hover:bg-[var(--color-muted)] relative"
@@ -240,6 +261,7 @@ function Sidebar({ tab, setTab, dark, toggleTheme, logout, newOrderCount, onNewO
         <LogOut className="w-4 h-4" /> {t('sidebar.logout')}
       </button>
     </aside>
+    </>
   );
 }
 
@@ -280,6 +302,17 @@ function NotificationToast({ order, onClose, onView }: {
   );
 }
 
+function PageShellLoader() {
+  return (
+    <div className="grid min-h-[40vh] place-items-center rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-card)]">
+      <div className="text-center">
+        <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-primary)] border-t-transparent" />
+        <p className="text-sm text-[var(--color-muted-foreground)]">Loading workspace…</p>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -290,9 +323,10 @@ export default function App() {
   const { dark, toggle: toggleTheme } = useTheme();
   const logout = useAuthStore((state) => state.logout);
   const [newOrders, setNewOrders] = useState<any[]>([]);
-  const [lastPollTime, setLastPollTime] = useState(() => new Date().toISOString());
+  const lastPollTimeRef = useRef(new Date().toISOString());
   const [toastOrder, setToastOrder] = useState<any | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const apiToken = useAuthStore((s) => s.token);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -302,11 +336,13 @@ export default function App() {
     if (!apiToken) return;
     const poll = async () => {
       try {
-        const res = await fetch(`${API_URL}/orders/recent?since=${encodeURIComponent(lastPollTime)}`, {
+        const res = await fetch(`${API_URL}/orders/recent?since=${encodeURIComponent(lastPollTimeRef.current)}`, {
           headers: { Authorization: `Bearer ${apiToken}` },
         });
         if (res.ok) {
           const recentOrders = await res.json();
+          const now = new Date().toISOString();
+          lastPollTimeRef.current = now;
           if (recentOrders.length > 0) {
             setNewOrders((prev) => {
               const existingIds = new Set(prev.map((o: any) => o.id));
@@ -328,14 +364,13 @@ export default function App() {
               return [...fresh, ...prev].slice(0, 50);
             });
           }
-          setLastPollTime(new Date().toISOString());
         }
       } catch {}
     };
 
     const interval = setInterval(poll, 10000);
     return () => clearInterval(interval);
-  }, [apiToken, lastPollTime]);
+  }, [API_URL, apiToken]);
 
   const dismissNewOrders = () => {
     setNewOrders([]);
@@ -348,10 +383,22 @@ export default function App() {
     <div className="min-h-screen flex bg-[var(--color-background)]">
       <Sidebar
         tab={tab} setTab={setTab} dark={dark} toggleTheme={toggleTheme} logout={logout}
-        newOrderCount={newOrders.length} onNewOrdersClick={() => { setTab('orders'); dismissNewOrders(); }}
+        newOrderCount={newOrders.length} onNewOrdersClick={() => { setTab('orders'); dismissNewOrders(); setSidebarOpen(false); }}
+        sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
       />
-      <main className="flex-1 p-8 overflow-y-auto max-h-screen">
-        <div className="flex justify-end mb-4">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        <header className="flex items-center justify-between p-4 lg:hidden border-b border-[var(--color-border)] shrink-0">
+          <div className="flex items-center gap-2">
+            <LayoutDashboard className="w-6 h-6 text-[var(--color-primary)]" />
+            <span className="font-bold tracking-tight">Cloud Kitchen OS</span>
+          </div>
+          <button onClick={() => setSidebarOpen(true)} className="p-2 -mr-2">
+            <Menu className="w-6 h-6 text-[var(--color-foreground)]" />
+          </button>
+        </header>
+        
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          <div className="flex justify-end mb-4">
           <button
             onClick={() => setPaletteOpen(true)}
             className="flex items-center gap-2 text-xs text-[var(--color-muted-foreground)] border border-[var(--color-border)] px-3 py-1.5 rounded-lg hover:bg-[var(--color-muted)] transition-colors"
@@ -362,18 +409,22 @@ export default function App() {
             <kbd className="ml-2 text-[10px] px-1.5 py-0.5 rounded border border-[var(--color-border)]">⌘K</kbd>
           </button>
         </div>
-        <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/menu" element={<MenuPage />} />
-          <Route path="/inventory" element={<InventoryPage />} />
-          <Route path="/coupons" element={<CouponsPage />} />
-          <Route path="/reviews" element={<ReviewsPage />} />
-          <Route path="/audit" element={<AuditPage />} />
-          <Route path="/staff" element={<StaffPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Suspense fallback={<PageShellLoader />}>
+          <Routes>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/menu" element={<MenuPage />} />
+            <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/coupons" element={<CouponsPage />} />
+            <Route path="/reviews" element={<ReviewsPage />} />
+            <Route path="/audit" element={<AuditPage />} />
+            <Route path="/staff" element={<StaffPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+        </div>
       </main>
 
       <CommandPalette

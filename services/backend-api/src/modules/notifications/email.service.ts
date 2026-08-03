@@ -61,7 +61,7 @@ export class EmailService {
     to: string,
     orderId: string,
     status: string,
-    details: { tableNumber?: string; items?: string; total?: string },
+    details: { items?: string; total?: string },
   ) {
     const subject = this.getSubjectLine(status, orderId);
     const html = this.buildOrderEmailHtml(orderId, status, details);
@@ -94,7 +94,7 @@ export class EmailService {
   async sendOrderConfirmation(
     to: string,
     orderId: string,
-    details: { tableNumber?: string; items?: string; total?: string },
+    details: { items?: string; total?: string },
   ) {
     return this.sendOrderStatus(to, orderId, 'CONFIRMED', details);
   }
@@ -117,7 +117,7 @@ export class EmailService {
   private buildOrderEmailHtml(
     orderId: string,
     status: string,
-    details: { tableNumber?: string; items?: string; total?: string },
+    details: { items?: string; total?: string },
   ): string {
     const shortId = orderId.slice(-8).toUpperCase();
     const statusEmojis: Record<string, string> = {
@@ -150,7 +150,6 @@ export class EmailService {
         </p>
 
         <table width="100%" cellpadding="8" style="background: #f1f5f9; border-radius: 8px; margin-bottom: 16px;">
-          ${details.tableNumber ? `<tr><td style="font-size: 14px; color: #64748b;">Table</td><td style="font-size: 14px; font-weight: 600;">${details.tableNumber}</td></tr>` : ''}
           ${details.items ? `<tr><td style="font-size: 14px; color: #64748b;">Items</td><td style="font-size: 14px; font-weight: 600;">${details.items}</td></tr>` : ''}
           ${details.total ? `<tr><td style="font-size: 14px; color: #64748b;">Total</td><td style="font-size: 14px; font-weight: 600;">${details.total}</td></tr>` : ''}
           <tr><td style="font-size: 14px; color: #64748b;">Order ID</td><td style="font-size: 14px; font-weight: 600; font-family: monospace;">${orderId}</td></tr>

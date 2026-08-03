@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getQueueToken } from '@nestjs/bullmq';
 import { BillingController } from './billing.controller';
 import { BillingService } from './billing.service';
 
@@ -11,11 +12,17 @@ describe('BillingController', () => {
     handleWebhook: jest.fn(),
     getPaymentsByOrder: jest.fn(),
   };
+  const mockWebhookQueue = {
+    add: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BillingController],
-      providers: [{ provide: BillingService, useValue: mockBillingService }],
+      providers: [
+        { provide: BillingService, useValue: mockBillingService },
+        { provide: getQueueToken('webhooks'), useValue: mockWebhookQueue },
+      ],
     }).compile();
 
     controller = module.get<BillingController>(BillingController);
@@ -71,18 +78,19 @@ describe('BillingController', () => {
 
     it('should call billingService.handleWebhook with signature', async () => {
       const mockReq = { rawBody: '{"event":"payment.captured"}' };
-      mockBillingService.handleWebhook.mockResolvedValue({ received: true });
+      mockWebhookQueue.add.mockResolvedValue({ id: 'job-1' });
 
       const result = await controller.handleWebhook(
         mockReq as any,
         'valid-sig',
       );
 
-      expect(mockBillingService.handleWebhook).toHaveBeenCalledWith(
-        '{"event":"payment.captured"}',
-        'valid-sig',
+      expect(mockWebhookQueue.add).toHaveBeenCalledWith(
+        'razorpay.event',
+        { rawBody: '{"event":"payment.captured"}', signature: 'valid-sig' },
+        { attempts: 5, backoff: { type: 'exponential', delay: 2000 } },
       );
-      expect(result).toEqual({ received: true });
+      expect(result).toEqual({ status: 'ok' });
     });
   });
 
