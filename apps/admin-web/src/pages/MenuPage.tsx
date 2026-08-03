@@ -5,6 +5,7 @@ import {
   fetchAllFoodItems, createFoodItem, updateFoodItem, deleteFoodItem
 } from '../api';
 import type { Category, FoodItem } from '../api';
+import { AdminImageUpload } from '../components/AdminImageUpload';
 import { Card, CardHeader, CardTitle, CardContent, Button, Dialog, Input, Badge } from 'ui-components';
 
 export function MenuPage() {
@@ -295,7 +296,10 @@ function FoodItemFormModal({ open, item, categories, onClose, onSaved }: {
             className="flex w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]" 
           />
         </div>
-
+        <div className="col-span-2">
+          <label className="text-xs font-medium mb-1.5 block">Image</label>
+          <AdminImageUpload value={imageUrl} onChange={setImageUrl} />
+        </div>
         <div className="col-span-2">
           <label className="text-xs font-medium mb-1.5 block">Initial Stock</label>
           <Input value={stock} onChange={(e: any) => setStock(e.target.value)} type="number" />
