@@ -61,7 +61,11 @@ export async function loginApi(email: string, password: string): Promise<LoginRe
     const err = await res.json().catch(() => null);
     throw new Error(err?.message || 'Invalid credentials');
   }
-  return res.json();
+  const data = await res.json();
+  if (data.user.role !== 'CHIEF' && data.user.role !== 'SUPER_ADMIN') {
+    throw new Error('Access denied. Kitchen staff privileges required.');
+  }
+  return data;
 }
 
 export async function fetchActiveOrders(): Promise<Order[]> {

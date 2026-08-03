@@ -92,7 +92,11 @@ export async function loginApi(email: string, password: string): Promise<LoginRe
   } catch {
     throw new Error(`Cannot reach the API at ${API_URL}. Start the backend with "npm run backend:dev" or set VITE_API_URL.`);
   }
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  if (data.user.role !== 'SUPER_ADMIN') {
+    throw new Error('Access denied. Admin privileges required.');
+  }
+  return data;
 }
 
 // ─── Dashboard ──────────────────────────────────────
