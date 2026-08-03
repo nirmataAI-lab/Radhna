@@ -161,6 +161,8 @@ function Login() {
               {loading ? 'Signing in…' : <>Sign in <ArrowRight className="w-4 h-4" /></>}
             </button>
 
+            <InstallPWA variant="inline" className="w-full text-sm font-semibold py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] hover:bg-[var(--color-muted)] transition flex items-center justify-center gap-2 shadow-sm" />
+
             <button type="button" onClick={fillDemo}
               className="w-full text-sm font-medium py-2 rounded-lg border border-dashed border-[var(--color-border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition flex items-center justify-center gap-2">
               <Zap className="w-3.5 h-3.5" /> Fill demo credentials
@@ -378,15 +380,11 @@ export default function App() {
   };
 
   if (!token) return (
-    <>
-      <InstallPWA />
-      <Login />
-    </>
+    <Login />
   );
 
   return (
     <div className="min-h-screen flex bg-[var(--color-background)]">
-      {location.pathname === '/' && <InstallPWA />}
       <Sidebar
         tab={tab} setTab={setTab} dark={dark} toggleTheme={toggleTheme} logout={logout}
         newOrderCount={newOrders.length} onNewOrdersClick={() => { setTab('orders'); dismissNewOrders(); setSidebarOpen(false); }}

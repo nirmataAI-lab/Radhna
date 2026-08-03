@@ -2,6 +2,7 @@ import { ChefHat, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { loginApi } from '../api';
 import { useAuthStore } from '../authStore';
+import { InstallPWA } from 'ui-components';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -97,6 +98,8 @@ export function LoginPage() {
           >
             {loading ? 'Signing in…' : 'Login to Kitchen'}
           </button>
+
+          <InstallPWA variant="inline" className="w-full text-sm font-semibold py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] hover:bg-[var(--color-muted)] transition flex items-center justify-center gap-2 shadow-sm" />
 
           <button
             type="button"

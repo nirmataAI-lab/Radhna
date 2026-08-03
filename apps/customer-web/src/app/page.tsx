@@ -15,7 +15,6 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen flex flex-col relative overflow-hidden">
-      <InstallPWA />
       {/* Dynamic Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[var(--primary)] opacity-10 blur-[150px] animate-pulse-slow rounded-full" />
@@ -56,6 +55,10 @@ export default async function Home() {
             >
               View Menu
             </Link>
+            <InstallPWA 
+              variant="inline" 
+              className="group w-full sm:w-auto px-10 py-5 bg-[var(--card)] text-[var(--card-foreground)] border-2 border-[var(--border)] rounded-full font-bold shadow-sm hover:border-[var(--primary)] hover:text-[var(--primary)] hover:-translate-y-1 transition-all duration-300 text-lg flex items-center justify-center gap-2"
+            />
           </div>
         </div>
         

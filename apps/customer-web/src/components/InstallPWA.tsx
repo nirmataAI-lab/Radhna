@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 
-export function InstallPWA() {
+export function InstallPWA({ variant = 'floating', className = '' }: { variant?: 'floating' | 'inline', className?: string }) {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
@@ -25,6 +25,18 @@ export function InstallPWA() {
     const { outcome } = await deferredPrompt.userChoice;
     setDeferredPrompt(null);
   };
+
+  if (variant === 'inline') {
+    return (
+      <button 
+        type="button"
+        onClick={handleInstall}
+        className={className}
+      >
+        <Download className="w-5 h-5" /> Install App
+      </button>
+    );
+  }
 
   return (
     <div className="fixed bottom-[80px] left-4 right-4 z-50 bg-card p-4 rounded-xl shadow-xl border flex items-center justify-between">
