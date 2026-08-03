@@ -411,6 +411,7 @@ export function KitchenDashboardPage() {
                 : 'Add, edit and remove menu items and categories'}
             </p>
           </div>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={toggleFullscreen}
