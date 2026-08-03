@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "npm run build --prefix ../../packages/shared-types && npm run build --prefix ../../packages/ui-components && tsc -b && vite build",
+    "build": "cd ../../packages/shared-types && npm run build && cd ../../packages/ui-components && npm run build && cd ../../apps/admin-web && tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
