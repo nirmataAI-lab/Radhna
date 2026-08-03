@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Navbar } from "@/components/ui/Navbar";
+import { InstallPWA } from "@/components/InstallPWA";
 import { getTodaysSpecials } from "@/lib/api/menu";
 import type { FoodItem } from "@/lib/api/menu";
 import Image from "next/image";
@@ -14,6 +15,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen flex flex-col relative overflow-hidden">
+      <InstallPWA />
       {/* Dynamic Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[var(--primary)] opacity-10 blur-[150px] animate-pulse-slow rounded-full" />

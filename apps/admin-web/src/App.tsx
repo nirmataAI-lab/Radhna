@@ -377,11 +377,16 @@ export default function App() {
     setToastOrder(null);
   };
 
-  if (!token) return <Login />;
+  if (!token) return (
+    <>
+      <InstallPWA />
+      <Login />
+    </>
+  );
 
   return (
     <div className="min-h-screen flex bg-[var(--color-background)]">
-      <InstallPWA />
+      {location.pathname === '/' && <InstallPWA />}
       <Sidebar
         tab={tab} setTab={setTab} dark={dark} toggleTheme={toggleTheme} logout={logout}
         newOrderCount={newOrders.length} onNewOrdersClick={() => { setTab('orders'); dismissNewOrders(); setSidebarOpen(false); }}

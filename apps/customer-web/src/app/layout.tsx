@@ -20,8 +20,6 @@ export const viewport = {
   viewportFit: "cover",
 };
 
-import { InstallPWA } from "@/components/InstallPWA";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,7 +29,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
         {children}
-        <InstallPWA />
         <CartDrawer />
       </body>
     </html>
