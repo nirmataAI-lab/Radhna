@@ -59,18 +59,18 @@ export function MenuPage() {
     <div className="animate-fade-in p-2">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-3xl font-black tracking-tight" style={{ color: 'var(--foreground)' }}>Menu Management</h2>
-          <p className="text-sm font-medium mt-1" style={{ color: 'var(--muted-foreground)' }}>Add, edit, and manage menu items</p>
+          <h2 className="text-3xl font-black tracking-tight" style={{ color: 'var(--color-foreground)' }}>Menu Management</h2>
+          <p className="text-sm font-medium mt-1" style={{ color: 'var(--color-muted-foreground)' }}>Add, edit, and manage menu items</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => { setShowAddCat(true); setEditCat(null); }}
             className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-bold transition-all hover:opacity-90 shadow-sm"
-            style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+            style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', color: 'var(--color-foreground)' }}>
             <Plus className="w-4 h-4" /> Category
           </button>
           <button onClick={() => { setShowAddItem(true); setEditItem(null); }}
             className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-bold transition-all hover:opacity-90 shadow-sm text-white"
-            style={{ background: 'var(--primary)' }}>
+            style={{ background: 'var(--color-primary)' }}>
             <Plus className="w-4 h-4" /> Food Item
           </button>
         </div>
@@ -93,10 +93,10 @@ export function MenuPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-1 h-fit card-premium">
-          <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
-            <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>Categories</h3>
+          <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--color-border)' }}>
+            <h3 className="font-bold text-lg" style={{ color: 'var(--color-foreground)' }}>Categories</h3>
             <span className="text-xs font-bold px-2.5 py-1 rounded-full"
-              style={{ background: 'var(--muted)', color: 'var(--muted-foreground)' }}>
+              style={{ background: 'var(--color-muted)', color: 'var(--color-muted-foreground)' }}>
               {categories.length}
             </span>
           </div>
@@ -107,16 +107,16 @@ export function MenuPage() {
                 className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all text-left ${
                   selectedCatId === null
                     ? 'font-bold'
-                    : 'font-medium hover:bg-[var(--muted)]'
+                    : 'font-medium hover:bg-[var(--color-muted)]'
                 }`}
                 style={{
-                  background: selectedCatId === null ? 'color-mix(in srgb, var(--primary) 10%, transparent)' : 'transparent',
-                  color: selectedCatId === null ? 'var(--primary)' : 'var(--muted-foreground)'
+                  background: selectedCatId === null ? 'color-mix(in srgb, var(--color-primary) 10%, transparent)' : 'transparent',
+                  color: selectedCatId === null ? 'var(--color-primary)' : 'var(--color-muted-foreground)'
                 }}
               >
                 <span>All Categories</span>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                  style={{ background: selectedCatId === null ? 'white' : 'var(--muted)' }}>
+                  style={{ background: selectedCatId === null ? 'white' : 'var(--color-muted)' }}>
                   {foodItems.length}
                 </span>
               </button>
@@ -128,11 +128,11 @@ export function MenuPage() {
                     key={cat.id}
                     onClick={() => setSelectedCatId(cat.id)}
                     className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all group ${
-                      isSelected ? 'font-bold' : 'font-medium hover:bg-[var(--muted)]'
+                      isSelected ? 'font-bold' : 'font-medium hover:bg-[var(--color-muted)]'
                     }`}
                     style={{
-                      background: isSelected ? 'color-mix(in srgb, var(--primary) 10%, transparent)' : 'transparent',
-                      color: isSelected ? 'var(--primary)' : 'var(--foreground)'
+                      background: isSelected ? 'color-mix(in srgb, var(--color-primary) 10%, transparent)' : 'transparent',
+                      color: isSelected ? 'var(--color-primary)' : 'var(--color-foreground)'
                     }}
                   >
                     <span className="text-sm truncate flex-1">{cat.name}</span>
@@ -156,7 +156,7 @@ export function MenuPage() {
                   </div>
                 );
               })}
-              {categories.length === 0 && <p className="text-sm text-center py-4 opacity-50" style={{ color: 'var(--foreground)' }}>No categories.</p>}
+              {categories.length === 0 && <p className="text-sm text-center py-4 opacity-50" style={{ color: 'var(--color-foreground)' }}>No categories.</p>}
             </div>
           </div>
         </div>
@@ -164,8 +164,8 @@ export function MenuPage() {
         <div className="lg:col-span-4">
           {loading ? (
             <div className="text-center py-24 flex flex-col items-center">
-              <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: 'var(--primary)' }} />
-              <p className="font-semibold" style={{ color: 'var(--muted-foreground)' }}>Loading items...</p>
+              <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: 'var(--color-primary)' }} />
+              <p className="font-semibold" style={{ color: 'var(--color-muted-foreground)' }}>Loading items...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -174,12 +174,12 @@ export function MenuPage() {
                   <div className="p-5 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-2 gap-2">
                       <div className="min-w-0">
-                        <h4 className="font-bold text-lg leading-tight truncate" style={{ color: 'var(--foreground)' }}>{item.name}</h4>
-                        <p className="text-xs font-semibold mt-1" style={{ color: 'var(--muted-foreground)' }}>{item.category?.name}</p>
+                        <h4 className="font-bold text-lg leading-tight truncate" style={{ color: 'var(--color-foreground)' }}>{item.name}</h4>
+                        <p className="text-xs font-semibold mt-1" style={{ color: 'var(--color-muted-foreground)' }}>{item.category?.name}</p>
                       </div>
-                      <span className="font-black text-lg shrink-0" style={{ color: 'var(--primary)' }}>₹{Number(item.price).toFixed(2)}</span>
+                      <span className="font-black text-lg shrink-0" style={{ color: 'var(--color-primary)' }}>₹{Number(item.price).toFixed(2)}</span>
                     </div>
-                    {item.description && <p className="text-sm line-clamp-2 my-2 flex-1 font-medium" style={{ color: 'var(--muted-foreground)' }}>{item.description}</p>}
+                    {item.description && <p className="text-sm line-clamp-2 my-2 flex-1 font-medium" style={{ color: 'var(--color-muted-foreground)' }}>{item.description}</p>}
                     
                     <div className="flex flex-wrap gap-1.5 mb-5 mt-auto pt-3">
                       {item.isVeg ? (
@@ -194,12 +194,12 @@ export function MenuPage() {
                       {item.productionStock && <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-blue-50 text-blue-700">Stock: {item.productionStock.availableQty}</span>}
                     </div>
 
-                    <div className="flex gap-2 mt-auto pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                    <div className="flex gap-2 mt-auto pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
                       <button 
                         className={`flex items-center justify-center p-2 rounded-lg transition-colors shadow-sm ${
                           !item.isEnabled 
                             ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
-                            : 'bg-[var(--muted)] text-[var(--foreground)] hover:brightness-95'
+                            : 'bg-[var(--color-muted)] text-[var(--color-foreground)] hover:brightness-95'
                         }`}
                         onClick={() => handleToggleAvailability(item)}
                         title={item.isEnabled ? 'Mark unavailable' : 'Mark available'}
@@ -210,7 +210,7 @@ export function MenuPage() {
                         className={`flex items-center justify-center p-2 rounded-lg transition-colors shadow-sm ${
                           item.isOutOfStock 
                             ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-                            : 'bg-[var(--muted)] text-[var(--foreground)] hover:brightness-95'
+                            : 'bg-[var(--color-muted)] text-[var(--color-foreground)] hover:brightness-95'
                         }`}
                         onClick={() => handleToggleOutOfStock(item)}
                         title={item.isOutOfStock ? 'Mark in stock' : 'Mark out of stock'}
@@ -218,8 +218,8 @@ export function MenuPage() {
                         {item.isOutOfStock ? <PackageX className="w-4 h-4" /> : <PackageCheck className="w-4 h-4" />}
                       </button>
                       <button 
-                        className="flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg font-bold text-sm transition-colors shadow-sm bg-[var(--muted)] hover:brightness-95"
-                        style={{ color: 'var(--foreground)' }}
+                        className="flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg font-bold text-sm transition-colors shadow-sm bg-[var(--color-muted)] hover:brightness-95"
+                        style={{ color: 'var(--color-foreground)' }}
                         onClick={() => setEditItem(item)}
                       >
                         <Edit3 className="w-3.5 h-3.5" /> Edit
@@ -238,11 +238,11 @@ export function MenuPage() {
               {foodItems.length === 0 && (
                 <div className="col-span-full card-premium p-16 flex flex-col items-center text-center border-dashed border-2">
                   <div className="w-20 h-20 rounded-full grid place-items-center mb-5 opacity-40"
-                    style={{ background: 'var(--muted)' }}>
-                    <UtensilsCrossed className="w-10 h-10" style={{ color: 'var(--muted-foreground)' }} />
+                    style={{ background: 'var(--color-muted)' }}>
+                    <UtensilsCrossed className="w-10 h-10" style={{ color: 'var(--color-muted-foreground)' }} />
                   </div>
-                  <p className="text-xl font-bold mb-1" style={{ color: 'var(--foreground)' }}>No menu items yet.</p>
-                  <p className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>Add your first item to get started!</p>
+                  <p className="text-xl font-bold mb-1" style={{ color: 'var(--color-foreground)' }}>No menu items yet.</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--color-muted-foreground)' }}>Add your first item to get started!</p>
                 </div>
               )}
             </div>
@@ -356,7 +356,7 @@ function FoodItemFormModal({ open, item, categories, onClose, onSaved }: {
           <select 
             value={categoryId} 
             onChange={(e: any) => setCategoryId(e.target.value)} 
-            className="flex h-10 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
+            className="flex h-10 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
           >
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
@@ -367,7 +367,7 @@ function FoodItemFormModal({ open, item, categories, onClose, onSaved }: {
             value={description} 
             onChange={(e: any) => setDescription(e.target.value)} 
             rows={2} 
-            className="flex w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]" 
+            className="flex w-full rounded-md border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]" 
           />
         </div>
         <div className="col-span-2">

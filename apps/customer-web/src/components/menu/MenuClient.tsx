@@ -64,7 +64,7 @@ export function MenuClient({ categories, foodItems, specials, error }: MenuClien
     <div className="pb-28">
       {/* Search & Filter Header Bar */}
       <div className="sticky top-16 z-30 glass-effect py-3 shadow-sm"
-        style={{ borderBottom: '1px solid var(--border)' }}>
+        style={{ borderBottom: '1px solid var(--color-border)' }}>
         <div className="container mx-auto px-4 flex flex-col md:flex-row gap-3 items-center justify-between">
           
           {/* Search Input */}
@@ -77,10 +77,10 @@ export function MenuClient({ categories, foodItems, specials, error }: MenuClien
               placeholder="Search dishes..."
               className="w-full pl-9 pr-8 py-2 rounded-full text-sm outline-none transition-all focus:ring-2"
               style={{
-                background: 'var(--muted)',
-                border: '1.5px solid var(--border)',
-                color: 'var(--foreground)',
-                '--tw-ring-color': 'color-mix(in srgb, var(--primary) 30%, transparent)',
+                background: 'var(--color-muted)',
+                border: '1.5px solid var(--color-border)',
+                color: 'var(--color-foreground)',
+                '--tw-ring-color': 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
               } as any}
             />
             {searchQuery && (
@@ -95,7 +95,7 @@ export function MenuClient({ categories, foodItems, specials, error }: MenuClien
           <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto no-scrollbar pb-1 md:pb-0">
             {/* Dietary Tabs */}
             <div className="flex items-center p-1 rounded-full shrink-0"
-              style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
+              style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}>
               <button onClick={() => setDietaryFilter('all')}
                 className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                   dietaryFilter === 'all'
@@ -103,8 +103,8 @@ export function MenuClient({ categories, foodItems, specials, error }: MenuClien
                     : 'hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
                 style={{
-                  background: dietaryFilter === 'all' ? 'var(--card)' : 'transparent',
-                  color: dietaryFilter === 'all' ? 'var(--foreground)' : 'var(--muted-foreground)'
+                  background: dietaryFilter === 'all' ? 'var(--color-card)' : 'transparent',
+                  color: dietaryFilter === 'all' ? 'var(--color-foreground)' : 'var(--color-muted-foreground)'
                 }}>
                 All
               </button>
@@ -132,11 +132,11 @@ export function MenuClient({ categories, foodItems, specials, error }: MenuClien
 
             {/* Sort Dropdown */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full shrink-0"
-              style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
+              style={{ background: 'var(--color-muted)', border: '1px solid var(--color-border)' }}>
               <Filter className="w-3.5 h-3.5 text-muted-foreground" />
               <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}
                 className="bg-transparent text-xs font-bold focus:outline-none cursor-pointer outline-none"
-                style={{ color: 'var(--foreground)' }}>
+                style={{ color: 'var(--color-foreground)' }}>
                 <option value="default">Sort</option>
                 <option value="popular">Popular</option>
                 <option value="price-low">Low Price</option>
@@ -173,11 +173,11 @@ export function MenuClient({ categories, foodItems, specials, error }: MenuClien
           <div className="mb-12 rounded-3xl p-6 relative overflow-hidden shadow-sm"
             style={{
               background: 'linear-gradient(135deg, rgba(245,158,11,.08), rgba(249,115,22,.08), rgba(225,29,72,.05))',
-              border: '1px solid color-mix(in srgb, var(--primary) 20%, transparent)'
+              border: '1px solid color-mix(in srgb, var(--color-primary) 20%, transparent)'
             }}>
             <div className="flex items-center gap-2 mb-5">
-              <Flame className="w-5 h-5" style={{ color: 'var(--primary)' }} />
-              <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>Today's Specials</h2>
+              <Flame className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
+              <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: 'var(--color-foreground)' }}>Today's Specials</h2>
               <span className="badge-special ml-2 animate-pulse-slow">Fresh & Hot</span>
             </div>
 
@@ -185,13 +185,13 @@ export function MenuClient({ categories, foodItems, specials, error }: MenuClien
               {specials.map((item) => (
                 <div key={item.id}
                   className="flex items-center gap-3 p-3 rounded-2xl transition-all hover:-translate-y-0.5"
-                  style={{ background: 'var(--card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0" style={{ background: 'var(--muted)' }}>
+                  style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0" style={{ background: 'var(--color-muted)' }}>
                     {item.imageUrl && <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-bold text-sm truncate" style={{ color: 'var(--foreground)' }}>{item.name}</p>
-                    <p className="font-black text-sm mt-0.5" style={{ color: 'var(--primary)' }}>
+                    <p className="font-bold text-sm truncate" style={{ color: 'var(--color-foreground)' }}>{item.name}</p>
+                    <p className="font-black text-sm mt-0.5" style={{ color: 'var(--color-primary)' }}>
                       ₹{Number(item.price).toFixed(0)}
                     </p>
                   </div>
@@ -210,9 +210,9 @@ export function MenuClient({ categories, foodItems, specials, error }: MenuClien
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="text-center py-20 rounded-3xl"
-            style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-            <p className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>No items match your search</p>
-            <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>
+            style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
+            <p className="text-xl font-bold" style={{ color: 'var(--color-foreground)' }}>No items match your search</p>
+            <p className="text-sm mt-1" style={{ color: 'var(--color-muted-foreground)' }}>
               Try adjusting your search query or dietary filters.
             </p>
             <button
@@ -233,14 +233,14 @@ export function MenuClient({ categories, foodItems, specials, error }: MenuClien
                 return (
                   <section key={cat.id} className="scroll-mt-44">
                     <div className="flex items-center gap-3 mb-6">
-                      <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>
+                      <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: 'var(--color-foreground)' }}>
                         {cat.name}
                       </h2>
                       <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: 'var(--muted)', color: 'var(--muted-foreground)', border: '1px solid var(--border)' }}>
+                        style={{ background: 'var(--color-muted)', color: 'var(--color-muted-foreground)', border: '1px solid var(--color-border)' }}>
                         {categoryItems.length} items
                       </span>
-                      <div className="h-px flex-grow ml-2" style={{ background: 'var(--border)' }} />
+                      <div className="h-px flex-grow ml-2" style={{ background: 'var(--color-border)' }} />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -269,7 +269,7 @@ export function MenuClient({ categories, foodItems, specials, error }: MenuClien
             onClick={() => setIsOpen(true)}
             className="w-full p-4 rounded-2xl flex items-center justify-between transition-all hover:scale-[1.02] active:scale-[0.98]"
             style={{
-              background: 'var(--primary)',
+              background: 'var(--color-primary)',
               color: 'white',
               boxShadow: 'var(--shadow-glow)',
               border: '1px solid color-mix(in srgb, white 20%, transparent)'

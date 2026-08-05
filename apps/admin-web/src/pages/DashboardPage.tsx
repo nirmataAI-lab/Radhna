@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { IndianRupee, ShoppingBag, Clock, AlertTriangle, PackageOpen, RefreshCcw, TrendingUp, ArrowUpRight, ChefHat, Zap } from 'lucide-react';
 import { fetchOverviewStats, fetchAllFoodItems } from '../api';
 import type { FoodItem } from '../api';
@@ -159,11 +160,11 @@ export function DashboardPage() {
             </h3>
             <div className="space-y-2">
               {[
-                { label: 'View Active Orders', icon: Clock, color: '#f97316' },
-                { label: 'Manage Menu', icon: ChefHat, color: '#10b981' },
-                { label: 'Analytics Report', icon: TrendingUp, color: '#3b82f6' },
+                { label: 'View Active Orders', icon: Clock, color: '#f97316', to: '/orders' },
+                { label: 'Manage Menu', icon: ChefHat, color: '#10b981', to: '/menu' },
+                { label: 'Analytics Report', icon: TrendingUp, color: '#3b82f6', to: '/analytics' },
               ].map((action) => (
-                <div key={action.label}
+                <Link to={action.to} key={action.label}
                   className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--color-muted)] cursor-pointer transition-colors group">
                   <div className="w-8 h-8 rounded-lg grid place-items-center shrink-0"
                     style={{ background: `${action.color}18` }}>
@@ -171,7 +172,7 @@ export function DashboardPage() {
                   </div>
                   <span className="text-sm font-medium text-[var(--color-foreground)] group-hover:text-[var(--color-primary)] transition-colors">{action.label}</span>
                   <ArrowUpRight className="w-3.5 h-3.5 ml-auto text-[var(--color-muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
+                </Link>
               ))}
             </div>
           </div>

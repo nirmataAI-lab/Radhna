@@ -647,10 +647,14 @@ export class OrdersService {
 
     const revenueByDay: Record<string, number> = {};
     const hourCounts: Record<number, number> = {};
+    const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
     for (const o of lightOrders) {
-      const day = o.createdAt.toISOString().split('T')[0];
+      // Convert UTC to IST for accurate daily and hourly grouping
+      const localDate = new Date(o.createdAt.getTime() + IST_OFFSET_MS);
+      const day = localDate.toISOString().split('T')[0];
       revenueByDay[day] = (revenueByDay[day] || 0) + Number(o.total);
-      const hour = o.createdAt.getHours();
+      
+      const hour = localDate.getUTCHours();
       hourCounts[hour] = (hourCounts[hour] || 0) + 1;
     }
     const revenueTrend = Object.entries(revenueByDay)

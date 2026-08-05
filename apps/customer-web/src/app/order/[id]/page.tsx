@@ -232,15 +232,15 @@ export default function OrderTrackingPage() {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: 'var(--primary)' }} />
-            <p style={{ color: 'var(--muted-foreground)' }}>Loading your order...</p>
+            <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: 'var(--color-primary)' }} />
+            <p style={{ color: 'var(--color-muted-foreground)' }}>Loading your order...</p>
           </div>
         ) : error || !order ? (
           <div className="p-12 text-center max-w-md mx-auto rounded-3xl"
-            style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+            style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
             <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--foreground)' }}>Order Not Found</h2>
-            <p className="mb-6" style={{ color: 'var(--muted-foreground)' }}>{error || 'This order does not exist.'}</p>
+            <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-foreground)' }}>Order Not Found</h2>
+            <p className="mb-6" style={{ color: 'var(--color-muted-foreground)' }}>{error || 'This order does not exist.'}</p>
             <Link href="/menu" className="btn-primary px-6 py-3">
               Browse Menu
             </Link>
@@ -249,12 +249,12 @@ export default function OrderTrackingPage() {
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8 animate-slide-up">
               <div className="inline-block px-8 py-4 rounded-2xl mb-5 shadow-sm"
-                style={{ background: 'color-mix(in srgb, var(--primary) 10%, var(--card))', border: '1.5px dashed color-mix(in srgb, var(--primary) 35%, var(--border))' }}>
-                <span className="text-[11px] font-bold uppercase tracking-wider block mb-1" style={{ color: 'var(--muted-foreground)' }}>Your Token Number</span>
-                <span className="text-4xl font-black font-mono tracking-widest" style={{ color: 'var(--primary)' }}>{tokenNumber}</span>
+                style={{ background: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-card))', border: '1.5px dashed color-mix(in srgb, var(--color-primary) 35%, var(--color-border))' }}>
+                <span className="text-[11px] font-bold uppercase tracking-wider block mb-1" style={{ color: 'var(--color-muted-foreground)' }}>Your Token Number</span>
+                <span className="text-4xl font-black font-mono tracking-widest" style={{ color: 'var(--color-primary)' }}>{tokenNumber}</span>
               </div>
-              <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-2" style={{ color: 'var(--foreground)' }}>Order Status</h1>
-              <p className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
+              <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-2" style={{ color: 'var(--color-foreground)' }}>Order Status</h1>
+              <p className="text-sm font-medium" style={{ color: 'var(--color-muted-foreground)' }}>
                 Placed at {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
@@ -284,18 +284,18 @@ export default function OrderTrackingPage() {
 
             {/* Status Tracker */}
             <div className="p-8 mb-8 rounded-3xl shadow-sm overflow-hidden"
-              style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+              style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
               {isCancelled ? (
                 <div className="text-center py-6">
                   <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4 opacity-80" />
                   <h3 className="text-2xl font-bold text-red-600 mb-2">Order Cancelled</h3>
-                  <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>This order has been cancelled.</p>
+                  <p className="text-sm" style={{ color: 'var(--color-muted-foreground)' }}>This order has been cancelled.</p>
                 </div>
               ) : (
                 <div className="flex flex-col md:flex-row justify-between gap-6 md:gap-0 relative">
                   {/* Background progress line for desktop */}
                   <div className="hidden md:block absolute h-1 left-10 right-10 top-6 -translate-y-1/2 rounded-full"
-                    style={{ background: 'var(--muted)' }} />
+                    style={{ background: 'var(--color-muted)' }} />
 
                   {/* Active progress line for desktop */}
                   <div className="hidden md:block absolute h-1 left-10 top-6 -translate-y-1/2 rounded-full transition-all duration-700 ease-in-out"
@@ -320,14 +320,14 @@ export default function OrderTrackingPage() {
                             : 'scale-95 opacity-50'
                         }`}
                         style={{
-                          background: isStepCompleted ? (isCurrent && !isCompleted ? 'var(--primary)' : '#10b981') : 'var(--muted)',
-                          color: isStepCompleted ? 'white' : 'var(--muted-foreground)',
+                          background: isStepCompleted ? (isCurrent && !isCompleted ? 'var(--color-primary)' : '#10b981') : 'var(--color-muted)',
+                          color: isStepCompleted ? 'white' : 'var(--color-muted-foreground)',
                           boxShadow: isCurrent && !isCompleted ? '0 0 20px rgba(249,115,22,0.3)' : undefined
                         }}>
                           <Icon className="w-5 h-5" />
                         </div>
                         <div className="text-sm font-bold text-center">
-                          <span style={{ color: isStepCompleted ? 'var(--foreground)' : 'var(--muted-foreground)' }}>
+                          <span style={{ color: isStepCompleted ? 'var(--color-foreground)' : 'var(--color-muted-foreground)' }}>
                             {config.label}
                           </span>
                         </div>
@@ -340,21 +340,21 @@ export default function OrderTrackingPage() {
 
             {/* Order Details */}
             <div className="p-6 mb-8 rounded-3xl shadow-sm"
-              style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-              <h3 className="font-bold text-lg mb-4" style={{ color: 'var(--foreground)' }}>Order Summary</h3>
+              style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
+              <h3 className="font-bold text-lg mb-4" style={{ color: 'var(--color-foreground)' }}>Order Summary</h3>
               <div className="space-y-3">
                 {order.orderItems?.map((item, idx) => (
                   <div key={idx} className="flex justify-between items-center py-2 border-b last:border-0"
-                    style={{ borderColor: 'var(--border)' }}>
-                    <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
-                      <span className="font-bold mr-2" style={{ color: 'var(--primary)' }}>{item.quantity}x</span>
+                    style={{ borderColor: 'var(--color-border)' }}>
+                    <span className="text-sm font-medium" style={{ color: 'var(--color-foreground)' }}>
+                      <span className="font-bold mr-2" style={{ color: 'var(--color-primary)' }}>{item.quantity}x</span>
                       {item.foodItem?.name || 'Item'}
                     </span>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-4 space-y-2" style={{ borderTop: '1px solid var(--border)' }}>
-                <div className="flex justify-between text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
+              <div className="mt-4 pt-4 space-y-2" style={{ borderTop: '1px solid var(--color-border)' }}>
+                <div className="flex justify-between text-sm font-medium" style={{ color: 'var(--color-muted-foreground)' }}>
                   <span>Subtotal</span>
                   <span>₹{order.subtotal ? Number(order.subtotal).toFixed(2) : Number(order.total).toFixed(2)}</span>
                 </div>
@@ -365,9 +365,9 @@ export default function OrderTrackingPage() {
                   </div>
                 )}
                 <div className="flex justify-between font-black text-xl pt-3"
-                  style={{ borderTop: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                  style={{ borderTop: '1px solid var(--color-border)', color: 'var(--color-foreground)' }}>
                   <span>Total</span>
-                  <span style={{ color: 'var(--primary)' }}>₹{Number(order.total).toFixed(2)}</span>
+                  <span style={{ color: 'var(--color-primary)' }}>₹{Number(order.total).toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -375,7 +375,7 @@ export default function OrderTrackingPage() {
             {/* Review Form */}
             {isCompleted && orderItems.length > 0 && (
               <div className="p-6 rounded-3xl shadow-sm"
-                style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
                 <ReviewForm
                   items={orderItems}
                   onSubmitted={() => {}}

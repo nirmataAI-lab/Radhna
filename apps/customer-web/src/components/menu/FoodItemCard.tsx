@@ -17,14 +17,14 @@ function StarRating({ rating, count }: { rating: number; count?: number }) {
             <Star key={star}
               className="w-3.5 h-3.5 transition-transform"
               style={{
-                color: filled || half ? '#f59e0b' : 'var(--border-strong)',
+                color: filled || half ? '#f59e0b' : 'var(--color-border-strong)',
                 fill: filled ? '#f59e0b' : half ? 'none' : 'none',
               }} />
           );
         })}
       </div>
       {rating > 0 && (
-        <span className="text-xs font-semibold" style={{ color: 'var(--muted-foreground)' }}>
+        <span className="text-xs font-semibold" style={{ color: 'var(--color-muted-foreground)' }}>
           {rating.toFixed(1)}{count ? ` (${count})` : ''}
         </span>
       )}
@@ -52,7 +52,7 @@ export function FoodItemCard({ item }: { item: FoodItem }) {
   return (
     <article className={`food-card flex flex-col h-full group ${isOutOfStock ? 'opacity-60 grayscale-[20%]' : ''}`}>
       {/* ── Image ─────────────────────────── */}
-      <div className="relative w-full h-44 sm:h-48 overflow-hidden" style={{ background: 'var(--muted)' }}>
+      <div className="relative w-full h-44 sm:h-48 overflow-hidden" style={{ background: 'var(--color-muted)' }}>
         {item.imageUrl ? (
           <Image
             src={item.imageUrl}
@@ -105,11 +105,11 @@ export function FoodItemCard({ item }: { item: FoodItem }) {
       <div className="p-4 flex flex-col flex-1">
         {/* Name + price */}
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-bold text-base leading-tight line-clamp-1 group-hover:text-[var(--primary)] transition-colors"
-            style={{ color: 'var(--foreground)' }}>
+          <h3 className="font-bold text-base leading-tight line-clamp-1 group-hover:text-[var(--color-primary)] transition-colors"
+            style={{ color: 'var(--color-foreground)' }}>
             {item.name}
           </h3>
-          <span className="font-black text-lg shrink-0" style={{ color: 'var(--primary)' }}>
+          <span className="font-black text-lg shrink-0" style={{ color: 'var(--color-primary)' }}>
             ₹{Number(item.price).toFixed(0)}
           </span>
         </div>
@@ -125,13 +125,13 @@ export function FoodItemCard({ item }: { item: FoodItem }) {
 
         {/* Description */}
         <p className="text-sm line-clamp-2 flex-1 mb-4 leading-relaxed"
-          style={{ color: 'var(--muted-foreground)' }}>
+          style={{ color: 'var(--color-muted-foreground)' }}>
           {item.description || 'A freshly prepared dish made with quality ingredients.'}
         </p>
 
         {/* Action row */}
         <div className="flex items-center justify-between pt-3"
-          style={{ borderTop: '1px solid var(--border)' }}>
+          style={{ borderTop: '1px solid var(--color-border)' }}>
           <span className="text-xs font-semibold uppercase tracking-wider"
             style={{ color: item.isVeg ? '#16a34a' : '#dc2626' }}>
             {item.isVeg ? '🟢 Veg' : '🔴 Non-Veg'}
@@ -139,7 +139,7 @@ export function FoodItemCard({ item }: { item: FoodItem }) {
 
           {isOutOfStock ? (
             <span className="text-xs font-semibold px-3 py-1.5 rounded-full"
-              style={{ background: 'var(--muted)', color: 'var(--muted-foreground)' }}>
+              style={{ background: 'var(--color-muted)', color: 'var(--color-muted-foreground)' }}>
               Unavailable
             </span>
           ) : quantity > 0 ? (
@@ -163,7 +163,7 @@ export function FoodItemCard({ item }: { item: FoodItem }) {
                   : 'hover:shadow-md hover:-translate-y-0.5'
               }`}
               style={{
-                background: justAdded ? '#16a34a' : 'var(--primary)',
+                background: justAdded ? '#16a34a' : 'var(--color-primary)',
                 color: 'white',
                 boxShadow: justAdded ? '0 4px 12px rgba(22,163,74,.4)' : '0 4px 12px rgba(249,115,22,.35)',
               }}>

@@ -49,8 +49,8 @@ export function Navbar() {
             style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}>
             <span className="text-white text-sm font-black">R</span>
           </div>
-          <span className="font-display font-bold text-lg leading-none" style={{ color: 'var(--foreground)' }}>
-            Radhna<span style={{ color: 'var(--primary)' }}> ·</span>
+          <span className="font-display font-bold text-lg leading-none" style={{ color: 'var(--color-foreground)' }}>
+            Radhna<span style={{ color: 'var(--color-primary)' }}> ·</span>
           </span>
         </Link>
 
@@ -62,8 +62,8 @@ export function Navbar() {
               <Link key={href} href={href}
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                   isActive
-                    ? 'bg-[var(--primary)] text-white'
-                    : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]'
+                    ? 'bg-[var(--color-primary)] text-white'
+                    : 'text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-muted)]'
                 }`}>
                 {label}
               </Link>
@@ -77,17 +77,17 @@ export function Navbar() {
           {mounted && token ? (
             <div className="relative">
               <button onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border transition-all hover:bg-[var(--muted)]"
-                style={{ borderColor: 'var(--border)' }}>
+                className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border transition-all hover:bg-[var(--color-muted)]"
+                style={{ borderColor: 'var(--color-border)' }}>
                 <div className="w-7 h-7 rounded-full grid place-items-center text-xs font-bold text-white shrink-0"
                   style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}>
                   {(user?.name || 'U').charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm font-semibold hidden sm:block max-w-[80px] truncate" style={{ color: 'var(--foreground)' }}>
+                <span className="text-sm font-semibold hidden sm:block max-w-[80px] truncate" style={{ color: 'var(--color-foreground)' }}>
                   {user?.name?.split(' ')[0]}
                 </span>
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
-                  style={{ color: 'var(--muted-foreground)' }} />
+                  style={{ color: 'var(--color-muted-foreground)' }} />
               </button>
 
               {showUserMenu && (
@@ -95,13 +95,13 @@ export function Navbar() {
                   <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
                   <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl z-50 py-1.5 animate-scale-in overflow-hidden"
                     style={{
-                      background: 'var(--card)',
-                      border: '1px solid var(--border)',
+                      background: 'var(--color-card)',
+                      border: '1px solid var(--color-border)',
                       boxShadow: 'var(--shadow-xl)',
                     }}>
-                    <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-                      <p className="font-semibold text-sm truncate" style={{ color: 'var(--foreground)' }}>{user?.name}</p>
-                      <p className="text-xs truncate mt-0.5" style={{ color: 'var(--muted-foreground)' }}>{user?.email}</p>
+                    <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                      <p className="font-semibold text-sm truncate" style={{ color: 'var(--color-foreground)' }}>{user?.name}</p>
+                      <p className="text-xs truncate mt-0.5" style={{ color: 'var(--color-muted-foreground)' }}>{user?.email}</p>
                     </div>
                     {[
                       { href: '/profile', icon: User,    label: 'My Profile' },
@@ -109,16 +109,16 @@ export function Navbar() {
                     ].map(({ href, icon: Icon, label }) => (
                       <Link key={href} href={href}
                         onClick={() => setShowUserMenu(false)}
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--muted)]"
-                        style={{ color: 'var(--foreground)' }}>
-                        <Icon className="w-4 h-4" style={{ color: 'var(--muted-foreground)' }} />
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--color-muted)]"
+                        style={{ color: 'var(--color-foreground)' }}>
+                        <Icon className="w-4 h-4" style={{ color: 'var(--color-muted-foreground)' }} />
                         {label}
                       </Link>
                     ))}
-                    <div style={{ borderTop: '1px solid var(--border)', marginTop: '4px', paddingTop: '4px' }}>
+                    <div style={{ borderTop: '1px solid var(--color-border)', marginTop: '4px', paddingTop: '4px' }}>
                       <button onClick={handleLogout}
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium w-full text-left transition-colors hover:bg-red-50 dark:hover:bg-red-950/20"
-                        style={{ color: 'var(--destructive)' }}>
+                        style={{ color: 'var(--color-destructive)' }}>
                         <LogOut className="w-4 h-4" />
                         Sign Out
                       </button>
@@ -129,8 +129,8 @@ export function Navbar() {
             </div>
           ) : (
             <Link href="/auth/login"
-              className="text-sm font-semibold px-4 py-2 rounded-full transition-all hover:bg-[var(--muted)]"
-              style={{ color: 'var(--foreground)', border: '1.5px solid var(--border)' }}>
+              className="text-sm font-semibold px-4 py-2 rounded-full transition-all hover:bg-[var(--color-muted)]"
+              style={{ color: 'var(--color-foreground)', border: '1.5px solid var(--color-border)' }}>
               Sign In
             </Link>
           )}
@@ -138,9 +138,9 @@ export function Navbar() {
           {/* Cart */}
           <button onClick={() => setIsOpen(true)}
             className="relative p-2.5 rounded-full transition-all hover:scale-105 active:scale-95"
-            style={{ background: cartCount > 0 ? 'var(--primary)' : 'var(--muted)', border: '1.5px solid var(--border)' }}
+            style={{ background: cartCount > 0 ? 'var(--color-primary)' : 'var(--color-muted)', border: '1.5px solid var(--color-border)' }}
             aria-label={`Cart (${cartCount} items)`}>
-            <ShoppingBag className="w-5 h-5" style={{ color: cartCount > 0 ? 'white' : 'var(--foreground)' }} />
+            <ShoppingBag className="w-5 h-5" style={{ color: cartCount > 0 ? 'white' : 'var(--color-foreground)' }} />
             {cartCount > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black text-white"
                 style={{ background: '#ef4444', boxShadow: '0 2px 8px rgba(239,68,68,.4)' }}>
@@ -153,15 +153,15 @@ export function Navbar() {
 
       {/* Mobile nav bottom bar */}
       <nav className="md:hidden flex items-center justify-around px-4 py-2"
-        style={{ borderTop: '1px solid var(--border)', background: 'var(--card)' }}>
+        style={{ borderTop: '1px solid var(--color-border)', background: 'var(--color-card)' }}>
         {navLinks.map(({ href, label }) => {
           const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
           return (
             <Link key={href} href={href}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                 isActive
-                  ? 'text-[var(--primary)]'
-                  : 'text-[var(--muted-foreground)]'
+                  ? 'text-[var(--color-primary)]'
+                  : 'text-[var(--color-muted-foreground)]'
               }`}>
               {label}
             </Link>

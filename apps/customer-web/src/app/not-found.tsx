@@ -19,20 +19,20 @@ export default function NotFound() {
           </div>
 
           <h1 className="text-3xl font-black mb-3 tracking-tight">Page Not Found</h1>
-          <p className="text-[var(--muted-foreground)] mb-8 text-lg leading-relaxed">
+          <p className="text-[var(--color-muted-foreground)] mb-8 text-lg leading-relaxed">
             Looks like this page took a detour to the kitchen and never came back.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/"
-              className="px-8 py-3 bg-[var(--primary)] text-white rounded-full font-bold shadow-[var(--shadow-glow)] hover:shadow-[0_0_30px_rgba(249,115,22,0.6)] hover:-translate-y-0.5 transition-all duration-300"
+              className="px-8 py-3 bg-[var(--color-primary)] text-white rounded-full font-bold shadow-[var(--shadow-glow)] hover:shadow-[0_0_30px_rgba(249,115,22,0.6)] hover:-translate-y-0.5 transition-all duration-300"
             >
               Go Home
             </Link>
             <Link
               href="/menu"
-              className="px-8 py-3 bg-[var(--card)] text-[var(--card-foreground)] border-2 border-[var(--border)] rounded-full font-bold hover:border-[var(--primary)] hover:text-[var(--primary)] hover:-translate-y-0.5 transition-all duration-300"
+              className="px-8 py-3 bg-[var(--color-card)] text-[var(--card-foreground)] border-2 border-[var(--color-border)] rounded-full font-bold hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:-translate-y-0.5 transition-all duration-300"
             >
               Browse Menu
             </Link>

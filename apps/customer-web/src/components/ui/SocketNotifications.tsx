@@ -77,7 +77,7 @@ export function SocketNotifications() {
     <div className="fixed top-4 left-0 right-0 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none animate-in slide-in-from-top-10 fade-in duration-300">
       {notifications.map((notif) => (
         <div key={notif.id} className="pointer-events-auto w-full max-w-sm rounded-2xl shadow-xl overflow-hidden"
-          style={{ background: 'var(--card)', border: '1px solid var(--primary)' }}>
+          style={{ background: 'var(--color-card)', border: '1px solid var(--color-primary)' }}>
           <div className="p-4 flex items-start gap-3 relative overflow-hidden">
             <div className="absolute inset-0 bg-primary/5" />
             <div className="relative w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
@@ -89,7 +89,7 @@ export function SocketNotifications() {
               <div className="mt-3 flex gap-2">
                 <Link href={`/order/${notif.orderId}`} onClick={() => dismiss(notif.id)}
                   className="px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-sm transition-opacity hover:opacity-90"
-                  style={{ background: 'var(--primary)' }}>
+                  style={{ background: 'var(--color-primary)' }}>
                   View Order
                 </Link>
               </div>

@@ -9,6 +9,7 @@ export function PrepStockTab() {
   const [saving, setSaving] = useState<Record<string, boolean>>({});
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -55,15 +56,27 @@ export function PrepStockTab() {
     }
   };
 
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    rows.forEach(r => {
+      if (r.category?.name) cats.add(r.category.name);
+    });
+    return Array.from(cats).sort();
+  }, [rows]);
+
   const filtered = useMemo(() => {
+    let result = rows;
+    if (selectedCategory) {
+      result = result.filter(r => r.category?.name === selectedCategory);
+    }
     const q = query.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
+    if (!q) return result;
+    return result.filter(
       (r) =>
         r.name.toLowerCase().includes(q) ||
         r.category?.name?.toLowerCase().includes(q),
     );
-  }, [rows, query]);
+  }, [rows, query, selectedCategory]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, StockRow[]>();
@@ -112,14 +125,24 @@ export function PrepStockTab() {
         </div>
       </header>
 
-      <div className="relative mb-6 max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted-foreground)]" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search items or categories…"
-          className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-10 pr-3 text-sm outline-none focus:border-[var(--color-primary)]"
-        />
+      <div className="mb-6 flex flex-col sm:flex-row gap-4 max-w-2xl">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted-foreground)]" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search items or categories…"
+            className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] py-2 pl-10 pr-3 text-sm outline-none focus:border-[var(--color-primary)] text-[var(--color-foreground)]"
+          />
+        </div>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)] text-[var(--color-foreground)] sm:w-48 appearance-none"
+        >
+          <option value="">All Categories</option>
+          {categories.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
       </div>
 
       {error && (

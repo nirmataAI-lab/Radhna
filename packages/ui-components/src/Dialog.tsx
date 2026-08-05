@@ -43,7 +43,7 @@ export function Dialog({ open, onOpenChange, title, description, children }: Dia
       ref={overlayRef}
     >
       <div 
-        className="w-full max-w-lg scale-100 transform overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] p-6 text-left align-middle shadow-xl transition-all animate-in zoom-in-95 duration-200"
+        className="w-full max-w-lg scale-100 transform overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] p-6 text-left align-middle shadow-xl transition-all animate-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"

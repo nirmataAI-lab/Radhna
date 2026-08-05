@@ -203,9 +203,11 @@ export function KitchenDashboardPage({ dark, onToggleTheme }: { dark?: boolean; 
       if (key === 'r') { e.preventDefault(); loadOrders(); return; }
       if (key === 't') {
         e.preventDefault();
-        const order = ['active', 'recall', 'completed'];
+        const order = ['active', 'stock', 'menu'];
         const i = order.indexOf(activeTab as any);
-        setActiveTab(order[(i + 1) % order.length]);
+        if (i !== -1) {
+          setActiveTab(order[(i + 1) % order.length]);
+        }
         setFocusIndex(null); return;
       }
 
@@ -242,8 +244,6 @@ export function KitchenDashboardPage({ dark, onToggleTheme }: { dark?: boolean; 
   // Tab config
   const tabs: { id: ActiveTab; label: string; icon: any; count?: number }[] = [
     { id: 'active',    label: 'Active',    icon: CookingPot, count: activeOrders.length },
-    { id: 'recall',    label: 'Recalled',  icon: Undo2,      count: recalledOrders.length },
-    { id: 'completed', label: 'Completed', icon: CheckCheck, count: completed.length },
     { id: 'stock',     label: 'Prep Stock', icon: Package },
     { id: 'menu',      label: 'Menu',       icon: UtensilsCrossed },
   ];
