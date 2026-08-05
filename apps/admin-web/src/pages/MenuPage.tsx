@@ -6,11 +6,12 @@ import {
 } from '../api';
 import type { Category, FoodItem } from '../api';
 import { AdminImageUpload } from '../components/AdminImageUpload';
-import { Card, CardHeader, CardTitle, CardContent, Button, Dialog, Input, Badge } from 'ui-components';
+import { Button, Dialog, Input } from 'ui-components';
 
 export function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
+  const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAddCat, setShowAddCat] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
@@ -50,20 +51,28 @@ export function MenuPage() {
     catch (e: any) { alert(e.message); }
   };
 
+  const filteredItems = selectedCatId
+    ? foodItems.filter((i) => i.categoryId === selectedCatId)
+    : foodItems;
+
   return (
-    <div className="animate-in fade-in duration-300">
-      <header className="flex justify-between items-center mb-8">
+    <div className="animate-fade-in p-2">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Menu Management</h2>
-          <p className="text-[var(--color-muted-foreground)] text-sm mt-1">Add, edit, and manage menu items</p>
+          <h2 className="text-3xl font-black tracking-tight" style={{ color: 'var(--foreground)' }}>Menu Management</h2>
+          <p className="text-sm font-medium mt-1" style={{ color: 'var(--muted-foreground)' }}>Add, edit, and manage menu items</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => { setShowAddCat(true); setEditCat(null); }}>
-            <Plus className="w-4 h-4 mr-2" /> Category
-          </Button>
-          <Button onClick={() => { setShowAddItem(true); setEditItem(null); }}>
-            <Plus className="w-4 h-4 mr-2" /> Food Item
-          </Button>
+          <button onClick={() => { setShowAddCat(true); setEditCat(null); }}
+            className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-bold transition-all hover:opacity-90 shadow-sm"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+            <Plus className="w-4 h-4" /> Category
+          </button>
+          <button onClick={() => { setShowAddItem(true); setEditItem(null); }}
+            className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-bold transition-all hover:opacity-90 shadow-sm text-white"
+            style={{ background: 'var(--primary)' }}>
+            <Plus className="w-4 h-4" /> Food Item
+          </button>
         </div>
       </header>
       
@@ -83,92 +92,157 @@ export function MenuPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <Card className="lg:col-span-1 h-fit">
-          <CardHeader className="pb-3 border-b border-[var(--color-border)]">
-            <CardTitle className="text-base">Categories</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-3 px-2 pb-2">
-            <div className="flex flex-col gap-1">
-              {categories.map((cat) => (
-                <div key={cat.id} className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--color-muted)] group">
-                  <span className="text-sm font-medium">{cat.name}</span>
-                  <div className="hidden group-hover:flex gap-1">
-                    <button onClick={() => setEditCat(cat)} className="p-1 text-blue-500 hover:bg-blue-50 rounded transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => handleDeleteCat(cat.id)} className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+        <div className="lg:col-span-1 h-fit card-premium">
+          <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
+            <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>Categories</h3>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full"
+              style={{ background: 'var(--muted)', color: 'var(--muted-foreground)' }}>
+              {categories.length}
+            </span>
+          </div>
+          <div className="p-3">
+            <div className="flex flex-col gap-1.5">
+              <button
+                onClick={() => setSelectedCatId(null)}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all text-left ${
+                  selectedCatId === null
+                    ? 'font-bold'
+                    : 'font-medium hover:bg-[var(--muted)]'
+                }`}
+                style={{
+                  background: selectedCatId === null ? 'color-mix(in srgb, var(--primary) 10%, transparent)' : 'transparent',
+                  color: selectedCatId === null ? 'var(--primary)' : 'var(--muted-foreground)'
+                }}
+              >
+                <span>All Categories</span>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: selectedCatId === null ? 'white' : 'var(--muted)' }}>
+                  {foodItems.length}
+                </span>
+              </button>
+              {categories.map((cat) => {
+                const count = foodItems.filter((i) => i.categoryId === cat.id).length;
+                const isSelected = selectedCatId === cat.id;
+                return (
+                  <div
+                    key={cat.id}
+                    onClick={() => setSelectedCatId(cat.id)}
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all group ${
+                      isSelected ? 'font-bold' : 'font-medium hover:bg-[var(--muted)]'
+                    }`}
+                    style={{
+                      background: isSelected ? 'color-mix(in srgb, var(--primary) 10%, transparent)' : 'transparent',
+                      color: isSelected ? 'var(--primary)' : 'var(--foreground)'
+                    }}
+                  >
+                    <span className="text-sm truncate flex-1">{cat.name}</span>
+                    <span className="text-xs font-bold mr-2 opacity-60">({count})</span>
+                    <div className="hidden group-hover:flex gap-1">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setEditCat(cat); }}
+                        className="p-1.5 rounded-lg transition-colors hover:bg-white/50 text-blue-500 hover:text-blue-600"
+                        title="Edit Category"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeleteCat(cat.id); }}
+                        className="p-1.5 rounded-lg transition-colors hover:bg-white/50 text-red-500 hover:text-red-600"
+                        title="Delete Category"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {categories.length === 0 && <p className="text-sm text-[var(--color-muted-foreground)] px-3">No categories.</p>}
+                );
+              })}
+              {categories.length === 0 && <p className="text-sm text-center py-4 opacity-50" style={{ color: 'var(--foreground)' }}>No categories.</p>}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <div className="lg:col-span-4">
           {loading ? (
-            <div className="text-center py-16 text-[var(--color-muted-foreground)]">
-              <Loader2 className="w-8 h-8 mx-auto animate-spin mb-4" />
-              Loading items...
+            <div className="text-center py-24 flex flex-col items-center">
+              <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: 'var(--primary)' }} />
+              <p className="font-semibold" style={{ color: 'var(--muted-foreground)' }}>Loading items...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {foodItems.map((item) => (
-                <Card key={item.id} className={`flex flex-col overflow-hidden transition-all hover:shadow-md ${!item.isEnabled ? 'opacity-60 grayscale-[30%]' : ''}`}>
-                  <CardContent className="p-5 flex-1 flex flex-col">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="font-semibold">{item.name}</h4>
-                        <p className="text-xs text-[var(--color-muted-foreground)]">{item.category?.name}</p>
+              {filteredItems.map((item) => (
+                <div key={item.id} className={`card-premium flex flex-col overflow-hidden transition-all hover:-translate-y-1 ${!item.isEnabled ? 'opacity-60 grayscale-[30%]' : ''}`}>
+                  <div className="p-5 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-lg leading-tight truncate" style={{ color: 'var(--foreground)' }}>{item.name}</h4>
+                        <p className="text-xs font-semibold mt-1" style={{ color: 'var(--muted-foreground)' }}>{item.category?.name}</p>
                       </div>
-                      <span className="font-bold text-[var(--color-primary)]">₹{Number(item.price).toFixed(2)}</span>
+                      <span className="font-black text-lg shrink-0" style={{ color: 'var(--primary)' }}>₹{Number(item.price).toFixed(2)}</span>
                     </div>
-                    {item.description && <p className="text-xs text-[var(--color-muted-foreground)] line-clamp-2 mb-3 flex-1">{item.description}</p>}
-                    <div className="flex flex-wrap gap-1.5 mb-4 mt-auto pt-2">
+                    {item.description && <p className="text-sm line-clamp-2 my-2 flex-1 font-medium" style={{ color: 'var(--muted-foreground)' }}>{item.description}</p>}
+                    
+                    <div className="flex flex-wrap gap-1.5 mb-5 mt-auto pt-3">
                       {item.isVeg ? (
-                        <Badge variant="success" className="px-1.5 py-0">Veg</Badge>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Veg</span>
                       ) : (
-                        <Badge variant="destructive" className="px-1.5 py-0 bg-red-600">Non-Veg</Badge>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Non-Veg</span>
                       )}
-                      {item.isPopular && <Badge variant="warning" className="px-1.5 py-0 bg-orange-500">Popular</Badge>}
-                      {item.isTodaysSpecial && <Badge variant="secondary" className="px-1.5 py-0 bg-purple-100 text-purple-700">Special</Badge>}
-                      {!item.isEnabled && <Badge variant="outline" className="px-1.5 py-0 border-dashed">Unavailable</Badge>}
-                      {item.isOutOfStock && <Badge variant="destructive" className="px-1.5 py-0 bg-red-800">Out of Stock</Badge>}
-                      {item.productionStock && <Badge variant="secondary" className="px-1.5 py-0 bg-blue-50 text-blue-700">Stock: {item.productionStock.availableQty}</Badge>}
+                      {item.isPopular && <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">Popular</span>}
+                      {item.isTodaysSpecial && <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">Special</span>}
+                      {!item.isEnabled && <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-dashed border-gray-300 text-gray-500">Unavailable</span>}
+                      {item.isOutOfStock && <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-red-800 text-white">Out of Stock</span>}
+                      {item.productionStock && <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-blue-50 text-blue-700">Stock: {item.productionStock.availableQty}</span>}
                     </div>
-                    <div className="flex gap-2 mt-auto">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className={`px-3 ${!item.isEnabled ? 'border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100' : ''}`}
+
+                    <div className="flex gap-2 mt-auto pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                      <button 
+                        className={`flex items-center justify-center p-2 rounded-lg transition-colors shadow-sm ${
+                          !item.isEnabled 
+                            ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
+                            : 'bg-[var(--muted)] text-[var(--foreground)] hover:brightness-95'
+                        }`}
                         onClick={() => handleToggleAvailability(item)}
                         title={item.isEnabled ? 'Mark unavailable' : 'Mark available'}
                       >
                         {item.isEnabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className={`px-3 ${item.isOutOfStock ? 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100' : ''}`}
+                      </button>
+                      <button 
+                        className={`flex items-center justify-center p-2 rounded-lg transition-colors shadow-sm ${
+                          item.isOutOfStock 
+                            ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+                            : 'bg-[var(--muted)] text-[var(--foreground)] hover:brightness-95'
+                        }`}
                         onClick={() => handleToggleOutOfStock(item)}
                         title={item.isOutOfStock ? 'Mark in stock' : 'Mark out of stock'}
                       >
                         {item.isOutOfStock ? <PackageX className="w-4 h-4" /> : <PackageCheck className="w-4 h-4" />}
-                      </Button>
-                      <Button size="sm" variant="outline" className="flex-1" onClick={() => setEditItem(item)}>
-                        <Edit3 className="w-3.5 h-3.5 mr-1.5" /> Edit
-                      </Button>
-                      <Button size="sm" variant="danger" className="px-3" onClick={() => handleDeleteItem(item.id)}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                      </button>
+                      <button 
+                        className="flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg font-bold text-sm transition-colors shadow-sm bg-[var(--muted)] hover:brightness-95"
+                        style={{ color: 'var(--foreground)' }}
+                        onClick={() => setEditItem(item)}
+                      >
+                        <Edit3 className="w-3.5 h-3.5" /> Edit
+                      </button>
+                      <button 
+                        className="flex items-center justify-center p-2 rounded-lg transition-colors shadow-sm bg-red-50 text-red-600 hover:bg-red-100"
+                        onClick={() => handleDeleteItem(item.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
 
               {foodItems.length === 0 && (
-                <div className="col-span-full text-center py-20 text-[var(--color-muted-foreground)] bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] border-dashed">
-                  <UtensilsCrossed className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                  <p className="text-lg font-medium">No menu items yet.</p>
-                  <p className="text-sm mt-1">Add your first item to get started!</p>
+                <div className="col-span-full card-premium p-16 flex flex-col items-center text-center border-dashed border-2">
+                  <div className="w-20 h-20 rounded-full grid place-items-center mb-5 opacity-40"
+                    style={{ background: 'var(--muted)' }}>
+                    <UtensilsCrossed className="w-10 h-10" style={{ color: 'var(--muted-foreground)' }} />
+                  </div>
+                  <p className="text-xl font-bold mb-1" style={{ color: 'var(--foreground)' }}>No menu items yet.</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>Add your first item to get started!</p>
                 </div>
               )}
             </div>

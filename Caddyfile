@@ -1,0 +1,29 @@
+# Production Caddy Reverse Proxy Configuration
+
+{
+    email admin@radhnacuisine.com
+}
+
+# Backend API & WebSocket Server
+api.radhnacuisine.com {
+    reverse_proxy backend-api:3000 {
+        # WebSocket / Socket.io header handling is automatic in Caddy
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+    }
+}
+
+# Customer Web App (If hosted on VPS)
+app.radhnacuisine.com {
+    reverse_proxy customer-web:3001
+}
+
+# Admin Panel (If hosted on VPS)
+admin.radhnacuisine.com {
+    reverse_proxy admin-web:8080
+}
+
+# Kitchen Display System / Chief Web (If hosted on VPS)
+kitchen.radhnacuisine.com {
+    reverse_proxy chief-web:8081
+}

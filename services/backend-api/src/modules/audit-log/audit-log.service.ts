@@ -13,7 +13,17 @@ export class AuditLogService {
     entityId: string;
     reason?: string;
   }) {
-    return this.prisma.auditLog.create({ data });
+    const admin = await this.prisma.user.findUnique({
+      where: { id: data.adminId },
+      select: { email: true }
+    });
+    
+    return this.prisma.auditLog.create({ 
+      data: {
+        ...data,
+        adminEmail: admin?.email || 'Unknown',
+      }
+    });
   }
 
   async findAll(page: number = 1, limit: number = 50) {

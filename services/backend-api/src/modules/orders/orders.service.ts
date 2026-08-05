@@ -110,10 +110,18 @@ export class OrdersService {
       }
 
       for (const update of stockUpdates) {
-        await tx.productionStock.update({
+        const updatedStock = await tx.productionStock.update({
           where: { id: update.stockId },
           data: { availableQty: { decrement: update.quantity } },
         });
+
+        // Prevent race conditions: check if stock went below zero *after* the decrement
+        // If it did, this throws an error and rolls back the entire Prisma transaction automatically.
+        if (updatedStock.availableQty < 0) {
+          throw new BadRequestException(
+            `Concurrent checkout detected: Not enough stock left to fulfill this order.`,
+          );
+        }
       }
 
       // BOM Deduction: Fetch recipe items and deduct raw materials
@@ -363,13 +371,17 @@ export class OrdersService {
         data: {
           status,
           ...(status === OrderStatus.CANCELLED
-            ? { cancelReason: reason || 'Cancelled' }
+            ? {
+                cancelReason: reason || 'Cancelled',
+                paymentStatus: PaymentStatus.CANCELLED,
+              }
             : {}),
         },
         include: { orderItems: { include: { foodItem: true } } },
       });
 
       if (shouldRestoreStock) {
+        // Restore Production Stock
         for (const item of order.orderItems) {
           const stock = await tx.productionStock.findUnique({
             where: { foodItemId: item.foodItemId },
@@ -380,6 +392,28 @@ export class OrdersService {
               data: { availableQty: { increment: item.quantity } },
             });
           }
+        }
+        
+        // Restore BOM Raw Materials
+        const foodItemIds = order.orderItems.map((item) => item.foodItemId);
+        const recipeItems = await tx.recipeItem.findMany({
+          where: { foodItemId: { in: foodItemIds } },
+        });
+
+        const materialUpdates: Record<string, number> = {};
+        for (const item of order.orderItems) {
+          const itemRecipes = recipeItems.filter(r => r.foodItemId === item.foodItemId);
+          for (const recipe of itemRecipes) {
+            const qtyToRestore = Number(recipe.quantityUsed) * item.quantity;
+            materialUpdates[recipe.materialId] = (materialUpdates[recipe.materialId] || 0) + qtyToRestore;
+          }
+        }
+
+        for (const [materialId, qty] of Object.entries(materialUpdates)) {
+          await tx.inventoryRawMaterial.update({
+            where: { id: materialId },
+            data: { quantity: { increment: qty } },
+          });
         }
       }
 
@@ -499,6 +533,7 @@ export class OrdersService {
         data: {
           status: OrderStatus.CANCELLED,
           cancelReason: reason || 'Cancelled by customer',
+          paymentStatus: PaymentStatus.CANCELLED,
         },
         include: { orderItems: { include: { foodItem: true } } },
       });
@@ -514,6 +549,28 @@ export class OrdersService {
             data: { availableQty: { increment: item.quantity } },
           });
         }
+      }
+
+      // Restore BOM Raw Materials
+      const foodItemIds = order.orderItems.map((item) => item.foodItemId);
+      const recipeItems = await tx.recipeItem.findMany({
+        where: { foodItemId: { in: foodItemIds } },
+      });
+
+      const materialUpdates: Record<string, number> = {};
+      for (const item of order.orderItems) {
+        const itemRecipes = recipeItems.filter(r => r.foodItemId === item.foodItemId);
+        for (const recipe of itemRecipes) {
+          const qtyToRestore = Number(recipe.quantityUsed) * item.quantity;
+          materialUpdates[recipe.materialId] = (materialUpdates[recipe.materialId] || 0) + qtyToRestore;
+        }
+      }
+
+      for (const [materialId, qty] of Object.entries(materialUpdates)) {
+        await tx.inventoryRawMaterial.update({
+          where: { id: materialId },
+          data: { quantity: { increment: qty } },
+        });
       }
       return updated;
     });

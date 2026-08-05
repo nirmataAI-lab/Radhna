@@ -103,6 +103,39 @@ export class UsersController {
     });
   }
 
+  // ─── Customers ───────────────────────────────────────
+
+  @Get('customers')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'List all customers with their order history' })
+  async listCustomers() {
+    return this.prisma.user.findMany({
+      where: { role: Role.CUSTOMER },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+        orders: {
+          select: {
+            id: true,
+            total: true,
+            status: true,
+            createdAt: true,
+            orderItems: {
+              include: { foodItem: { select: { name: true } } }
+            }
+          },
+          orderBy: { createdAt: 'desc' }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   // ─── Staff (admins & chefs) ────────────────────────
 
   @Get('staff')

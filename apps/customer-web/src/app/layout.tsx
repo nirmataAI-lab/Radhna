@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CartDrawer } from "@/components/ui/CartDrawer";
+import { SocketNotifications } from "@/components/ui/SocketNotifications";
 
 export const metadata: Metadata = {
   title: "Radhna Cuisine",
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className="font-sans antialiased bg-background text-foreground">
         {children}
         <CartDrawer />
+        <SocketNotifications />
       </body>
     </html>
   );

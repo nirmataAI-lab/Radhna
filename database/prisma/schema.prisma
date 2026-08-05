@@ -26,6 +26,7 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+  CANCELLED
 }
 
 enum PaymentMethod {
@@ -253,15 +254,16 @@ model Notification {
 }
 
 model AuditLog {
-  id        String   @id @default(uuid())
-  adminId   String
-  action    String
-  entity    String
-  entityId  String
-  reason    String?
-  timestamp DateTime @default(now())
+  id          String   @id @default(uuid())
+  adminId     String?
+  adminEmail  String?
+  action      String
+  entity      String
+  entityId    String
+  reason      String?
+  timestamp   DateTime @default(now())
 
-  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  admin User? @relation(fields: [adminId], references: [id], onDelete: SetNull)
 
   @@index([adminId])
   @@index([timestamp])

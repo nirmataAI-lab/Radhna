@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # NestJS Backend API + Socket.io Server
+  backend-api:
+    build:
+      context: .
+      dockerfile: services/backend-api/Dockerfile
+    container_name: restaurant_backend
+    restart: always
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - CUSTOMER_APP_URL=${CUSTOMER_APP_URL}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app_network
+
+  # Database (Optional - can use local PostgreSQL or external Neon/Supabase)
+  postgres:
+    image: postgres:15-alpine
+    container_name: restaurant_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${DB_NAME:-restaurant_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  # Redis for queues/sockets
+  redis:
+    image: redis:alpine
+    container_name: restaurant_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+
+  # Reverse Proxy with Automatic HTTPS (Caddy)
+  caddy:
+    image: caddy:2-alpine
+    container_name: restaurant_caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend-api
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  app_network:
+    driver: bridge

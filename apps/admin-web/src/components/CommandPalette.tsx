@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Search, TrendingUp, ListOrdered, UtensilsCrossed, Tag, Star, ScrollText,
-  Package, BarChart3, Sun, Moon, LogOut, Command as CmdIcon, Users,
+  BarChart3, Sun, Moon, LogOut, Command as CmdIcon, Users,
 } from 'lucide-react';
 
 export type PaletteTab =
   | 'dashboard' | 'analytics' | 'orders' | 'menu'
-  | 'inventory' | 'coupons' | 'reviews' | 'audit' | 'staff';
+  | 'coupons' | 'reviews' | 'audit' | 'staff';
 
 interface Action {
   id: string;
@@ -35,7 +35,6 @@ export function CommandPalette({
     { id: 'go:analytics', label: 'Go to Analytics', icon: BarChart3, keywords: 'reports charts revenue', run: () => setTab('analytics') },
     { id: 'go:orders', label: 'Go to Orders', icon: ListOrdered, keywords: 'kds tickets', run: () => setTab('orders') },
     { id: 'go:menu', label: 'Go to Menu', icon: UtensilsCrossed, keywords: 'items food categories', run: () => setTab('menu') },
-    { id: 'go:inventory', label: 'Go to Inventory', icon: Package, keywords: 'stock supplies', run: () => setTab('inventory') },
     { id: 'go:coupons', label: 'Go to Coupons', icon: Tag, keywords: 'promo discount', run: () => setTab('coupons') },
     { id: 'go:reviews', label: 'Go to Reviews', icon: Star, keywords: 'ratings feedback', run: () => setTab('reviews') },
     { id: 'go:audit', label: 'Go to Audit Log', icon: ScrollText, keywords: 'history activity', run: () => setTab('audit') },

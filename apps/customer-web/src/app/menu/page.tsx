@@ -28,15 +28,22 @@ export default async function MenuPage() {
       <Navbar />
 
       {/* Hero Banner */}
-      <div className="bg-gradient-to-b from-emerald-500/10 via-background to-background py-10 text-center border-b border-border/40">
-        <div className="container mx-auto px-4">
-          <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-xs tracking-widest uppercase mb-2 inline-block">
+      <div className="relative py-14 md:py-20 text-center overflow-hidden"
+        style={{ background: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[40%] h-[100%] rounded-full opacity-6 blur-[80px]"
+            style={{ background: 'radial-gradient(circle, var(--primary), transparent 70%)' }} />
+        </div>
+        <div className="container mx-auto px-4 relative z-10 animate-slide-up">
+          <span className="section-label mb-3 mx-auto">
             Authentic South Indian & Snacks
           </span>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-3">
-            Radhna <span className="text-emerald-600 dark:text-emerald-400">Cuisine Menu</span>
+          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-4"
+            style={{ color: 'var(--foreground)' }}>
+            Radhna <span className="text-gradient">Cuisine Menu</span>
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto">
+          <p className="text-sm sm:text-base max-w-xl mx-auto font-medium"
+            style={{ color: 'var(--muted-foreground)' }}>
             Freshly prepared Dosas, Maggi, Uttapams, Idlis, and refreshing Shakes & Lassis.
           </p>
         </div>

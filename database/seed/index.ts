@@ -144,6 +144,9 @@ const MENU: { category: string; order: number; items: SeedItem[] }[] = [
 
 async function main() {
   console.log('Clearing old data...');
+  await prisma.payment.deleteMany();
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
   await prisma.productionStock.deleteMany();
   await prisma.foodItem.deleteMany();
   await prisma.category.deleteMany();

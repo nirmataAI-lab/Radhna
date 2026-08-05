@@ -1,4 +1,4 @@
-import { AlertTriangle, RefreshCw, CookingPot, X, CheckCheck, Undo2 } from 'lucide-react';
+import { AlertTriangle, RefreshCw, CookingPot, X, CheckCheck, Undo2, Clock } from 'lucide-react';
 import type { OrderStatus } from '../api';
 import { getRecallReason } from '../lib/orderRecall';
 
@@ -6,6 +6,7 @@ export interface Order {
   id: string;
   status: string;
   createdAt: string;
+  tokenNumber?: number;
   cancelReason?: string | null;
   customer?: { id: string; email?: string; name?: string } | null;
   orderItems?: {
@@ -14,6 +15,21 @@ export interface Order {
     specialInstructions?: string;
     foodItem?: { name: string } | null;
   }[];
+}
+
+function TimerDisplay({ createdAt, status }: { createdAt: string; status: string }) {
+  const mins = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
+  const isWarning = mins >= 8 && status !== 'READY' && status !== 'COMPLETED';
+  const isUrgent  = mins >= 15 && status !== 'READY' && status !== 'COMPLETED';
+
+  return (
+    <div className={`flex items-center gap-1 font-mono text-lg font-bold tabular-nums ${
+      isUrgent ? 'timer-urgent' : isWarning ? 'timer-warning' : 'timer-normal'
+    }`}>
+      <Clock className="w-3.5 h-3.5 opacity-70" />
+      {mins < 60 ? `${mins}m` : `${Math.floor(mins / 60)}h ${mins % 60}m`}
+    </div>
+  );
 }
 
 export function OrderCard({ order, onStatusUpdate, onRecall, statusLoading, isChecked, onToggleItem, isFocused, index }: {
@@ -28,96 +44,132 @@ export function OrderCard({ order, onStatusUpdate, onRecall, statusLoading, isCh
 }) {
   const recallReason = getRecallReason(order);
   const isRecalled = !!recallReason;
+  const timeSince  = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000);
+  const isUrgent   = timeSince > 15 && order.status !== 'READY' && order.status !== 'COMPLETED';
+  const isNew      = timeSince < 2 && order.status === 'PLACED';
+  const isLoading  = statusLoading === order.id;
 
-  const timeSince = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000);
-  const isUrgent = timeSince > 15 && order.status !== 'READY' && order.status !== 'COMPLETED';
-  const isNew = timeSince < 2 && order.status === 'PLACED';
+  // Determine card variant class
+  let cardVariant = 'kds-card-new';
+  if (order.status === 'PREPARING' || order.status === 'ACCEPTED') cardVariant = 'kds-card-cooking';
+  if (order.status === 'READY')    cardVariant = 'kds-card-ready';
+  if (isRecalled)                  cardVariant = '';
 
-  const statusStyles: Record<string, { bg: string; ring: string; label: string }> = {
-    PLACED:    { bg: 'bg-[var(--color-destructive)]', ring: 'ring-[var(--color-destructive)]/60', label: 'New order' },
-    ACCEPTED:  { bg: 'bg-[var(--color-warning)]',     ring: 'ring-[var(--color-warning)]/60',     label: 'Accepted' },
-    PREPARING: { bg: 'bg-[var(--color-primary)]',     ring: 'ring-[var(--color-primary)]/60',     label: 'Preparing' },
-    READY:     { bg: 'bg-[var(--color-success)]',     ring: 'ring-[var(--color-success)]/60',     label: 'Ready' },
-    COMPLETED: { bg: 'bg-[var(--color-muted-foreground)]', ring: 'ring-white/10', label: 'Completed' },
-    CANCELLED: { bg: 'bg-neutral-600', ring: 'ring-white/10', label: 'Cancelled' },
+  // Header strip class
+  let headerClass = 'kds-header-new';
+  if (order.status === 'PREPARING' || order.status === 'ACCEPTED') headerClass = 'kds-header-cooking';
+  if (order.status === 'READY')    headerClass = 'kds-header-ready';
+  if (isRecalled)                  headerClass = 'kds-header-recalled';
+
+  // Status badge class
+  const statusBadgeClass: Record<string, string> = {
+    PLACED:    'status-badge-new',
+    ACCEPTED:  'status-badge-new',
+    PREPARING: 'status-badge-cooking',
+    READY:     'status-badge-ready',
+    COMPLETED: 'status-badge-done',
+    CANCELLED: 'status-badge-error',
   };
-  const s = statusStyles[order.status] ?? statusStyles.PLACED;
+  const statusLabel: Record<string, string> = {
+    PLACED:    'New',
+    ACCEPTED:  'Accepted',
+    PREPARING: 'Preparing',
+    READY:     'Ready',
+    COMPLETED: 'Done',
+    CANCELLED: 'Cancelled',
+  };
+
+  const tokenNumber = order.tokenNumber ?? parseInt(order.id.slice(-4), 16) % 9000 + 1000;
 
   return (
     <div
-      className={`premium-card relative flex flex-col overflow-hidden ${isNew ? 'status-urgent' : ''} ${isUrgent ? 'ring-2 ring-[var(--color-warning)]/50' : ''} ${isRecalled ? 'ring-2 ring-[var(--color-destructive)]' : ''} ${isFocused ? 'ring-4 ring-[var(--color-primary)] ring-offset-2 ring-offset-[var(--color-background)]' : ''}`}
-      style={{ animation: 'slide-up 0.35s cubic-bezier(0.22,1,0.36,1)' }}
+      className={`kds-card ${cardVariant} flex flex-col animate-slide-up ${
+        isUrgent && !isRecalled ? 'kds-card-urgent' : ''
+      } ${isFocused ? 'focused' : ''}`}
     >
+      {/* Keyboard shortcut badge */}
       {index < 9 && (
-        <div className="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md bg-black/40 font-mono text-xs font-bold text-white/90 backdrop-blur">
+        <div className="absolute right-3 top-3 z-10 w-6 h-6 flex items-center justify-center rounded-md text-[10px] font-bold font-mono"
+          style={{ background: 'rgba(0,0,0,.5)', color: 'rgba(255,255,255,.7)', backdropFilter: 'blur(4px)' }}>
           {index + 1}
         </div>
       )}
+
+      {/* Recall banner */}
       {isRecalled && (
-        <div className="flex items-start gap-2 border-b border-[var(--color-destructive)]/30 bg-[var(--color-destructive)]/15 px-4 py-2 text-[var(--color-destructive)]">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <div className="min-w-0 flex-1 text-xs font-semibold uppercase tracking-wider">
-            Recalled · <span className="font-normal normal-case tracking-normal">{recallReason}</span>
-          </div>
+        <div className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold"
+          style={{ background: 'rgba(239,68,68,.15)', borderBottom: '1px solid rgba(239,68,68,.2)', color: '#f87171' }}>
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+          <span className="uppercase tracking-wide">Recalled</span>
+          <span className="font-normal normal-case opacity-80 ml-1">· {recallReason}</span>
         </div>
       )}
 
-      <div className={`relative ${s.bg} p-4 text-white`}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="font-display text-2xl font-bold leading-tight tracking-tight">
-              {order.customer?.name || 'Order'}
-            </div>
-            <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] opacity-90">
-              {s.label} · #{order.id.slice(0, 6)}
-            </div>
+      {/* Header strip */}
+      <div className={`kds-header-strip ${headerClass}`}>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-display text-base font-bold text-[var(--color-foreground)] leading-tight">
+              {order.customer?.name || 'Guest'}
+            </span>
+            <span className="token-badge">
+              Token #{tokenNumber}
+            </span>
           </div>
-          <div className="shrink-0 text-right">
-            <div className="font-mono text-2xl font-bold leading-none tabular-nums">
-              {timeSince < 60 ? `${timeSince}` : new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              {timeSince < 60 && <span className="ml-0.5 text-xs font-normal opacity-80">m</span>}
-            </div>
+          <div className="flex items-center gap-2 mt-1">
+            <span className={`status-badge ${statusBadgeClass[order.status] || 'status-badge-new'}`}>
+              <span className="w-1.5 h-1.5 rounded-full bg-current" />
+              {statusLabel[order.status] || order.status}
+            </span>
+            {isNew && (
+              <span className="status-badge status-badge-new animate-pulse">🔔 Just arrived</span>
+            )}
             {isUrgent && (
-              <div className="mt-1.5 inline-flex animate-pulse items-center gap-1 rounded-full bg-black/25 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                ⚠ Urgent
-              </div>
+              <span className="status-badge status-badge-error">⚠ Urgent</span>
             )}
           </div>
         </div>
+        <TimerDisplay createdAt={order.createdAt} status={order.status} />
       </div>
 
-      <div className="flex-1 p-5">
-        <ul className="space-y-3">
-          {order.orderItems?.map((item: any) => {
+      {/* Items list */}
+      <div className="flex-1 p-4">
+        <ul className="space-y-2.5">
+          {order.orderItems?.map((item) => {
             const checked = isChecked(item.id);
             const interactive = order.status === 'PREPARING' || order.status === 'ACCEPTED';
             return (
-              <li key={item.id} className="border-b border-[var(--color-border)] pb-3 last:border-0 last:pb-0">
+              <li key={item.id}>
                 <button
                   type="button"
                   onClick={() => interactive && onToggleItem(item.id)}
                   disabled={!interactive}
-                  className={`flex w-full items-baseline gap-3 rounded-lg text-left transition ${
-                    interactive ? 'cursor-pointer hover:bg-[var(--color-muted)]/60 px-2 -mx-2 py-1' : 'cursor-default'
-                  } ${checked ? 'opacity-50 line-through decoration-2' : ''}`}
-                  title={interactive ? (checked ? 'Mark as pending' : 'Mark as done') : undefined}
+                  className={`item-check w-full ${checked ? 'done' : ''} ${!interactive ? 'cursor-default' : ''}`}
                 >
-                  <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition ${
-                    checked ? 'border-[var(--color-success)] bg-[var(--color-success)] text-white' : 'border-[var(--color-border)]'
-                  } ${!interactive ? 'opacity-40' : ''}`}>
-                    {checked && <CheckCheck className="h-3 w-3" />}
-                  </span>
-                  <span className="font-mono text-xl font-bold text-[var(--color-primary)] tabular-nums">
+                  {/* Checkbox */}
+                  <div className={`w-5 h-5 rounded-md border-2 grid place-items-center shrink-0 transition-all ${
+                    checked
+                      ? 'border-[var(--color-success)] bg-[var(--color-success)]'
+                      : interactive ? 'border-[var(--color-border-strong)]' : 'border-[var(--color-border)] opacity-40'
+                  }`}>
+                    {checked && <CheckCheck className="w-3 h-3 text-white" />}
+                  </div>
+                  {/* Qty */}
+                  <span className="font-mono text-lg font-black tabular-nums leading-none"
+                    style={{ color: 'var(--color-primary)' }}>
                     {item.quantity}×
                   </span>
-                  <span className="flex-1 font-display text-lg font-semibold leading-tight text-[var(--color-foreground)]">
+                  {/* Name */}
+                  <span className={`flex-1 font-semibold text-sm text-[var(--color-foreground)] item-name`}>
                     {item.foodItem?.name || 'Unknown Item'}
                   </span>
                 </button>
+                {/* Special instructions */}
                 {item.specialInstructions && (
-                  <div className="mt-2 flex items-start gap-2 rounded-lg border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-3 py-2 text-sm font-medium text-[var(--color-warning)]">
-                    <span className="mt-0.5">📝</span>
-                    <span className="flex-1">{item.specialInstructions}</span>
+                  <div className="mt-1.5 ml-10 flex items-start gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium"
+                    style={{ background: 'rgba(234,179,8,.1)', border: '1px solid rgba(234,179,8,.2)', color: '#fbbf24' }}>
+                    <span>📝</span>
+                    <span>{item.specialInstructions}</span>
                   </div>
                 )}
               </li>
@@ -126,63 +178,73 @@ export function OrderCard({ order, onStatusUpdate, onRecall, statusLoading, isCh
         </ul>
       </div>
 
-      <div className="flex gap-2 border-t border-[var(--color-border)] bg-black/20 p-3">
+      {/* Action buttons */}
+      <div className="flex gap-2 p-3" style={{ borderTop: '1px solid var(--color-border)', background: 'rgba(0,0,0,.2)' }}>
         {order.status === 'CANCELLED' ? (
-          <div className="w-full py-2 text-center text-base font-bold text-[var(--color-destructive)]">
-            ❌ Cancelled
+          <div className="w-full py-2 text-center text-sm font-bold" style={{ color: 'var(--color-destructive)' }}>
+            ❌ Order Cancelled
           </div>
-        ) : order.status === 'PLACED' ? (
+        ) : order.status === 'PLACED' || order.status === 'ACCEPTED' ? (
           <>
             <button
               onClick={() => onStatusUpdate(order.id, 'PREPARING')}
-              disabled={statusLoading === order.id}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] py-3 text-base font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-50"
+              disabled={isLoading}
+              className="kds-btn kds-btn-advance"
             >
-              {statusLoading === order.id ? <RefreshCw className="h-5 w-5 animate-spin" /> : <><CookingPot className="h-5 w-5" /> Start Preparing</>}
+              {isLoading
+                ? <RefreshCw className="w-4 h-4 animate-spin" />
+                : <><CookingPot className="w-4 h-4" /> Start Cooking</>}
             </button>
             <button
               onClick={() => onStatusUpdate(order.id, 'CANCELLED')}
-              disabled={statusLoading === order.id}
-              className="rounded-xl border border-[var(--color-destructive)]/40 px-4 text-[var(--color-destructive)] transition hover:bg-[var(--color-destructive)]/10 disabled:opacity-50"
+              disabled={isLoading}
+              className="kds-btn kds-btn-danger"
+              style={{ flex: '0 0 auto', padding: '0.5rem 0.75rem' }}
               title="Cancel Order"
             >
-              <X className="h-5 w-5" />
+              <X className="w-4 h-4" />
             </button>
           </>
         ) : order.status === 'PREPARING' ? (
           <>
             <button
               onClick={() => onStatusUpdate(order.id, 'READY')}
-              disabled={statusLoading === order.id}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--color-success)] py-3 text-base font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-50"
+              disabled={isLoading}
+              className="kds-btn kds-btn-ready"
             >
-              {statusLoading === order.id ? <RefreshCw className="h-5 w-5 animate-spin" /> : <><CheckCheck className="h-5 w-5" /> Mark Ready</>}
+              {isLoading
+                ? <RefreshCw className="w-4 h-4 animate-spin" />
+                : <><CheckCheck className="w-4 h-4" /> Mark Ready</>}
             </button>
             <button
               onClick={() => onStatusUpdate(order.id, 'CANCELLED')}
-              disabled={statusLoading === order.id}
-              className="rounded-xl border border-[var(--color-destructive)]/40 px-4 text-[var(--color-destructive)] transition hover:bg-[var(--color-destructive)]/10 disabled:opacity-50"
+              disabled={isLoading}
+              className="kds-btn kds-btn-danger"
+              style={{ flex: '0 0 auto', padding: '0.5rem 0.75rem' }}
               title="Cancel Order"
             >
-              <X className="h-5 w-5" />
+              <X className="w-4 h-4" />
             </button>
           </>
         ) : order.status === 'READY' ? (
           <>
             <button
               onClick={() => onStatusUpdate(order.id, 'COMPLETED')}
-              disabled={statusLoading === order.id}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--color-success)] py-3 text-base font-bold text-white shadow-lg transition hover:brightness-110 disabled:opacity-50"
+              disabled={isLoading}
+              className="kds-btn kds-btn-ready"
             >
-              {statusLoading === order.id ? <RefreshCw className="h-5 w-5 animate-spin" /> : <><CheckCheck className="h-5 w-5" /> Complete Order</>}
+              {isLoading
+                ? <RefreshCw className="w-4 h-4 animate-spin" />
+                : <><CheckCheck className="w-4 h-4" /> Complete</>}
             </button>
             <button
               onClick={() => onRecall(order)}
-              disabled={statusLoading === order.id}
-              className="rounded-xl border border-[var(--color-destructive)]/40 px-4 text-[var(--color-destructive)] transition hover:bg-[var(--color-destructive)]/10 disabled:opacity-50"
+              disabled={isLoading}
+              className="kds-btn kds-btn-danger"
+              style={{ flex: '0 0 auto', padding: '0.5rem 0.75rem' }}
               title="Recall to kitchen"
             >
-              <Undo2 className="h-5 w-5" />
+              <Undo2 className="w-4 h-4" />
             </button>
           </>
         ) : null}

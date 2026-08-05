@@ -1,252 +1,116 @@
-# 🚀 Production Deployment Guide — Radhna Cuisine Management System
+# 🚀 Low-Cost, Ultra-Fast Production Deployment Guide — Radhna Cuisine
 
-## Overview
-
-This guide covers deploying the full restaurant management system to production:
-- **Backend API**: NestJS + Prisma + PostgreSQL
-- **Customer Web App**: Next.js 16
-- **Admin Panel**: Vite + React
-- **Chief KDS**: Vite + React
-- **Database**: PostgreSQL
-- **Real-time**: WebSocket (Socket.io)
+This guide explains how to host the **Radhna Cuisine Restaurant System** for **~$3.50 – $5 / month** total with **0ms cold starts**, **100% WebSocket reliability for kitchen display**, and **maximum speed**.
 
 ---
 
-## 1. Prerequisites
+## Why Avoid Render Free Tier?
 
-### Required Accounts
-| Service | Purpose | Free Tier |
-|---------|---------|-----------|
-| [Railway](https://railway.app) | Backend + PostgreSQL hosting | $5 credit, no card? |
-| [Vercel](https://vercel.com) | Customer web app (Next.js) | ✓ Free |
-| [Netlify](https://netlify.com) | Admin + Chief (static) | ✓ Free |
-| [Supabase](https://supabase.com) | Alternative PostgreSQL | ✓ Free 500MB |
+| Feature | Render Free Tier | Recommended VPS ($3.50–$5/mo) |
+| :--- | :--- | :--- |
+| **Cold Starts** | ❌ 50s+ spin-down delay after 15m inactivity | ✅ **0ms delay (Always 24/7 active)** |
+| **WebSockets (KDS)** | ❌ Disconnects / drops real-time kitchen alerts | ✅ **Persistent non-stop Socket.io alerts** |
+| **CPU / Bandwidth** | ❌ Heavily throttled (0.1 vCPU) | ✅ **Full 2 vCPUs & Dedicated Memory** |
+| **Monthly Cost** | Free (Unusable for real restaurant) | **~$3.50 / month flat rate** |
 
-### Local Tools
+---
+
+## 🏆 OPTION 1: 1-Click VPS Deployment with Coolify (Recommended)
+
+[Coolify](https://coolify.io) is a **free, open-source self-hosted alternative to Vercel/Render** that runs on your VPS. It handles automatic Git pushes, free SSL certificates, domain management, and zero cold-start hosting.
+
+### Step 1: Get a cheap VPS
+Recommended VPS providers:
+- **Hetzner Cloud (CX22)**: ~€3.29/mo ($3.50/mo) — 2 vCPU, 4GB RAM (Best performance & reliability).
+- **AWS Lightsail**: $3.50 to $5/mo — 1 vCPU, 1–2GB RAM.
+- **DigitalOcean / Hostinger**: $4 to $6/mo.
+
+### Step 2: Install Coolify on VPS
+SSH into your VPS server and run the official 1-command installer:
 ```bash
-node >= 20
-npm >= 9
-docker >= 24  # optional, for local DB
+curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
 ```
+Once installed, open your browser and navigate to `http://YOUR_SERVER_IP:8000`.
+
+### Step 3: Add your GitHub Repository
+1. In Coolify dashboard, select **New Project** → **Public/Private GitHub Repository**.
+2. Connect this repository: `restaurant-management-system`.
+
+### Step 4: Deploy Components
+1. **Backend API**:
+   - Set Build Pack to **Dockerfile** (pointing to `services/backend-api/Dockerfile`).
+   - Port: `3000`.
+   - Domain: `https://api.yourdomain.com`.
+   - Add environment variables (`DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS`).
+2. **Customer Web (`apps/customer-web`)**:
+   - Framework: **Next.js**.
+   - Build command: `npm run build`.
+   - Set `NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api`.
+3. **Admin Web & Kitchen KDS**:
+   - Framework: **Vite / Static**.
+   - Set build command and publish directory `dist`.
 
 ---
 
-## 2. Environment Variables
+## 🛠️ OPTION 2: Self-Hosted Docker Compose + Caddy on VPS
 
-### Backend (`services/backend-api/.env`)
-```env
-# Required
-DATABASE_URL=postgresql://user:password@host:5432/restaurant_db
+If you prefer standard SSH & Docker without a web dashboard:
 
-# Required - generate a strong random key
-JWT_SECRET=$(openssl rand -base64 32)
-
-# Optional (with defaults)
-PORT=3000
-CORS_ORIGINS=https://your-domain.com,https://admin.your-domain.com
-CUSTOMER_APP_URL=https://your-domain.com
-```
-
-### Customer Web (`apps/customer-web/.env.local`)
-```env
-NEXT_PUBLIC_API_URL=https://api.your-domain.com/api
-```
-
-### Admin Web (`apps/admin-web/.env`)
-```env
-VITE_API_URL=https://api.your-domain.com/api
-```
-
-### Chief Web (`apps/chief-web/.env`)
-```env
-VITE_API_URL=https://api.your-domain.com/api
-VITE_WS_URL=https://api.your-domain.com
-```
-
----
-
-## 3. Database Setup (Supabase)
-
-### Option A: Supabase (Recommended)
-1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Go to **Project Settings → Database → Connection string**
-3. Copy the `psql` connection string (URI format)
-4. Set as `DATABASE_URL` in your backend env vars
-
-### Option B: Railway PostgreSQL
-1. Create a new project on Railway
-2. Add a **PostgreSQL** plugin
-3. Copy the `DATABASE_URL` from the plugin's **Connect** tab
-
-### Run Migrations
+### Step 1: Clone Repo on VPS
 ```bash
-# From your local machine:
+git clone https://github.com/your-username/restaurant-management-system.git
+cd restaurant-management-system
+```
+
+### Step 2: Create Production `.env`
+Create `.env` file in root directory:
+```env
+DATABASE_URL=postgresql://user:password@ep-shy-paper.aws.neon.tech/neondb?sslmode=require
+JWT_SECRET=super_secret_jwt_key_here
+JWT_REFRESH_SECRET=super_secret_refresh_key_here
+CORS_ORIGINS=https://app.yourdomain.com,https://admin.yourdomain.com,https://kitchen.yourdomain.com
+CUSTOMER_APP_URL=https://app.yourdomain.com
+```
+
+### Step 3: Update `Caddyfile` with your domain names
+Open [Caddyfile](file:///home/yash/Radhna/restaurant-management-system/Caddyfile) and replace example domains with your registered domain names.
+
+### Step 4: Run Docker Compose
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+Caddy will automatically provision SSL certificates for all your subdomains and proxy API/WebSockets.
+
+---
+
+## ⚡ OPTION 3: Hybrid Setup (VPS Backend + Free Vercel Frontends)
+
+1. Deploy **Backend API** to VPS using Option 1 or 2 to ensure continuous Socket.io connections.
+2. Deploy **Customer Web** on **Vercel**:
+   - Root directory: `apps/customer-web`
+   - Environment variable: `NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api`
+3. Deploy **Admin Panel** & **Kitchen Display** on **Cloudflare Pages / Netlify** (Free).
+
+---
+
+## 🔑 Post-Deployment Database Migrations & Seeding
+
+Run database migrations against your production database:
+```bash
 cd database
-DATABASE_URL="your-production-url" npx prisma migrate deploy
-
-# Seed the database (creates admin + chief users + sample data)
-DATABASE_URL="your-production-url" npx ts-node seed/index.ts
+DATABASE_URL="your_production_neon_or_vps_db_url" npx prisma migrate deploy
+DATABASE_URL="your_production_neon_or_vps_db_url" npx ts-node seed/index.ts
 ```
 
-**Default login credentials:**
-- Admin: `admin@restaurant.com` / `password123`
-- Chief: `chief@restaurant.com` / `password123`
+### Default Seed Credentials:
+- **Admin**: `admin@restaurant.com` / `password123`
+- **Chief**: `chief@restaurant.com` / `password123`
 
 ---
 
-## 4. Backend Deployment (Railway)
+## 🔐 Production Security Checklist
 
-1. **Create a Railway project** → **Deploy from GitHub**
-2. Select your repo and set the root directory to `services/backend-api`
-3. Add the environment variables from step 2
-4. Set the **Start Command**:
-   ```bash
-   npx prisma generate && node dist/main
-   ```
-5. Railway will auto-detect the `Dockerfile` or use the start command
-6. Once deployed, note your URL: `https://backend.up.railway.app`
-
----
-
-## 5. Customer Web App (Vercel)
-
-```bash
-# Option 1: Direct Vercel CLI
-cd apps/customer-web
-npx vercel --prod
-
-# Option 2: Vercel Dashboard
-# 1. Connect your GitHub repo
-# 2. Set root directory: apps/customer-web
-# 3. Add env var: NEXT_PUBLIC_API_URL
-# 4. Framework preset: Next.js
-```
-
----
-
-## 6. Admin & Chief (Netlify)
-
-```bash
-# For Admin Panel
-cd apps/admin-web
-npm run build
-# Deploy the dist/ folder to Netlify
-
-# For Chief KDS
-cd apps/chief-web
-npm run build
-# Deploy the dist/ folder to Netlify
-```
-
-### Netlify Settings (same for both):
-- **Build command**: `npm run build`
-- **Publish directory**: `dist`
-- **Environment variables**: Add `VITE_API_URL` and `VITE_WS_URL`
-
----
-
-## 7. Docker Compose (Self-Hosted)
-
-If you prefer self-hosting with a VPS:
-
-```yaml
-version: '3.8'
-
-services:
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: restaurant_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: always
-
-  backend:
-    build: ./services/backend-api
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/restaurant_db
-      JWT_SECRET: ${JWT_SECRET}
-      CORS_ORIGINS: https://admin.your-domain.com,https://chief.your-domain.com
-    depends_on:
-      - postgres
-    restart: always
-
-volumes:
-  postgres_data:
-```
-
-Then build and run:
-```bash
-docker compose up -d --build
-```
-
----
-
-## 8. Post-Deployment Verification Checklist
-
-| Check | How |
-|-------|-----|
-| ✅ Database accessible | `curl https://api.domain.com/api` → `Hello World!` |
-| ✅ Auth working | `curl -X POST https://api.domain.com/api/auth/login -d '{"email":"admin@restaurant.com","password":"password123"}'` → token |
-| ✅ Menu public | `curl https://api.domain.com/api/menu/categories` → JSON array |
-| ✅ Admin panel loads | Visit admin URL → Login page renders |
-| ✅ Chief KDS loads | Visit chief URL → Login page renders |
-| ✅ Customer menu loads | Visit customer URL → Menu with items renders |
-| ✅ Order placement | Add item to cart, enter table number, place order → 200 |
-| ✅ Order tracking | After placing, click "Track Order" → Status page loads |
-| ✅ WebSocket secured | Connecting without JWT token should be rejected |
-| ✅ CORS configured | Admin/chief/customer can all reach backend API |
-
----
-
-## 9. Security Hardening (Before Production)
-
-- [ ] **Change `password123`** — Delete the seed users and create real ones
-- [ ] **Generate strong `JWT_SECRET`** — `openssl rand -base64 64`
-- [ ] **Restrict CORS origins** — Only your actual domains
-- [ ] **Enable HTTPS** — Railway/Vercel/Netlify provide this automatically
-- [ ] **Set up database backups** — Supabase has point-in-time recovery
-- [ ] **Add rate limiting** — Use `@nestjs/throttler`
-- [ ] **Restrict WebSocket CORS** — Update `origin` in gateway
-
----
-
-## 10. Monitoring & Maintenance
-
-### Logs
-```bash
-# Railway
-railway logs
-
-# Self-hosted Docker
-docker logs restaurant-backend -f
-```
-
-### Database Backups
-```bash
-# Supabase: Automatic (Settings → Database → Backups)
-# Self-hosted:
-docker exec restaurant_postgres pg_dump -U postgres restaurant_db > backup.sql
-```
-
-### Health Check
-The backend exposes `GET /api` which returns `Hello World!` — use this for uptime monitoring.
-
----
-
-## Quick Start (Development)
-
-```bash
-# 1. Start infrastructure
-npm run docker:up
-
-# 2. Setup database
-npm run db:setup
-
-# 3. Run all 4 apps
-npm run dev
-```
+- [ ] Update `JWT_SECRET` using `openssl rand -base64 48`
+- [ ] Change default admin/chief seed passwords
+- [ ] Verify CORS origins in `services/backend-api/.env`
+- [ ] Ensure Socket.io WebSocket connections connect securely via `wss://`

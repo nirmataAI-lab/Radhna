@@ -39,8 +39,6 @@ export const useCartStore = create<CartState>()(
         } else {
           set({ items: [...items, { ...item, quantity: 1 }] });
         }
-        // Auto open cart when adding
-        set({ isOpen: true });
       },
       removeItem: (itemId) => {
         set({ items: get().items.filter((i) => i.id !== itemId) });

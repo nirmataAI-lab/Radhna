@@ -370,6 +370,11 @@ export interface StaffMember {
   updatedAt: string;
 }
 
+export async function fetchCustomers(): Promise<any[]> {
+  const res = await fetch(`${API_URL}/users/customers`, { headers: authHeaders() });
+  return handleResponse(res);
+}
+
 export async function fetchStaff(): Promise<StaffMember[]> {
   const res = await fetch(`${API_URL}/users/staff`, { headers: authHeaders() });
   return handleResponse(res);

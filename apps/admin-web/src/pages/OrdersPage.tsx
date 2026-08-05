@@ -1,20 +1,16 @@
 import { useState, useCallback, useEffect } from 'react';
-import { RefreshCcw, Download, ChefHat, X, CheckSquare, Square, ListOrdered } from 'lucide-react';
+import { RefreshCcw, Download, ChefHat, X, CheckSquare, Square, ListOrdered, CheckCircle2, Clock, CookingPot, Truck, XCircle } from 'lucide-react';
 import { fetchAllOrders, updateOrderStatus, updateOrderPaymentStatus } from '../api';
 import type { Order } from '../api';
 import { exportRowsAsCSV } from '../lib/csv';
-import { 
-  Card, Button, Badge,
-  Table, TableHeader, TableRow, TableHead, TableBody, TableCell 
-} from 'ui-components';
 
-const STATUS_COLORS: Record<string, "default" | "secondary" | "destructive" | "outline" | "success" | "warning"> = {
-  PLACED: 'default',
-  ACCEPTED: 'secondary',
-  PREPARING: 'warning',
-  READY: 'success',
-  COMPLETED: 'outline',
-  CANCELLED: 'destructive',
+const STATUS_ICONS: Record<string, React.FC<{ className?: string }>> = {
+  PLACED: Clock,
+  ACCEPTED: CheckCircle2,
+  PREPARING: CookingPot,
+  READY: Truck,
+  COMPLETED: CheckCircle2,
+  CANCELLED: XCircle,
 };
 
 export function OrdersPage() {
@@ -30,7 +26,6 @@ export function OrdersPage() {
     setLoadError(null);
     try {
       const result = await fetchAllOrders(statusFilter || undefined);
-      // fetchAllOrders returns a paginated wrapper { data, meta } — unwrap it
       const rows = Array.isArray(result) ? result : (result as any)?.data ?? [];
       setOrders(rows);
       setSelected(new Set());
@@ -60,8 +55,6 @@ export function OrdersPage() {
     });
   };
 
-
-
   const bulkUpdatePayment = async (status: 'PAID') => {
     if (selected.size === 0) return;
     setBulkBusy(true);
@@ -72,28 +65,40 @@ export function OrdersPage() {
   };
 
   return (
-    <div className="animate-in fade-in duration-300">
-      <header className="flex justify-between items-center mb-8">
+    <div className="animate-fade-in p-2">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Orders Management</h2>
-          <p className="text-[var(--color-muted-foreground)] text-sm mt-1">View and manage all orders</p>
+          <h2 className="text-3xl font-black tracking-tight" style={{ color: 'var(--foreground)' }}>Orders Management</h2>
+          <p className="text-sm font-medium mt-1" style={{ color: 'var(--muted-foreground)' }}>Monitor and manage live restaurant orders</p>
         </div>
-        <div className="flex gap-2">
-          <select 
-            value={statusFilter} 
-            onChange={(e: any) => setStatusFilter(e.target.value)}
-            className="h-9 px-3 py-1 text-sm rounded-md border border-[var(--color-border)] bg-[var(--color-background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
-          >
-            <option value="">All Statuses</option>
-            <option value="PLACED">Placed</option>
-            <option value="PREPARING">Preparing</option>
-            <option value="READY">Ready</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <select 
+              value={statusFilter} 
+              onChange={(e: any) => setStatusFilter(e.target.value)}
+              className="h-10 pl-4 pr-10 py-2 text-sm font-semibold rounded-xl appearance-none outline-none transition-all focus:ring-2"
+              style={{
+                background: 'var(--card)',
+                border: '1px solid var(--border)',
+                color: 'var(--foreground)',
+                '--tw-ring-color': 'color-mix(in srgb, var(--primary) 30%, transparent)'
+              } as any}
+            >
+              <option value="">All Statuses</option>
+              <option value="PLACED">Placed</option>
+              <option value="PREPARING">Preparing</option>
+              <option value="READY">Ready</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <button
             onClick={() => exportRowsAsCSV(`orders-${new Date().toISOString().slice(0,10)}`, orders, [
               { key: 'id', label: 'Order ID' },
               { key: 'createdAt', label: 'Created', format: (v) => new Date(v).toISOString() },
@@ -107,119 +112,181 @@ export function OrdersPage() {
               { key: 'total', label: 'Total' },
             ])}
             disabled={orders.length === 0}
-            title="Export as CSV"
+            className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--muted)]"
+            style={{ border: '1px solid var(--border)', color: 'var(--foreground)' }}
           >
-            <Download className="w-4 h-4 mr-2" /> Export
-          </Button>
-          <Button onClick={load} isLoading={loading} variant="outline" size="icon">
-            <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
+            <Download className="w-4 h-4" /> Export CSV
+          </button>
+          
+          <button onClick={load} disabled={loading}
+            className="flex items-center justify-center w-10 h-10 rounded-xl transition-all hover:bg-[var(--muted)] disabled:opacity-50"
+            style={{ border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+            <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin text-[var(--primary)]' : ''}`} />
+          </button>
         </div>
       </header>
 
-      {selected.size > 0 && (
-        <Card className="mb-4 bg-[var(--color-primary)]/5 border-[var(--color-primary)]/30">
-          <div className="px-4 py-3 flex items-center justify-between">
-            <div className="text-sm font-medium">
-              {selected.size} selected
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button disabled={bulkBusy} onClick={() => bulkUpdatePayment('PAID')} size="sm" variant="outline" className="border-emerald-500 text-emerald-600 hover:bg-emerald-500/10">
-                <CheckSquare className="w-3.5 h-3.5 mr-1.5" /> Mark Paid
-              </Button>
-              <Button disabled={bulkBusy} onClick={() => setSelected(new Set())} size="sm" variant="ghost">
-                Clear
-              </Button>
-            </div>
+      {/* Bulk actions bar */}
+      <div className={`transition-all duration-300 overflow-hidden ${selected.size > 0 ? 'max-h-20 mb-6 opacity-100' : 'max-h-0 mb-0 opacity-0'}`}>
+        <div className="px-5 py-3 rounded-2xl flex items-center justify-between"
+          style={{ background: 'color-mix(in srgb, var(--primary) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--primary) 20%, transparent)' }}>
+          <div className="flex items-center gap-3">
+            <span className="w-6 h-6 rounded-md grid place-items-center text-xs font-bold text-white shadow-sm bg-[var(--primary)]">
+              {selected.size}
+            </span>
+            <span className="font-semibold text-sm" style={{ color: 'var(--primary)' }}>Orders Selected</span>
           </div>
-        </Card>
-      )}
+          <div className="flex gap-2">
+            <button disabled={bulkBusy} onClick={() => bulkUpdatePayment('PAID')}
+              className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-bold transition-all hover:opacity-90 disabled:opacity-50 shadow-sm"
+              style={{ background: '#10b981', color: 'white' }}>
+              <CheckSquare className="w-3.5 h-3.5" /> Mark Paid
+            </button>
+            <button disabled={bulkBusy} onClick={() => setSelected(new Set())}
+              className="h-8 px-3 rounded-lg text-xs font-bold transition-all hover:bg-black/5 dark:hover:bg-white/5"
+              style={{ color: 'var(--foreground)' }}>
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
 
       {loadError && (
-        <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg text-sm text-red-700 dark:text-red-300">
-          {loadError}
+        <div className="mb-6 p-4 rounded-xl text-sm font-semibold flex items-center gap-2"
+          style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.2)', color: '#ef4444' }}>
+          <XCircle className="w-4 h-4" /> {loadError}
         </div>
       )}
 
-      <Card className="overflow-hidden">
+      {/* Table Card */}
+      <div className="card-premium overflow-hidden">
         {orders.length === 0 ? (
-          <div className="p-16 text-center text-[var(--color-muted-foreground)]">
-            <ListOrdered className="w-12 h-12 mx-auto mb-4 opacity-30" />
-            <p className="text-lg font-medium">No orders found</p>
+          <div className="p-20 text-center flex flex-col items-center justify-center">
+            <div className="w-20 h-20 rounded-full grid place-items-center mb-5 opacity-40"
+              style={{ background: 'var(--muted)' }}>
+              <ListOrdered className="w-10 h-10" style={{ color: 'var(--muted-foreground)' }} />
+            </div>
+            <p className="text-xl font-bold mb-1" style={{ color: 'var(--foreground)' }}>No orders found</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>Try adjusting your status filter or wait for new orders.</p>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <button onClick={toggleAll} disabled={selectableIds.length === 0}
-                    className="p-0.5 rounded hover:bg-[var(--color-border)] disabled:opacity-30 flex items-center justify-center" title="Select all active">
-                    {allSelected ? <CheckSquare className="w-4 h-4 text-[var(--color-primary)]" /> : <Square className="w-4 h-4" />}
-                  </button>
-                </TableHead>
-                <TableHead>Order</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order) => {
-                const selectable = order.status !== 'CANCELLED';
-                const isSel = selected.has(order.id);
-                return (
-                <TableRow key={order.id} data-state={isSel ? 'selected' : undefined}>
-                  <TableCell>
-                    <button onClick={() => selectable && toggleOne(order.id)} disabled={!selectable}
-                      className="p-0.5 rounded hover:bg-[var(--color-border)] disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center">
-                      {isSel ? <CheckSquare className="w-4 h-4 text-[var(--color-primary)]" /> : <Square className="w-4 h-4" />}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr>
+                  <th className="py-4 px-4 border-b w-12" style={{ borderColor: 'var(--border)' }}>
+                    <button onClick={toggleAll} disabled={selectableIds.length === 0}
+                      className="p-1 rounded-md transition-colors hover:bg-[var(--muted)] disabled:opacity-30">
+                      {allSelected ? <CheckSquare className="w-5 h-5 text-[var(--primary)]" /> : <Square className="w-5 h-5 text-[var(--muted-foreground)]" />}
                     </button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-mono text-xs">{order.id.slice(0, 8)}...</div>
-                  </TableCell>
-                  <TableCell>{order.customer?.name || order.customer?.email || '—'}</TableCell>
-                  <TableCell>{order.orderItems?.length || 0} items</TableCell>
-                  <TableCell className="font-medium">₹{Number(order.total).toFixed(2)}</TableCell>
-                  <TableCell>
-                    <Badge variant={order.paymentStatus === 'PAID' ? 'success' : 'warning'}>
-                      {order.paymentStatus}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={STATUS_COLORS[order.status] || 'default'}>
-                      {order.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-[var(--color-muted-foreground)] text-xs">
-                    {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      {(order.status === 'PLACED') && (
-                        <button onClick={() => updateOrderStatus(order.id, 'PREPARING').then(load)}
-                          className="p-1.5 rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors" title="Start Preparing">
-                          <ChefHat className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      {order.status !== 'COMPLETED' && order.status !== 'CANCELLED' && (
-                        <button onClick={() => updateOrderStatus(order.id, 'CANCELLED').then(load)}
-                          className="p-1.5 rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Cancel">
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );})}
-            </TableBody>
-          </Table>
+                  </th>
+                  <th className="py-4 px-4 border-b font-bold text-xs uppercase tracking-wider" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>Order ID</th>
+                  <th className="py-4 px-4 border-b font-bold text-xs uppercase tracking-wider" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>Customer</th>
+                  <th className="py-4 px-4 border-b font-bold text-xs uppercase tracking-wider" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>Items</th>
+                  <th className="py-4 px-4 border-b font-bold text-xs uppercase tracking-wider" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>Amount</th>
+                  <th className="py-4 px-4 border-b font-bold text-xs uppercase tracking-wider" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>Payment</th>
+                  <th className="py-4 px-4 border-b font-bold text-xs uppercase tracking-wider" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>Status</th>
+                  <th className="py-4 px-4 border-b font-bold text-xs uppercase tracking-wider" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>Time</th>
+                  <th className="py-4 px-4 border-b font-bold text-xs uppercase tracking-wider text-right" style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((order) => {
+                  const selectable = order.status !== 'CANCELLED';
+                  const isSel = selected.has(order.id);
+                  const StatusIcon = STATUS_ICONS[order.status] || CheckCircle2;
+                  
+                  return (
+                  <tr key={order.id} 
+                    className={`transition-colors group ${isSel ? 'bg-[var(--muted)]' : 'hover:bg-[var(--muted)]/50'}`}>
+                    <td className="py-3 px-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                      <button onClick={() => selectable && toggleOne(order.id)} disabled={!selectable}
+                        className="p-1 rounded-md transition-colors hover:bg-[var(--muted)] disabled:opacity-20 disabled:cursor-not-allowed">
+                        {isSel ? <CheckSquare className="w-5 h-5 text-[var(--primary)]" /> : <Square className="w-5 h-5 text-[var(--muted-foreground)]" />}
+                      </button>
+                    </td>
+                    <td className="py-3 px-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                      <span className="font-mono text-xs font-bold px-2 py-1 rounded-md"
+                        style={{ background: 'var(--muted)', color: 'var(--foreground)' }}>
+                        {order.id.slice(0, 8)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                      <div className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>
+                        {order.customer?.name || 'Walk-in'}
+                      </div>
+                      <div className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                        {order.customer?.email || 'No email'}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                      <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+                        {order.orderItems?.length || 0}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                      <span className="text-sm font-black" style={{ color: 'var(--foreground)' }}>
+                        ₹{Number(order.total).toFixed(0)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                      <div className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase"
+                        style={{
+                          background: order.paymentStatus === 'PAID' ? 'rgba(16,185,129,.1)' : order.paymentStatus === 'FAILED' ? 'rgba(239,68,68,.1)' : 'var(--muted)',
+                          color: order.paymentStatus === 'PAID' ? '#10b981' : order.paymentStatus === 'FAILED' ? '#ef4444' : 'var(--muted-foreground)'
+                        }}>
+                        {order.status === 'CANCELLED' && order.paymentStatus === 'PENDING' ? 'CANCELLED' : order.paymentStatus}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase ${
+                        order.status === 'READY' ? 'animate-pulse' : ''
+                      }`}
+                        style={{
+                          background: order.status === 'CANCELLED' ? 'rgba(239,68,68,.1)' : order.status === 'COMPLETED' ? 'var(--muted)' : 'color-mix(in srgb, var(--primary) 12%, transparent)',
+                          color: order.status === 'CANCELLED' ? '#ef4444' : order.status === 'COMPLETED' ? 'var(--muted-foreground)' : 'var(--primary)',
+                          border: order.status === 'CANCELLED' ? '1px solid rgba(239,68,68,.2)' : order.status === 'COMPLETED' ? '1px solid var(--border)' : '1px solid color-mix(in srgb, var(--primary) 25%, transparent)',
+                        }}>
+                        <StatusIcon className="w-3.5 h-3.5" />
+                        {order.status}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                      <div className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
+                        {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 border-b text-right" style={{ borderColor: 'var(--border)' }}>
+                      <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {(order.status === 'PLACED') && (
+                          <button onClick={() => updateOrderStatus(order.id, 'PREPARING').then(load)}
+                            className="p-1.5 rounded-lg text-white hover:scale-110 transition-transform shadow-sm"
+                            style={{ background: '#3b82f6' }} title="Start Preparing">
+                            <ChefHat className="w-4 h-4" />
+                          </button>
+                        )}
+                        {(order.status === 'READY') && (
+                          <button onClick={() => updateOrderStatus(order.id, 'COMPLETED').then(load)}
+                            className="p-1.5 rounded-lg text-white hover:scale-110 transition-transform shadow-sm"
+                            style={{ background: '#10b981' }} title="Mark Completed">
+                            <CheckCircle2 className="w-4 h-4" />
+                          </button>
+                        )}
+                        {order.status !== 'COMPLETED' && order.status !== 'CANCELLED' && (
+                          <button onClick={() => updateOrderStatus(order.id, 'CANCELLED').then(load)}
+                            className="p-1.5 rounded-lg hover:bg-red-100 text-red-600 transition-colors" title="Cancel">
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );})}
+              </tbody>
+            </table>
+          </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }
