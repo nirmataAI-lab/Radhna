@@ -17,7 +17,7 @@
     "test:watch": "bun test --watch",
     "test:cov": "bun test --coverage",
     "test:debug": "bun test",
-    "test:e2e": "bun test ./test"
+    "test:e2e": "bun test ./test/*.ts"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.4",
