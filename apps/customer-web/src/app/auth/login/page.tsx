@@ -132,11 +132,7 @@ export default function AuthPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            <Link href="/menu" className="hover:text-primary transition-colors font-medium">
-              Continue as Guest →
-            </Link>
-          </p>
+
         </div>
       </div>
     </div>

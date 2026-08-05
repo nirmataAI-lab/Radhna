@@ -103,7 +103,7 @@ export default async function Home() {
 
       {/* ─── Features ──────────────────────────────────────────────── */}
       <section className="px-4 py-20 relative z-10" style={{ background: 'var(--muted)' }}>
-        <div className="container mx-auto max-w-5xl">
+        <div className="w-full mx-auto max-w-5xl">
           <div className="text-center mb-14">
             <div className="section-label mx-auto mb-4">
               <Zap className="w-3.5 h-3.5" /> Why Choose Us
@@ -158,7 +158,7 @@ export default async function Home() {
               style={{ background: 'radial-gradient(circle, var(--primary), transparent 70%)' }} />
           </div>
 
-          <div className="container mx-auto max-w-6xl relative z-10">
+          <div className="w-full mx-auto max-w-6xl relative z-10">
             <div className="flex items-end justify-between mb-12">
               <div>
                 <div className="section-label mb-3">
@@ -242,7 +242,7 @@ export default async function Home() {
           <div className="absolute inset-0 opacity-30"
             style={{ background: 'linear-gradient(135deg, rgba(249,115,22,.06) 0%, transparent 50%, rgba(236,72,153,.04) 100%)' }} />
         </div>
-        <div className="container mx-auto max-w-3xl text-center relative z-10">
+        <div className="w-full mx-auto max-w-3xl text-center relative z-10">
           <h2 className="font-display font-bold text-3xl md:text-4xl mb-4" style={{ color: 'var(--foreground)' }}>
             Ready to eat something <span className="text-gradient">amazing?</span>
           </h2>
@@ -257,7 +257,7 @@ export default async function Home() {
 
       {/* Footer */}
       <footer className="px-4 py-8" style={{ borderTop: '1px solid var(--border)' }}>
-        <div className="container mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="w-full mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg grid place-items-center"
               style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}>
