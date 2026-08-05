@@ -16,23 +16,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          bun-version: latest
       - name: Install workspace dependencies
-        run: npm ci --no-audit --no-fund
+        run: bun install
       - name: Generate Prisma client
         working-directory: database
-        run: npx prisma generate
+        run: bunx prisma generate
         env:
           DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/restaurant_db
       - name: Typecheck
         working-directory: services/backend-api
-        run: npx tsc --noEmit --project tsconfig.json
+        run: bunx tsc --noEmit --project tsconfig.json
       - name: Unit tests
         working-directory: services/backend-api
-        run: npx jest --no-coverage --passWithNoTests
+        run: bunx jest --no-coverage --passWithNoTests
         env:
           DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/restaurant_db
           JWT_SECRET: test-secret
@@ -44,14 +43,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - run: npm ci --no-audit --no-fund
+          bun-version: latest
+      - run: bun install
       - name: Build (typechecks via tsc -b)
         working-directory: apps/customer-web
-        run: npm run build
+        run: bun run build
 
   # ─── Admin Web (Vite + React) ────────────────────────────
   admin-web:
@@ -59,14 +57,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - run: npm ci --no-audit --no-fund
+          bun-version: latest
+      - run: bun install
       - name: Build (typechecks via tsc -b)
         working-directory: apps/admin-web
-        run: npm run build
+        run: bun run build
 
   # ─── Chief Web (Vite + React) ────────────────────────────
   chief-web:
@@ -74,14 +71,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - run: npm ci --no-audit --no-fund
+          bun-version: latest
+      - run: bun install
       - name: Build (typechecks via tsc -b)
         working-directory: apps/chief-web
-        run: npm run build
+        run: bun run build
 
   # ─── E2E Tests (requires PostgreSQL) ─────────────────────
   e2e:
@@ -103,22 +99,21 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - run: npm ci --no-audit --no-fund
+          bun-version: latest
+      - run: bun install
       - name: Generate Prisma client
         working-directory: database
-        run: npx prisma generate
+        run: bunx prisma generate
       - name: Apply migrations
         working-directory: database
-        run: npx prisma migrate deploy
+        run: bunx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/restaurant_db
       - name: E2E tests
         working-directory: services/backend-api
-        run: npm run test:e2e -- --passWithNoTests
+        run: bun run test:e2e --passWithNoTests
         env:
           DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/restaurant_db
           JWT_SECRET: test-secret
