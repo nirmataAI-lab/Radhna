@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Package, Save, RefreshCw, AlertTriangle, CheckCircle2, Search } from 'lucide-react';
-import { fetchStock, setItemStock, type StockRow } from '../stockApi';
+import { fetchStock, setItemStock, setBulkStock, type StockRow } from '../stockApi';
 
 export function PrepStockTab() {
   const [rows, setRows] = useState<StockRow[]>([]);
@@ -94,6 +94,19 @@ export function PrepStockTab() {
     return q > 0 && q <= 5;
   }).length;
 
+  const refillAll = async (qty: number) => {
+    if (!confirm(`Are you sure you want to refill ALL items to ${qty}?`)) return;
+    setLoading(true);
+    setError('');
+    try {
+      await setBulkStock(qty);
+      await load();
+    } catch (e: any) {
+      setError(e.message || 'Failed to refill bulk stock');
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--color-border)] pb-4">
@@ -116,6 +129,29 @@ export function PrepStockTab() {
               <AlertTriangle className="h-3.5 w-3.5" /> {lowStockCount} low
             </span>
           )}
+          
+          <div className="flex items-center bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] overflow-hidden">
+            <span className="px-3 py-2 text-sm font-medium text-[var(--color-muted-foreground)] bg-[var(--color-muted)]/50 border-r border-[var(--color-border)]">
+              Refill All:
+            </span>
+            <select
+              onChange={(e) => {
+                if (e.target.value) {
+                  refillAll(Number(e.target.value));
+                  e.target.value = '';
+                }
+              }}
+              className="bg-transparent px-3 py-2 text-sm font-bold outline-none cursor-pointer hover:bg-[var(--color-muted)] appearance-none"
+              defaultValue=""
+            >
+              <option value="" disabled>Select</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+
           <button
             onClick={load}
             className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-muted-foreground)] transition hover:bg-[var(--color-muted)] hover:text-[var(--color-foreground)]"

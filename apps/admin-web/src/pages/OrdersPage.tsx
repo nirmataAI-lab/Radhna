@@ -208,7 +208,7 @@ export function OrdersPage() {
                     <td className="py-3 px-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
                       <span className="font-mono text-xs font-bold px-2 py-1 rounded-md"
                         style={{ background: 'var(--color-muted)', color: 'var(--color-foreground)' }}>
-                        {order.id.slice(0, 8)}
+                        #{parseInt(order.id.slice(-4), 16) % 9000 + 1000}
                       </span>
                     </td>
                     <td className="py-3 px-4 border-b" style={{ borderColor: 'var(--color-border)' }}>

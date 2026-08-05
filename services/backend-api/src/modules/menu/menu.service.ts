@@ -207,6 +207,47 @@ export class MenuService {
     });
   }
 
+  async bulkSetStock(availableQty: number, updatedBy?: string) {
+    if (!Number.isInteger(availableQty) || availableQty < 0) {
+      throw new BadRequestException('availableQty must be a non-negative integer');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const foodItems = await tx.foodItem.findMany({
+        where: { isEnabled: true },
+        select: { id: true }
+      });
+      
+      const ids = foodItems.map(f => f.id);
+      if (ids.length === 0) return { count: 0 };
+      
+      await tx.productionStock.updateMany({
+        where: { foodItemId: { in: ids } },
+        data: { availableQty, updatedBy },
+      });
+      
+      const existingStocks = await tx.productionStock.findMany({
+        where: { foodItemId: { in: ids } },
+        select: { foodItemId: true }
+      });
+      
+      const existingIds = new Set(existingStocks.map(s => s.foodItemId));
+      const missingIds = ids.filter(id => !existingIds.has(id));
+      
+      if (missingIds.length > 0) {
+        await tx.productionStock.createMany({
+          data: missingIds.map(id => ({
+            foodItemId: id,
+            availableQty,
+            updatedBy
+          }))
+        });
+      }
+      
+      return { count: ids.length };
+    });
+  }
+
   async setStock(id: string, availableQty: number, updatedBy?: string) {
     if (!Number.isInteger(availableQty) || availableQty < 0) {
       throw new BadRequestException(

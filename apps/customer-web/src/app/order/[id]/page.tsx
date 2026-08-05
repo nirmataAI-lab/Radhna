@@ -220,7 +220,7 @@ export default function OrderTrackingPage() {
     ?.map((oi) => ({ id: oi.foodItem?.id || '', name: oi.foodItem?.name || 'Item' }))
     .filter((i) => i.id) || [];
 
-  const tokenNumber = order ? `#${order.id.slice(0, 6).toUpperCase()}` : '';
+  const tokenNumber = order ? `#${parseInt(order.id.slice(-4), 16) % 9000 + 1000}` : '';
 
   return (
     <main className="min-h-screen flex flex-col bg-muted/30">

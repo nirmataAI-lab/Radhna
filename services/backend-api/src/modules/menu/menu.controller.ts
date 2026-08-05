@@ -196,6 +196,20 @@ export class MenuController {
     return this.menuService.listStock();
   }
 
+  @Patch('stock/bulk')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN, Role.CHIEF)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Refill all production stock to a specific amount',
+  })
+  bulkSetStock(
+    @Body() body: { availableQty: number },
+    @Req() req: any,
+  ) {
+    return this.menuService.bulkSetStock(body.availableQty, req.user?.userId);
+  }
+
   @Patch('items/:id/stock')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SUPER_ADMIN, Role.CHIEF)

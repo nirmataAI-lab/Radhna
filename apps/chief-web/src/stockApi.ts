@@ -33,3 +33,16 @@ export async function setItemStock(id: string, availableQty: number) {
   }
   return res.json();
 }
+
+export async function setBulkStock(availableQty: number) {
+  const res = await fetch(`${API_URL}/menu/stock/bulk`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ availableQty }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.message || 'Failed to update bulk stock');
+  }
+  return res.json();
+}
